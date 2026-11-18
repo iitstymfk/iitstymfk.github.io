@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>@thiccbearcurry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=M+PLUS+Rounded+1c:wght@400;700;800&family=Creepster&family=Bangers&family=Russo+One&family=Anton&family=Dela+Gothic+One&family=Cinzel+Decorative:wght@700&family=Marcellus&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   thiccbearcurry — bio page with switchable themes.
+   Everything you'd want to change is in CONFIG near the bottom.
+   ===================================================================== */
+:root{
+  --accent:#ff7eb6; --accent2:#9d8bff;
+  --text:#f6f0ff; --muted:#c9b8dc;
+  --card:rgba(30,18,48,.45); --line:rgba(255,190,225,.18);
+  --icon:#f2eefc;
+  --title:'Mochiy Pop One',sans-serif;
+  --grad:linear-gradient(90deg,#fff,#ffc4e1,#c9b8ff,#fff);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;color:var(--text);font-family:'M PLUS Rounded 1c',sans-serif;overflow:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+#bgCanvas,#bgVideo,#bgImage{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+#bgVideo,#bgImage{display:none;filter:brightness(.7)}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.6) 100%)}
+
+/* ---------- splash ---------- */
+#splash{position:fixed;inset:0;z-index:50;display:grid;place-items:center;cursor:pointer;
+  background:rgba(5,3,12,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:opacity .9s ease,visibility .9s;text-align:center}
+#splash.gone{opacity:0;visibility:hidden}
+#splashText{font-family:var(--title);font-size:clamp(24px,5vw,40px);letter-spacing:1px;
+  text-shadow:0 0 14px var(--accent);animation:breathe 2.4s ease-in-out infinite;display:block}
+#splash small{display:block;font-size:12px;color:var(--muted);margin-top:8px;letter-spacing:4px}
+@keyframes breathe{50%{opacity:.45;transform:scale(.97)}}
+
+/* ---------- layout ---------- */
+#stage{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
+  padding:20px;perspective:1100px;overflow-y:auto}
+#profile{width:min(640px,100%);transform-style:preserve-3d;opacity:0;transform:translateY(30px) scale(.97)}
+#profile.show{opacity:1;transform:none;transition:opacity 1.1s ease,transform 1.1s cubic-bezier(.2,.8,.2,1)}
+#profile.tilting{transition:transform .15s ease-out}
+
+.nameRow{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:4px}
+.orn{width:42px;height:42px;flex:0 0 42px;filter:drop-shadow(0 0 8px var(--accent))}
+.orn svg{width:100%;height:100%;display:block}
+.a-spin{animation:spin 6s linear infinite}.a-spin.r{animation-direction:reverse}
+.a-flip{animation:flip 3s ease-in-out infinite}.a-flip.r{animation-delay:-1.5s}
+.a-sway{animation:sway 2.2s ease-in-out infinite;transform-origin:50% 90%}.a-sway.r{animation-delay:-1.1s}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flip{to{transform:rotateY(360deg)}}
+@keyframes sway{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.12)}}
+
+h1{font-family:var(--title);font-weight:400;font-size:clamp(38px,9vw,66px);line-height:1.05;letter-spacing:1px;
+  background:var(--grad);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shine 6s linear infinite;filter:drop-shadow(0 0 10px var(--accent))}
+@keyframes shine{to{background-position:300% 0}}
+.jp{display:block;text-align:center;font-size:12px;letter-spacing:6px;color:var(--accent);opacity:.9;margin-bottom:6px}
+.bio{text-align:center;min-height:24px;color:var(--muted);font-size:14px;margin-bottom:22px}
+.bio .cur{display:inline-block;width:8px;background:var(--text);margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---------- cards ---------- */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;gap:12px;align-items:center;
+  position:relative;overflow:hidden;min-height:86px;transition:border-color .3s,box-shadow .3s,transform .3s}
+.card:hover{border-color:var(--accent);box-shadow:0 0 24px color-mix(in srgb,var(--accent) 30%,transparent)}
+.card .tag{position:absolute;top:8px;right:12px;font-size:10px;color:var(--muted);opacity:.8;display:flex;gap:4px;align-items:center}
+.av{position:relative;flex:0 0 56px;height:56px}
+.av img,.av svg{width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;border:2px solid var(--accent)}
+.av::before{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px dashed var(--accent);opacity:.55;animation:spin 12s linear infinite}
+.dot{position:absolute;right:0;bottom:0;width:15px;height:15px;border-radius:50%;border:3px solid #0b0910;background:#747f8d}
+.dot.online{background:#23a55a}.dot.idle{background:#f0b232}.dot.dnd{background:#f23f43}
+.cinfo{min-width:0}
+.cname{font-family:var(--title);font-size:17px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.csub{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.counts{display:flex;gap:10px;font-size:11px;color:var(--muted);margin-top:4px}
+.counts i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:1px}
+.join{display:inline-block;margin-top:6px;background:#23a55a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:6px}
+.join:hover{filter:brightness(1.2)}
+.sicon{flex:0 0 56px;height:56px;border-radius:16px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));overflow:hidden}
+.sicon img{width:100%;height:100%;object-fit:cover}
+.sicon svg{width:36px;height:36px}
+
+/* ---------- socials ---------- */
+.socials{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.socials .x{width:18px;height:18px;display:inline-block}
+.socials .x svg{width:100%;height:100%}
+.soc{width:38px;height:38px;display:grid;place-items:center;position:relative;transition:transform .25s}
+.soc svg{width:30px;height:30px;fill:var(--icon);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--accent) 60%,transparent))}
+.soc:hover{transform:translateY(-4px) scale(1.12)}
+.soc:hover svg{filter:drop-shadow(0 0 10px var(--accent))}
+.soc .tip{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap;color:#fff;
+  background:rgba(0,0,0,.8);padding:2px 7px;border-radius:5px;opacity:0;pointer-events:none;transition:opacity .2s}
+.soc:hover .tip{opacity:1}
+
+/* ---------- player ---------- */
+.player{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;padding:12px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.cover{flex:0 0 58px;height:58px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;font-size:24px;color:#fff}
+.cover img{width:100%;height:100%;object-fit:cover}
+.cover.spin{animation:spin 8s linear infinite}
+.pmid{flex:1;min-width:0}
+.ptitle{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.partist{font-size:11px;color:var(--muted);margin-bottom:6px}
+.bar{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--muted)}
+.track{flex:1;height:4px;border-radius:4px;background:rgba(127,127,127,.3);cursor:pointer;position:relative}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.pbtns{display:flex;align-items:center;gap:6px}
+.pbtns button{width:30px;height:30px;display:grid;place-items:center;border-radius:50%}
+.pbtns button:hover{background:rgba(127,127,127,.18)}
+.pbtns svg{width:18px;height:18px;fill:var(--icon)}
+.pbtns .big svg{width:24px;height:24px}
+#loadSong{font-size:10px;color:var(--muted);text-align:center;margin-top:8px;display:block;width:100%;opacity:.75}
+#loadSong:hover{opacity:1}
+
+/* ---------- corner widgets ---------- */
+.cornerBtn{position:fixed;top:16px;z-index:20;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;
+  background:rgba(15,10,25,.55);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px)}
+.cornerBtn svg{width:22px;height:22px;fill:#eee}
+#mute{left:16px}#themeBtn{right:16px}#musicBtn{right:72px}
+#themeMenu{position:fixed;top:70px;right:16px;z-index:21;background:rgba(12,8,20,.92);border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;padding:6px;display:none;min-width:190px;backdrop-filter:blur(10px)}
+#themeMenu.open{display:block}
+#musicPanel{position:fixed;top:70px;right:16px;z-index:21;width:min(340px,92vw);max-height:calc(100vh - 90px);overflow:auto;
+  background:rgba(12,8,20,.95);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px;display:none;color:#eee;font-size:12.5px}
+#musicPanel.open{display:block}
+#musicPanel h3{font-size:14px;margin-bottom:8px}
+#musicPanel p{color:#aaa;margin:6px 0;line-height:1.45}
+#musicPanel input[type=text],#musicPanel input[type=password]{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
+  color:#fff;border-radius:8px;padding:7px 9px;margin:4px 0;font:inherit}
+#musicPanel input[type=file]{width:100%;margin:4px 0;color:#ccc;font-size:11.5px}
+#musicPanel .row{display:flex;gap:6px;margin-top:6px}
+#musicPanel .row button,#musicPanel .wbtn{flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}
+#musicPanel .wbtn{width:100%;margin-top:6px;display:block}
+#musicPanel .row button.go,#musicPanel .go{background:var(--accent);color:#111}
+#musicPanel hr{border:0;border-top:1px solid rgba(255,255,255,.1);margin:12px 0}
+#musicPanel summary{cursor:pointer;color:#ccc;margin-top:4px}
+#mpList .song{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.05);margin-bottom:4px}
+#mpList .song span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mpList .song button{opacity:.6}#mpList .song button:hover{opacity:1}
+#mpStatus{margin-top:8px;min-height:16px;color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.chip{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:20px;background:rgba(255,255,255,.07);font-size:11px;cursor:pointer;user-select:none}
+.chip input{accent-color:var(--accent)}
+.chip:has(input:checked){background:color-mix(in srgb,var(--accent) 35%,transparent)}
+#mpList .song{flex-wrap:wrap}
+#mpList .tags{flex-basis:100%;font-size:10.5px;color:#999;padding-left:14px}
+#mpList .edit{flex-basis:100%}
+#themeMenu button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:9px;font-size:13px;color:#eee;text-align:left}
+#themeMenu button:hover,#themeMenu button.on{background:rgba(255,255,255,.08)}
+#themeMenu i{width:14px;height:14px;border-radius:50%;flex:0 0 14px}
+.foot{position:fixed;bottom:14px;right:16px;z-index:20;font-size:10px;color:rgba(255,255,255,.4)}
+
+#chara{position:fixed;z-index:4;right:3vw;bottom:0;height:min(80vh,740px);max-width:30vw;object-fit:contain;object-position:bottom;
+  display:none;filter:drop-shadow(0 0 18px color-mix(in srgb,var(--accent) 55%,transparent));animation:float 6s ease-in-out infinite;pointer-events:none}
+#chara.left{right:auto;left:3vw}
+#chara{transition:opacity .6s}
+#chara.hide{opacity:0!important}
+#chara.wide{height:auto;width:min(30vw,560px);max-width:none;bottom:2vh}
+.orn img,.socials .x img{width:100%;height:100%;object-fit:contain;display:block}
+.sicon img.ornimg{width:80%;height:80%;object-fit:contain}
+@keyframes float{50%{transform:translateY(-14px)}}
+
+.spark{position:fixed;z-index:60;pointer-events:none;font-size:12px;color:var(--accent);
+  text-shadow:0 0 6px var(--accent);animation:sparkFade .9s forwards}
+@keyframes sparkFade{to{opacity:0;transform:translateY(18px) scale(.3) rotate(90deg)}}
+.spark.burst{animation:sparkBurst .8s ease-out forwards}
+@keyframes sparkBurst{to{opacity:0;transform:translate(var(--bx),var(--by)) scale(.4) rotate(180deg)}}
+
+/* ---------- per-theme touches ---------- */
+body[data-theme=haunted] h1{letter-spacing:3px}
+body[data-theme=cursed] h1{font-style:italic;letter-spacing:2px}
+body[data-theme=hero] h1{-webkit-text-stroke:2px #111;filter:drop-shadow(4px 4px 0 #111);letter-spacing:3px}
+body[data-theme=hero] .card,body[data-theme=hero] .player{background:#fffdf3;color:#151515;border:3px solid #111;
+  box-shadow:5px 5px 0 #111;border-radius:12px;backdrop-filter:none}
+body[data-theme=hero] .card .csub,body[data-theme=hero] .card .counts,body[data-theme=hero] .partist,body[data-theme=hero] .bar,body[data-theme=hero] .card .tag{color:#555}
+body[data-theme=hero] .pbtns svg{fill:#151515}
+body[data-theme=hero] .bio{color:#fff;text-shadow:2px 2px 0 #111;font-weight:800}
+body[data-theme=hero] .jp{color:#fff;text-shadow:2px 2px 0 #111}
+body[data-theme=hero] .soc svg{filter:drop-shadow(3px 3px 0 #111)}
+body[data-theme=gotham] h1{letter-spacing:4px;text-transform:uppercase}
+body[data-theme=gotham] .card,body[data-theme=gotham] .player{border-radius:6px}
+
+@media (max-width:560px){
+  .cards{grid-template-columns:1fr}
+  .orn{width:30px;height:30px;flex-basis:30px}
+  #stage{align-items:flex-start;padding-top:80px}
+  #chara{opacity:.3;max-width:75vw;right:-10vw}
+  #chara.wide{width:90vw;right:-5vw}
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important} }
+</style>
+</head>
+<body data-theme="sakura">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="pk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe3f0"/><stop offset="1" stop-color="#ff7eb6"/></linearGradient>
+  <radialGradient id="wg" cx="50%" cy="65%" r="60%"><stop offset="0" stop-color="#eafff4"/><stop offset=".45" stop-color="#7dffb2"/><stop offset="1" stop-color="#1fa37a"/></radialGradient>
+  <g id="o-sakura"><g transform="translate(20 20)">
+    <path id="pt" d="M0 -3 C-6 -8 -6 -16 -2 -18 L0 -15 L2 -18 C6 -16 6 -8 0 -3Z" fill="url(#pk)"/>
+    <use href="#pt" transform="rotate(72)"/><use href="#pt" transform="rotate(144)"/><use href="#pt" transform="rotate(216)"/><use href="#pt" transform="rotate(288)"/>
+    <circle r="2.6" fill="#ffd36e"/></g></g>
+  <g id="o-wisp"><path d="M20 2 C24 10 33 16 31 26 A11 11 0 0 1 9 26 C8 19 14 15 15 9 C17 15 19 15 20 2Z" fill="url(#wg)"/>
+    <circle cx="20" cy="27" r="5" fill="#eafff4" opacity=".9"/></g>
+  <g id="o-spiral"><path d="M20 20 m0 -2 a2 2 0 1 1 -2 2 a4 4 0 1 1 4 4 a6 6 0 1 1 -6 -6 a8 8 0 1 1 8 8 a10 10 0 1 1 -10 -10 a12 12 0 1 1 12 12" fill="none" stroke="#b79bff" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="20" cy="20" r="2.5" fill="#00e5ff"/></g>
+  <g id="o-star"><polygon points="20,2 25,14 38,15 28,24 31,37 20,30 9,37 12,24 2,15 15,14" fill="#ffd23f" stroke="#111" stroke-width="2.4" stroke-linejoin="round"/></g>
+  <g id="o-ufo"><ellipse cx="20" cy="17" rx="7" ry="6" fill="#9fffd0" opacity=".9"/>
+    <ellipse cx="20" cy="22" rx="17" ry="6" fill="#ff4fa3" stroke="#111" stroke-width="1.6"/>
+    <circle cx="10" cy="22" r="1.6" fill="#fff59a"/><circle cx="20" cy="24" r="1.6" fill="#fff59a"/><circle cx="30" cy="22" r="1.6" fill="#fff59a"/>
+    <path d="M14 28 L10 38 L30 38 L26 28Z" fill="#39ff88" opacity=".35"/></g>
+  <radialGradient id="jade" cx="40%" cy="35%"><stop offset="0" stop-color="#b9f3d0"/><stop offset="1" stop-color="#2f8f63"/></radialGradient>
+  <g id="o-coin"><circle cx="20" cy="20" r="17" fill="url(#jade)" stroke="#e8b04a" stroke-width="2"/>
+    <circle cx="20" cy="20" r="12.5" fill="none" stroke="#e8b04a" stroke-width="1" opacity=".7"/>
+    <rect x="15.5" y="15.5" width="9" height="9" fill="#14241c" stroke="#e8b04a" stroke-width="1.4"/></g>
+  <radialGradient id="gold" cx="40%" cy="35%"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#d49a1f"/></radialGradient>
+  <g id="o-snitch"><path d="M14 19 C8 10 2 9 0 12 C4 13 6 16 13 21Z" fill="#f4ecd8" opacity=".95"/>
+    <path d="M26 19 C32 10 38 9 40 12 C36 13 34 16 27 21Z" fill="#f4ecd8" opacity=".95"/>
+    <circle cx="20" cy="21" r="7.5" fill="url(#gold)" stroke="#a8740e" stroke-width="1"/>
+    <path d="M14 21 Q20 17 26 21" fill="none" stroke="#a8740e" stroke-width=".9"/></g>
+  <g id="o-riddle"><text x="20" y="34" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="36" fill="#3ddc6a" stroke="#06200f" stroke-width="1.4">?</text></g>
+</defs></svg>
+
+<canvas id="bgCanvas"></canvas>
+<video id="bgVideo" autoplay muted loop playsinline></video>
+<img id="bgImage" alt="">
+<div class="vignette"></div>
+<img id="chara" alt="">
+
+<div id="splash"><div><span id="splashText">click to enter</span><small id="splashSub">ようこそ</small></div></div>
+
+<button id="mute" class="cornerBtn" aria-label="Mute or unmute"></button>
+<button id="themeBtn" class="cornerBtn" aria-label="Change theme" title="Change theme">
+  <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 000 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0022 10c0-4.4-4.5-8-10-8zM6.5 12a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3-4a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3 4a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>
+</button>
+<div id="themeMenu"></div>
+<div class="foot" id="foot"></div>
+
+<main id="stage">
+  <section id="profile">
+    <div class="nameRow">
+      <span class="orn" id="ornL"></span>
+      <h1 id="name"></h1>
+      <span class="orn" id="ornR"></span>
+    </div>
+    <span class="jp" id="jp"></span>
+    <p class="bio"><span id="bioText"></span><span class="cur">&nbsp;</span></p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="av"><span id="uAv"></span><span class="dot" id="uDot"></span></div>
+        <div class="cinfo">
+          <div class="cname" id="uName"></div>
+          <div class="csub" id="uStatus"></div>
+          <div class="csub" id="uActivity"></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.8 19.8 0 0015.4 3l-.6 1.3a18.4 18.4 0 00-5.6 0L8.6 3a19.7 19.7 0 00-4.9 1.4C.6 9-.3 13.6.1 18a19.9 19.9 0 006 3l1.3-2a12.9 12.9 0 01-2-1l.5-.4a14.2 14.2 0 0012.2 0l.5.4a12.9 12.9 0 01-2 1l1.3 2a19.8 19.8 0 006-3c.5-5.1-.8-9.6-3.6-13.6z"/></svg>discord</span>
+        <div class="sicon" id="sIcon"></div>
+        <div class="cinfo">
+          <div class="cname" id="sName"></div>
+          <div class="counts">
+            <span><i style="background:#23a55a"></i><b id="sOnline">0</b> online</span>
+            <span><i style="background:#80848e"></i><b id="sMembers">0</b> members</span>
+          </div>
+          <a class="join" id="sJoin" target="_blank" rel="noopener">join</a>
+        </div>
+      </div>
+    </div>
+
+    <nav class="socials" id="socials"></nav>
+
+    <div class="player" id="player">
+      <div class="cover" id="pCover">♪</div>
+      <div class="pmid">
+        <div class="ptitle" id="pTitle">no song loaded</div>
+        <div class="partist" id="pArtist">—</div>
+        <div class="bar"><span id="pCur">0:00</span><div class="track" id="pTrack"><div class="fill" id="pFill"></div></div><span id="pDur">0:00</span></div>
+      </div>
+      <div class="pbtns">
+        <button id="pPrev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button id="pPlay" class="big" aria-label="Play"></button>
+        <button id="pNext" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
+      </div>
+    </div>
+  </section>
+</main>
+<audio id="audio" preload="auto"></audio>
+
+<script>
+/* =====================================================================
+   CONFIG — edit this part.
+   ===================================================================== */
+const CONFIG = {
+  name: "thiccbearcurry",
+
+  // Which theme loads first: "apothecary", "wizard", "sakura"
+  theme: "apothecary",
+  // "everyone" = visitors get the 🎨 button to switch themes, "off" = hidden
+  themePicker: "everyone",
+  secretWord: "owner",
+
+  // Per-theme pictures (put files in this folder's "chars" folder).
+  //  character = transparent PNG(s) beside the card — several take turns
+  //  ornament  = optional image for the spinning icons by the name
+  //  background = optional wallpaper / gif / mp4 instead of the animated scene
+  characterSwapSeconds: 15,
+  themes: {
+    apothecary: { character: [], side: "right", background: "" },
+    wizard:     { character: [], side: "right", background: "" },
+    sakura:     { character: [], side: "right", background: "" },
+  },
+
+  // ---- Discord (live once hosted online) ----
+  // User ID: Discord > Settings > Advanced > Developer Mode, then right-click
+  // yourself > Copy User ID. Also join discord.gg/lanyard once.
+  discordUserId: "",
+  discordInvite: "",   // the code after discord.gg/
+  fallbackUser:   { name: "thiccbearcurry", status: "offline", note: "last seen recently" },
+  fallbackServer: { name: "", online: 0, members: 0 },
+  // The server card only shows once discordInvite is filled in.
+
+  // ---- Social links (url "" hides it) ----
+  // discord, youtube, twitch, tiktok, instagram, steam, spotify, xbox, playstation, x, github
+  socials: [
+    { type: "discord",   url: "#", label: "Discord" },
+    { type: "tiktok",    url: "#", label: "TikTok" },
+    { type: "instagram", url: "#", label: "Instagram" },
+    { type: "spotify",   url: "#", label: "Spotify" },
+    { type: "youtube",   url: "#", label: "YouTube" },
+  ],
+
+  // ---- Music (mp3 files in this folder) ----
+  // themes: [] or left out = plays on every theme; ["wizard"] = only the wizard theme
+  songs: [
+    // { title: "Song Name", artist: "Artist", src: "song1.mp3", cover: "", themes: ["apothecary"] },
+  ],
+  volume: 0.35,
+};
+/* ======================= end of config ============================== */
+
+/* Theme definitions — colours, fonts, text and animated scene. */
+const THEMES = {
+  apothecary: {
+    label: "Jade Palace", accent: "#e8b04a", accent2: "#c2425a", text: "#fff6e8", muted: "#e6cfae",
+    card: "rgba(40,14,22,.5)", line: "rgba(232,176,74,.28)", icon: "#fff6e8",
+    title: "'Marcellus',serif", grad: "linear-gradient(90deg,#fff3d6,#e8b04a,#f2a0a8,#fff3d6)",
+    orn: "coin", anim: "a-flip", sparks: ["✿","·"],
+    splash: "enter the inner court", splashSub: "後宮へようこそ", subtitle: "毒見役 ✦ 薬師",
+    bios: ["poison? hand it over, i'll taste it", "currently researching: suspicious herbs", "maomao's #1 fan", "the frog was for medicine, i swear"],
+  },
+  wizard: {
+    label: "Wizarding Night", accent: "#f2c14e", accent2: "#8f6bff", text: "#fbf5e6", muted: "#cfc6e6",
+    card: "rgba(14,10,34,.55)", line: "rgba(242,193,78,.25)", icon: "#fbf5e6",
+    title: "'Cinzel Decorative',serif", grad: "linear-gradient(90deg,#fff6d0,#f2c14e,#c9b6ff,#fff6d0)",
+    orn: "snitch", anim: "a-sway", sparks: ["✦","⚡"],
+    splash: "lumos", splashSub: "click to enter", subtitle: "✦ MISCHIEF MANAGED ✦",
+    bios: ["i solemnly swear i'm up to no good", "still waiting on my letter", "accio snacks", "after all this time? always."],
+  },
+  sakura: {
+    label: "Sakura Night", accent: "#ff7eb6", accent2: "#9d8bff", text: "#f6f0ff", muted: "#d9c8ea",
+    card: "rgba(30,18,48,.45)", line: "rgba(255,190,225,.2)", icon: "#f6f0ff",
+    title: "'Mochiy Pop One',sans-serif", grad: "linear-gradient(90deg,#fff,#ffc4e1,#c9b8ff,#fff)",
+    orn: "sakura", anim: "a-spin", sparks: ["✿","✦"],
+    splash: "click to enter ✿", splashSub: "ようこそ", subtitle: "✿ cozy nights ✿",
+    bios: ["anime, tea and cozy nights", "probably reading right now", "soft but dangerous", "✿"],
+  },
+};
+
+const $ = id => document.getElementById(id);
+let T = null, themeKey = null;
+
+/* ---------- icons ---------- */
+const ICONS = {
+  discord:'<path d="M20.3 4.4A19.8 19.8 0 0015.4 3l-.6 1.3a18.4 18.4 0 00-5.6 0L8.6 3a19.7 19.7 0 00-4.9 1.4C.6 9-.3 13.6.1 18a19.9 19.9 0 006 3l1.3-2a12.9 12.9 0 01-2-1l.5-.4a14.2 14.2 0 0012.2 0l.5.4a12.9 12.9 0 01-2 1l1.3 2a19.8 19.8 0 006-3c.5-5.1-.8-9.6-3.6-13.6zM8.5 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4zm7 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4z"/>',
+  youtube:'<path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 00.5 6.2 31 31 0 000 12a31 31 0 00.5 5.8 3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1A31 31 0 0024 12a31 31 0 00-.5-5.8zM9.6 15.6V8.4l6.2 3.6z"/>',
+  twitch:'<path d="M2.1 0L.5 4.2v17h5.7V24h3.2l3.1-2.8h4.7L23.5 15V0zm19.3 14l-3.7 3.7h-5.7l-3.2 3v-3H4.2V2.1h17.2zM17.7 6.4v6.2h-2.1V6.4zm-5.7 0v6.2H9.9V6.4z"/>',
+  tiktok:'<path d="M19.6 6.7a4.8 4.8 0 01-3.8-4.3V2h-3.4v13.7a2.9 2.9 0 11-2-2.8V9.4a6.3 6.3 0 105.4 6.3V8.6a8.2 8.2 0 004.8 1.5V6.7z"/>',
+  instagram:'<path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0 8.2a3.2 3.2 0 110-6.4 3.2 3.2 0 010 6.4zM17.3 5.5a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4zM12 2.2c3.2 0 3.6 0 4.8.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8C2.4 3.9 3.9 2.4 7.2 2.3 8.4 2.2 8.8 2.2 12 2.2z"/>',
+  steam:'<path d="M12 0A12 12 0 00.1 11l6.4 2.7a3.4 3.4 0 011.9-.6h.2l2.9-4.2v-.1a4.5 4.5 0 114.5 4.5h-.1l-4.1 3v.2a3.4 3.4 0 01-6.7.7L.6 15.3A12 12 0 1012 0zM7.5 18.2l-1.5-.6a2.5 2.5 0 104.6-2 2.5 2.5 0 00-1.9-1.4l1.5.6a1.9 1.9 0 01-1.5 3.4zm11-9.3a3 3 0 10-3 3 3 3 0 003-3zm-5.3 0a2.3 2.3 0 112.3 2.3 2.3 2.3 0 01-2.3-2.3z"/>',
+  spotify:'<path d="M12 0a12 12 0 100 24 12 12 0 000-24zm5.5 17.3a.7.7 0 01-1 .3c-2.8-1.7-6.4-2.1-10.6-1.2a.7.7 0 11-.3-1.4c4.6-1 8.6-.6 11.7 1.3a.7.7 0 01.2 1zm1.5-3.3a.9.9 0 01-1.3.3c-3.2-2-8.2-2.6-12-1.4a.9.9 0 11-.5-1.8c4.4-1.3 9.8-.7 13.5 1.6a.9.9 0 01.3 1.3zm.1-3.4C15.3 8.3 8.9 8.1 5.2 9.2a1.1 1.1 0 11-.6-2.1c4.3-1.3 11.3-1 15.7 1.6a1.1 1.1 0 01-1.2 1.9z"/>',
+  xbox:'<path d="M4.7 21.9A12 12 0 0012 24a12 12 0 007.3-2.1c1.3-1.4-3.2-6.3-7.3-9.6-4.1 3.3-8.6 8.2-7.3 9.6zM12 4.7S8.7 2.3 6.5 2.9C5 3.3 3.5 4.7 3.5 4.7 1.3 7 0 9.5 0 12a12 12 0 002.8 7.7C1.5 15.6 7.5 7.4 12 4.7zm0 0c4.5 2.7 10.5 10.9 9.2 15A12 12 0 0024 12c0-2.5-1.3-5-3.5-7.3 0 0-1.5-1.4-3-1.8C15.3 2.3 12 4.7 12 4.7zM12 1a11.9 11.9 0 017.9 3.4c-.9-.6-1.7-.8-2.6-.5C15 1.9 12.8 1 12 1zm0 0c-.8 0-3 .9-5.3 2.9-.9-.3-1.7-.1-2.6.5A11.9 11.9 0 0112 1z"/>',
+  playstation:'<path d="M9 2.6v17.8l4 1.3V6.8c0-.7.3-1.2.8-1 .7.2.8.9.8 1.6v6c2.5 1.2 4.4 0 4.4-3.3 0-3.4-1.2-4.9-4.6-6.1A42 42 0 009 2.6zM14 17l6.5-2.3c.7-.3.8-.6.2-.8a3.7 3.7 0 00-2.2-.1L14 15.4v-2.4l.3-.1a12 12 0 012.6-.5 9 9 0 014 .4c1.8.6 2 1.5 1.5 2.1a4 4 0 01-1.6 1L14 19.3zM1.3 17.6c-1.6-.5-1.8-1.4-1.1-2a5.4 5.4 0 011.7-.8L7 13v2.4l-3.6 1.3c-.6.3-.7.6-.2.8a3.7 3.7 0 002.2.1L7 17.2v2.2l-.4.1a12.2 12.2 0 01-5.3-1.9z"/>',
+  x:'<path d="M18.2 2.3h3.4l-7.4 8.4L23 21.7h-6.8l-5.3-7-6.1 7H1.4l7.9-9L1 2.3h7l4.8 6.4zm-1.2 17.4h1.9L7 4.2H5z"/>',
+  github:'<path d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 016 0C17.3 4.8 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1.1.9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0012 .3"/>',
+};
+const svg = p => `<svg viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
+const orn = k => `<svg viewBox="0 0 40 40"><use href="#o-${k}"/></svg>`;
+const PLAY  = svg('<path d="M8 5v14l11-7z"/>');
+const PAUSE = svg('<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>');
+const VOL   = svg('<path d="M3 9v6h4l5 5V4L7 9zm13.5 3A4.5 4.5 0 0014 8v8a4.5 4.5 0 002.5-4zM14 3.2v2.1a7 7 0 010 13.4v2.1a9 9 0 000-17.6z"/>');
+const MUTED = svg('<path d="M16.5 12A4.5 4.5 0 0014 8v2.2l2.5 2.5V12zM19 12a7 7 0 01-.6 2.8l1.5 1.5A9 9 0 0014 3.2v2.1a7 7 0 015 6.7zM4.3 3L3 4.3 7.7 9H3v6h4l5 5v-6.7l4.3 4.2a7 7 0 01-2.3 1.2v2.1a9 9 0 003.7-1.8l2 2 1.3-1.3zM12 4L9.9 6.1 12 8.2z"/>');
+
+function sigil(letter){
+  return `<svg viewBox="0 0 56 56"><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent2)"/></linearGradient></defs>
+  <circle cx="28" cy="28" r="28" fill="url(#sg)"/><text x="28" y="37" text-anchor="middle" style="font-family:var(--title)" font-size="24" fill="#fff">${letter}</text></svg>`;
+}
+
+/* ---------- static bits ---------- */
+$('name').textContent = CONFIG.name;
+$('foot').textContent = CONFIG.name;
+$('socials').innerHTML = '<span class="x" id="sx1"></span>' +
+  CONFIG.socials.filter(s=>s.url).map(s =>
+    `<a class="soc" href="${s.url}" target="_blank" rel="noopener" aria-label="${s.label}">${svg(ICONS[s.type]||'')}<span class="tip">${s.label}</span></a>`
+  ).join('') + '<span class="x" id="sx2"></span>';
+
+/* ---------- typewriter ---------- */
+let bioI = 0, bioJ = 0, bioDel = false, bioTimer;
+function typeTick(){
+  const lines = T.bios, line = lines[bioI % lines.length] || '';
+  $('bioText').textContent = line.slice(0, bioJ);
+  if(!bioDel && bioJ < line.length){ bioJ++; return bioTimer = setTimeout(typeTick, 60); }
+  if(!bioDel){ bioDel = true; return bioTimer = setTimeout(typeTick, 2200); }
+  if(bioJ > 0){ bioJ--; return bioTimer = setTimeout(typeTick, 28); }
+  bioDel = false; bioI++; bioTimer = setTimeout(typeTick, 400);
+}
+
+/* ---------- discord ---------- */
+const STATUS_TEXT = {online:'online', idle:'idle', dnd:'do not disturb', offline:'offline'};
+let user = {...CONFIG.fallbackUser}, server = {...CONFIG.fallbackServer};
+function renderUser(){
+  const u = user;
+  $('uAv').innerHTML = u.avatar ? `<img src="${u.avatar}" alt="">` : sigil(CONFIG.name[0].toUpperCase());
+  $('uName').textContent = u.name;
+  $('uDot').className = 'dot ' + u.status;
+  $('uStatus').textContent = u.custom || (u.status === 'offline' ? (u.note || 'offline') : STATUS_TEXT[u.status]);
+  $('uActivity').textContent = u.activity ? '▸ playing ' + u.activity : '';
+}
+function renderServer(){
+  const s = server;
+  const card = $('sName').closest('.card'); card.style.display = CONFIG.discordInvite ? '' : 'none';
+  document.querySelector('.cards').style.gridTemplateColumns = CONFIG.discordInvite ? '' : '1fr';
+  document.querySelector('.cards').style.maxWidth = CONFIG.discordInvite ? '' : '360px';
+  document.querySelector('.cards').style.margin = CONFIG.discordInvite ? '' : '0 auto 18px';
+  $('sName').textContent = s.name;
+  $('sOnline').textContent = s.online.toLocaleString();
+  $('sMembers').textContent = s.members.toLocaleString();
+  const oi = (CONFIG.themes[themeKey]||{}).ornament;
+  $('sIcon').innerHTML = s.icon ? `<img src="${s.icon}" alt="">` : (oi ? `<img class="ornimg" src="${oi}" alt="">` : orn(T.orn));
+  const j = $('sJoin');
+  if(CONFIG.discordInvite) j.href = 'https://discord.gg/' + CONFIG.discordInvite;
+  else { j.removeAttribute('href'); j.style.opacity = .55; j.style.cursor = 'default'; }
+}
+async function loadPresence(){
+  if(!CONFIG.discordUserId) return;
+  try{
+    const {data} = await (await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordUserId}`)).json();
+    const d = data.discord_user;
+    user = { name: d.global_name || d.username,
+      avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.${d.avatar.startsWith('a_')?'gif':'png'}?size=128` : '',
+      status: data.discord_status, custom: (data.activities.find(a=>a.type===4)||{}).state,
+      activity: (data.activities.find(a=>a.type===0)||{}).name, note: CONFIG.fallbackUser.note };
+    renderUser();
+  }catch(e){}
+}
+async function loadServer(){
+  if(!CONFIG.discordInvite) return;
+  try{
+    const d = await (await fetch(`https://discord.com/api/v9/invites/${CONFIG.discordInvite}?with_counts=true`)).json();
+    server = { name: d.guild.name, icon: d.guild.icon ? `https://cdn.discordapp.com/icons/${d.guild.id}/${d.guild.icon}.png?size=128` : '',
+      online: d.approximate_presence_count || 0, members: d.approximate_member_count || 0 };
+    renderServer();
+  }catch(e){}
+}
+
+/* ---------- music ---------- */
+const audio = $('audio');
+let songs = [], siteSongs = [], localSongs = [], idx = 0, muted = false;
+audio.volume = CONFIG.volume;
+const fmt = t => isFinite(t) ? Math.floor(t/60) + ':' + String(Math.floor(t%60)).padStart(2,'0') : '0:00';
+function loadSongAt(i){
+  if(!songs.length) return;
+  idx = (i + songs.length) % songs.length; const s = songs[idx];
+  audio.src = s.src; $('pTitle').textContent = s.title || 'untitled'; $('pArtist').textContent = s.artist || '—';
+  $('pCover').innerHTML = s.cover ? `<img src="${s.cover}" alt="">` : '♪';
+}
+const setPlayIcon = () => { $('pPlay').innerHTML = audio.paused ? PLAY : PAUSE; $('pCover').classList.toggle('spin', !audio.paused); };
+const play = () => { if(songs.length) audio.play().catch(()=>{}); };
+$('pPlay').onclick = () => { if(songs.length) audio.paused ? play() : audio.pause(); };
+$('pNext').onclick = () => { loadSongAt(idx+1); play(); };
+$('pPrev').onclick = () => { if(audio.currentTime > 3) audio.currentTime = 0; else { loadSongAt(idx-1); play(); } };
+audio.onplay = audio.onpause = setPlayIcon;
+audio.onended = () => { loadSongAt(idx+1); play(); };
+audio.ontimeupdate = () => {
+  $('pCur').textContent = fmt(audio.currentTime); $('pDur').textContent = fmt(audio.duration);
+  $('pFill').style.width = (audio.currentTime / audio.duration * 100 || 0) + '%';
+};
+$('pTrack').onclick = e => { const r = e.currentTarget.getBoundingClientRect(); if(audio.duration) audio.currentTime = (e.clientX-r.left)/r.width*audio.duration; };
+const allSongs = () => [...CONFIG.songs, ...siteSongs, ...localSongs];
+const fitsTheme = (s, k) => !s.themes || !s.themes.length || s.themes.includes(k);
+function rebuildPlaylist(){
+  const wasPlaying = !audio.paused, cur = songs[idx];
+  // songs made for this theme play first, "all themes" songs after
+  const own = allSongs().filter(s => s.themes && s.themes.includes(themeKey));
+  const any = allSongs().filter(s => !s.themes || !s.themes.length);
+  songs = [...own, ...any];
+  let ni = cur ? songs.findIndex(s => s.src === cur.src) : -1;
+  if(own.length && ni >= own.length) ni = -1; // theme has its own songs → switch to them
+  if(ni >= 0){ idx = ni; }
+  else {
+    audio.pause(); audio.removeAttribute('src'); idx = 0;
+    $('pTitle').textContent = 'no song loaded'; $('pArtist').textContent = '—'; $('pFill').style.width = 0;
+    if(songs.length){ loadSongAt(0); if(wasPlaying) play(); }
+  }
+  refreshPlayer(); setPlayIcon();
+}
+function refreshPlayer(){
+  $('player').style.display = songs.length ? 'flex' : 'none';
+  if(songs.length && !audio.getAttribute('src')) loadSongAt(0);
+}
+setPlayIcon();
+$('mute').innerHTML = VOL;
+$('mute').onclick = () => { muted = !muted; audio.muted = muted; $('mute').innerHTML = muted ? MUTED : VOL; };
+
+/* ---------- splash / tilt / sparkles ---------- */
+$('splash').onclick = () => { $('splash').classList.add('gone'); $('profile').classList.add('show'); play();
+  setTimeout(()=>$('profile').classList.add('tilting'), 1200); };
+if(matchMedia('(hover:hover)').matches){
+  addEventListener('mousemove', e => {
+    if(!$('profile').classList.contains('tilting')) return;
+    const x = e.clientX/innerWidth - .5, y = e.clientY/innerHeight - .5;
+    $('profile').style.transform = `rotateY(${x*10}deg) rotateX(${-y*10}deg)`;
+  });
+}
+let lastSpark = 0;
+function spark(x, y, burst){
+  const s = document.createElement('span'); s.className = 'spark' + (burst ? ' burst' : '');
+  s.textContent = T.sparks[Math.random() < .5 ? 0 : 1];
+  s.style.left = x + 'px'; s.style.top = y + 'px';
+  if(burst){ const a = Math.random()*Math.PI*2, d = 30 + Math.random()*40;
+    s.style.setProperty('--bx', Math.cos(a)*d + 'px'); s.style.setProperty('--by', Math.sin(a)*d + 'px');
+    s.style.fontSize = (12 + Math.random()*10) + 'px'; }
+  document.body.appendChild(s); setTimeout(() => s.remove(), 900);
+}
+function trail(x, y){ const now = performance.now(); if(now - lastSpark < 35) return; lastSpark = now; spark(x, y); }
+// mouse / pen trail
+addEventListener('pointermove', e => { if(e.pointerType !== 'touch') trail(e.clientX, e.clientY); });
+// finger swipe trail (touchmove keeps firing while the page scrolls)
+addEventListener('touchmove', e => { for(const t of e.touches) trail(t.clientX, t.clientY); }, {passive:true});
+// tap / click = little burst
+addEventListener('pointerdown', e => { for(let i=0;i<8;i++) spark(e.clientX, e.clientY, true); });
+
+/* =====================================================================
+   ANIMATED SCENES — one per theme
+   Each scene: build(back, front, W, H) draws static layers once,
+   mid(ctx,...) animates between them, top(ctx,...) animates on top.
+   ===================================================================== */
+const R = Math.random, TAU = Math.PI*2;
+const rr = (a,b) => a + R()*(b-a);
+
+function hills(g, W, H, base, amp, col, seed){
+  g.fillStyle = col; g.beginPath(); g.moveTo(0,H);
+  for(let x=0;x<=W;x+=8) g.lineTo(x, base + Math.sin(x*.004+seed)*amp + Math.sin(x*.011+seed*2)*amp*.4);
+  g.lineTo(W,H); g.fill();
+}
+function tree(g, x, y, a, len, w, d, leaf){
+  if(d > 6 || len < 6){ if(leaf) leaf(x,y); return; }
+  const nx = x + Math.cos(a)*len, ny = y + Math.sin(a)*len;
+  g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(x,y); g.lineTo(nx,ny); g.stroke();
+  tree(g, nx, ny, a - rr(.35,.65), len*.74, w*.68, d+1, leaf);
+  tree(g, nx, ny, a + rr(.3,.6),  len*.7,  w*.68, d+1, leaf);
+}
+function starsArr(W,H,yMax,n){ return Array.from({length:n},()=>({x:R()*W,y:R()*H*yMax,r:rr(.3,1.6),p:R()*6,s:rr(.5,2.5)})); }
+function drawStars(ctx, st, t, col){
+  for(const s of st){ ctx.globalAlpha = .3 + .7*Math.abs(Math.sin(t*s.s+s.p)); ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,TAU); ctx.fill(); }
+  ctx.globalAlpha = 1;
+}
+function skyline(g, W, H, opts){
+  let x = -10;
+  while(x < W){
+    const bw = rr(opts.minW, opts.maxW), bh = H*rr(opts.minH, opts.maxH), top = H - bh;
+    g.fillStyle = opts.col; g.fillRect(x, top, bw, bh);
+    if(opts.deco && R() < .4){ // stepped art-deco top + spire
+      g.fillRect(x+bw*.15, top-bh*.06, bw*.7, bh*.06);
+      g.fillRect(x+bw*.3, top-bh*.11, bw*.4, bh*.05);
+      g.fillRect(x+bw/2-1.5, top-bh*.2, 3, bh*.1);
+    }
+    if(opts.outline){ g.strokeStyle = '#111'; g.lineWidth = 3; g.strokeRect(x, top, bw, bh+4); }
+    if(opts.win){
+      for(let wy = top+8; wy < H-6; wy += opts.win.gy) for(let wx = x+5; wx < x+bw-6; wx += opts.win.gx)
+        if(R() < opts.win.p){ g.fillStyle = opts.win.col(); g.fillRect(wx, wy, opts.win.w, opts.win.h); }
+    }
+    x += bw + rr(0, opts.gap||4);
+  }
+}
+
+const SCENES = {
+  /* ---------------- SAKURA NIGHT ---------------- */
+  sakura: {
+    build(b, f, W, H){
+      const sky = b.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#0d0627'); sky.addColorStop(.45,'#2b1458'); sky.addColorStop(.75,'#7a2f7e'); sky.addColorStop(1,'#ff8db8');
+      b.fillStyle = sky; b.fillRect(0,0,W,H);
+      const mx=W*.22, my=H*.22, mr=Math.min(W,H)*.09;
+      const halo=b.createRadialGradient(mx,my,mr*.8,mx,my,mr*4); halo.addColorStop(0,'rgba(255,220,240,.35)'); halo.addColorStop(1,'rgba(255,220,240,0)');
+      b.fillStyle=halo; b.fillRect(0,0,W,H);
+      const moon=b.createRadialGradient(mx-mr*.3,my-mr*.3,0,mx,my,mr); moon.addColorStop(0,'#fffaf3'); moon.addColorStop(1,'#ffd9ea');
+      b.fillStyle=moon; b.beginPath(); b.arc(mx,my,mr,0,TAU); b.fill();
+      b.fillStyle='rgba(230,170,210,.35)';
+      [[.3,.2,.18],[-.25,.35,.12],[.1,-.35,.1]].forEach(([a,c,r])=>{b.beginPath();b.arc(mx+a*mr,my+c*mr,r*mr,0,TAU);b.fill();});
+      for(let i=0;i<7;i++){ const cx=R()*W, cy=H*rr(.35,.65), cw=rr(150,400);
+        const cg=b.createRadialGradient(cx,cy,0,cx,cy,cw); cg.addColorStop(0,'rgba(255,170,210,.16)'); cg.addColorStop(1,'rgba(255,170,210,0)');
+        b.fillStyle=cg; b.beginPath(); b.ellipse(cx,cy,cw,cw*.25,0,0,TAU); b.fill(); }
+      hills(f,W,H,H*.78,40,'#4a1f5e',1); hills(f,W,H,H*.85,28,'#2c1240',3);
+      const tx=W*.72, ty=H*.86, ts=Math.min(W,H)*.12; f.fillStyle='#1a0a28';
+      f.fillRect(tx-ts*.48,ty-ts*.82,ts*.96,ts*.07);
+      f.fillRect(tx-ts*.4,ty-ts*.98,ts*.08,ts*1.1); f.fillRect(tx+ts*.32,ty-ts*.98,ts*.08,ts*1.1);
+      f.beginPath(); f.moveTo(tx-ts*.62,ty-ts*1.1); f.quadraticCurveTo(tx,ty-ts*1.0,tx+ts*.62,ty-ts*1.1); f.lineTo(tx+ts*.6,ty-ts*.98); f.quadraticCurveTo(tx,ty-ts*.92,tx-ts*.6,ty-ts*.98); f.fill();
+      hills(f,W,H,H*.93,14,'#12061c',5);
+      f.strokeStyle='#12061c';
+      tree(f, W*.06, H, -Math.PI/2+.25, Math.min(W,H)*.16, 14, 0, (x,y)=>{
+        f.fillStyle=`rgba(255,${150+R()*60|0},${200+R()*40|0},.78)`; f.beginPath(); f.arc(x,y,rr(6,16),0,TAU); f.fill(); });
+      return { stars: starsArr(W,H,.65,W*H/5000|0), shoot: [], petals: [] };
+    },
+    mid(c, W, H, t, s){
+      drawStars(c, s.stars, t, '#fff0fa');
+      if(R() < .006) s.shoot.push({x:rr(W*.2,W), y:R()*H*.3, l:1});
+      s.shoot = s.shoot.filter(o=>o.l>0);
+      for(const o of s.shoot){ const g=c.createLinearGradient(o.x,o.y,o.x+90,o.y-40); g.addColorStop(0,`rgba(255,255,255,${o.l})`); g.addColorStop(1,'rgba(255,200,230,0)');
+        c.strokeStyle=g; c.lineWidth=2; c.beginPath(); c.moveTo(o.x,o.y); c.lineTo(o.x+90,o.y-40); c.stroke(); o.x-=9; o.y+=4; o.l-=.025; }
+    },
+    top(c, W, H, t, s){
+      if(s.petals.length < 45 && R() < .25) s.petals.push({x:R()*W*1.2, y:-10, vx:rr(-1.2,-.2), vy:rr(.6,1.5), r:R()*TAU, vr:rr(-.05,.05), z:rr(.6,1.4), w:R()*TAU});
+      for(const p of s.petals){
+        p.w += .03; p.x += p.vx + Math.sin(p.w)*.6; p.y += p.vy; p.r += p.vr;
+        c.save(); c.translate(p.x,p.y); c.rotate(p.r); c.scale(p.z, p.z*Math.abs(Math.cos(p.w))+.2);
+        c.fillStyle = '#ffb3d4'; c.beginPath(); c.ellipse(0,0,6,4,0,0,TAU); c.fill();
+        c.fillStyle = '#ffe1ee'; c.beginPath(); c.ellipse(-1.5,-1,2.5,1.5,0,0,TAU); c.fill(); c.restore();
+      }
+      s.petals = s.petals.filter(p => p.y < H+20);
+    },
+  },
+
+  /* ---------------- JADE PALACE (Apothecary Diaries) ---------------- */
+  apothecary: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#120a1e'); sky.addColorStop(.4,'#3a1430'); sky.addColorStop(.7,'#8a3a3c'); sky.addColorStop(.9,'#e39a55'); sky.addColorStop(1,'#f3c77a');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      const mx=W*.78, my=H*.2, mr=Math.min(W,H)*.075;
+      const halo=b.createRadialGradient(mx,my,mr,mx,my,mr*4); halo.addColorStop(0,'rgba(255,225,170,.3)'); halo.addColorStop(1,'rgba(255,225,170,0)');
+      b.fillStyle=halo; b.fillRect(0,0,W,H);
+      b.fillStyle='#ffe9c2'; b.beginPath(); b.arc(mx,my,mr,0,TAU); b.fill();
+      // distant mountains (ink-wash)
+      hills(b,W,H,H*.66,45,'rgba(90,30,50,.55)',7); hills(b,W,H,H*.72,30,'rgba(60,18,36,.7)',2);
+      // palace roofs with curved eaves
+      const roof=(g,cx,base,w,h,col)=>{ g.fillStyle=col;
+        g.beginPath(); g.moveTo(cx-w*.62,base-h*.05); g.quadraticCurveTo(cx-w*.45,base-h*.02,cx-w*.38,base-h*.35);
+        g.lineTo(cx-w*.12,base-h); g.lineTo(cx+w*.12,base-h); g.lineTo(cx+w*.38,base-h*.35);
+        g.quadraticCurveTo(cx+w*.45,base-h*.02,cx+w*.62,base-h*.05); g.lineTo(cx+w*.5,base); g.lineTo(cx-w*.5,base); g.fill(); };
+      const hall=(g,cx,base,w,h,col,lit)=>{ g.fillStyle=col; g.fillRect(cx-w*.42,base,w*.84,h*.9);
+        roof(g,cx,base,w,h*.45,col);
+        if(lit){ g.fillStyle='rgba(255,190,110,.75)'; for(let k=-2;k<=2;k++) g.fillRect(cx+k*w*.14-4,base+h*.25,8,h*.3); g.fillStyle=col; } };
+      // pagoda
+      const px=W*.12, pb=H*.82, pw=Math.min(W,H)*.16;
+      for(let k=0;k<5;k++){ const w=pw*(1-k*.14), base=pb-k*pw*.38; f.fillStyle='#1c0812'; f.fillRect(px-w*.3,base-pw*.12,w*.6,pw*.4); roof(f,px,base-pw*.12,w,pw*.22,'#1c0812'); }
+      f.fillRect(px-2,pb-5*pw*.38-pw*.3,4,pw*.3);
+      hall(f,W*.5,H*.8,Math.min(W,H)*.5,Math.min(W,H)*.16,'#22091a',true);
+      hall(f,W*.82,H*.84,Math.min(W,H)*.35,Math.min(W,H)*.12,'#1a0713',true);
+      // palace wall
+      f.fillStyle='#14050e'; f.fillRect(0,H*.88,W,H*.12);
+      f.fillStyle='#2a0c18'; for(let x=0;x<W;x+=26) f.fillRect(x,H*.875,20,8);
+      // plum branch, top-left
+      f.strokeStyle='#1a0610';
+      tree(f, -10, H*.06, .25, Math.min(W,H)*.13, 7, 2, (x,y)=>{ f.fillStyle=R()<.7?'rgba(255,170,190,.85)':'rgba(255,240,245,.9)'; f.beginPath(); f.arc(x,y,rr(3,7),0,TAU); f.fill(); });
+      return { stars: starsArr(W,H,.35,W*H/14000|0), lanterns: [], leaves: [] };
+    },
+    mid(c, W, H, t, s){
+      drawStars(c, s.stars, t, '#fff1d6');
+    },
+    top(c, W, H, t, s){
+      if(s.lanterns.length < 26 && R() < .05) s.lanterns.push({x:R()*W, y:H+30, v:rr(.35,.9), z:rr(.5,1.3), p:R()*TAU});
+      for(const l of s.lanterns){ l.y -= l.v*l.z; l.p += .02; const x = l.x + Math.sin(l.p)*12, w=14*l.z, h=18*l.z, fl=.85+.15*Math.sin(t*8+l.p);
+        const g=c.createRadialGradient(x,l.y,0,x,l.y,w*3); g.addColorStop(0,`rgba(255,170,80,${.35*fl})`); g.addColorStop(1,'rgba(255,170,80,0)');
+        c.fillStyle=g; c.beginPath(); c.arc(x,l.y,w*3,0,TAU); c.fill();
+        const lg=c.createLinearGradient(x,l.y-h/2,x,l.y+h/2); lg.addColorStop(0,'#ffcf7a'); lg.addColorStop(1,'#e8582f');
+        c.fillStyle=lg; c.beginPath(); c.moveTo(x-w*.4,l.y-h/2); c.lineTo(x+w*.4,l.y-h/2); c.lineTo(x+w/2,l.y+h/2); c.lineTo(x-w/2,l.y+h/2); c.fill();
+        c.fillStyle=`rgba(255,245,200,${fl})`; c.fillRect(x-w*.15,l.y+h*.2,w*.3,h*.25); }
+      s.lanterns = s.lanterns.filter(l => l.y > -40);
+      if(s.leaves.length < 22 && R() < .12) s.leaves.push({x:R()*W, y:-10, vx:rr(.2,1), vy:rr(.5,1.2), r:R()*TAU, w:R()*TAU, pink:R()<.6});
+      for(const p of s.leaves){ p.w += .04; p.x += p.vx + Math.sin(p.w)*.5; p.y += p.vy; p.r += .03;
+        c.save(); c.translate(p.x,p.y); c.rotate(p.r); c.scale(1, Math.abs(Math.cos(p.w))+.25);
+        c.fillStyle = p.pink ? '#ffb7c8' : '#8fcf9a'; c.beginPath(); c.ellipse(0,0,p.pink?4:6,p.pink?4:2.6,0,0,TAU); c.fill(); c.restore(); }
+      s.leaves = s.leaves.filter(p => p.y < H+10);
+    },
+  },
+
+  /* ---------------- WIZARDING NIGHT (Harry Potter) ---------------- */
+  wizard: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#04030f'); sky.addColorStop(.5,'#151036'); sky.addColorStop(.78,'#2d2160'); sky.addColorStop(1,'#0b0a1e');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      // aurora-ish magic glow
+      for(let i=0;i<3;i++){ const cx=W*(.2+i*.3), cy=H*.25, cw=W*.35;
+        const g=b.createRadialGradient(cx,cy,0,cx,cy,cw); g.addColorStop(0,`rgba(${i%2?'143,107,255':'90,200,220'},.12)`); g.addColorStop(1,'rgba(0,0,0,0)');
+        b.fillStyle=g; b.beginPath(); b.ellipse(cx,cy,cw,cw*.3,-.2,0,TAU); b.fill(); }
+      const mx=W*.15, my=H*.15, mr=Math.min(W,H)*.06;
+      const halo=b.createRadialGradient(mx,my,mr,mx,my,mr*4); halo.addColorStop(0,'rgba(230,230,255,.25)'); halo.addColorStop(1,'rgba(230,230,255,0)');
+      b.fillStyle=halo; b.fillRect(0,0,W,H); b.fillStyle='#f3f1ff'; b.beginPath(); b.arc(mx,my,mr,0,TAU); b.fill();
+      // mountains + lake
+      hills(f,W,H,H*.7,50,'#0e0b26',3);
+      const lakeY=H*.8;
+      // castle on the cliff
+      const k=Math.min(W,H)/800, cx=W*.66, base=H*.72; f.fillStyle='#07061a';
+      f.beginPath(); f.moveTo(cx-260*k,lakeY); f.lineTo(cx-200*k,base); f.lineTo(cx+230*k,base+10*k); f.lineTo(cx+300*k,lakeY); f.fill();
+      const wins=[];
+      const tower=(x,w,h,spire)=>{ const top=base-h; f.fillStyle='#07061a'; f.fillRect(x-w/2,top,w,h+2);
+        f.beginPath(); f.moveTo(x-w/2-3*k,top); f.lineTo(x,top-spire); f.lineTo(x+w/2+3*k,top); f.fill();
+        for(let y=top+12*k;y<base-8*k;y+=18*k) if(R()<.55){ wins.push([x-2.5*k,y,5*k,8*k]); } };
+      f.fillRect(cx-170*k,base-70*k,340*k,72*k);
+      for(let x=cx-160*k;x<cx+170*k;x+=14*k) f.fillRect(x,base-78*k,8*k,8*k);
+      [[-190,26,150,60],[-130,20,110,40],[-70,34,210,90],[0,22,140,50],[45,30,250,100],[100,20,130,45],[150,26,180,70],[205,18,100,40]]
+        .forEach(([dx,w,h,sp])=>tower(cx+dx*k,w*k,h*k,sp*k));
+      for(let x=cx-160*k;x<cx+160*k;x+=16*k) if(R()<.5) wins.push([x,base-50*k,5*k,9*k]);
+      f.fillStyle='#ffd27a'; wins.forEach(w=>f.fillRect(...w));
+      // lake with reflections
+      const lake=f.createLinearGradient(0,lakeY,0,H); lake.addColorStop(0,'#141036'); lake.addColorStop(1,'#05040f');
+      f.fillStyle=lake; f.fillRect(0,lakeY,W,H-lakeY);
+      f.fillStyle='rgba(255,210,122,.25)'; wins.forEach(([x,y,w,h])=>f.fillRect(x,lakeY+(lakeY-y)*.35,w,h*.5));
+      // forest edge
+      f.fillStyle='#030212';
+      for(let x=-10;x<W*.35;x+=rr(10,18)){ const h=rr(30,70)*k*1.4; f.beginPath(); f.moveTo(x,lakeY+4); f.lineTo(x+9*k,lakeY-h); f.lineTo(x+18*k,lakeY+4); f.fill(); }
+      return { stars: starsArr(W,H,.6,W*H/5000|0), wins, candles: Array.from({length:22},()=>({x:R()*W, y:rr(H*.05,H*.6), p:R()*TAU, z:rr(.5,1.2)})), owls: [], motes: [] };
+    },
+    mid(c, W, H, t, s){
+      drawStars(c, s.stars, t, '#f7f3ff');
+      // window flicker
+      if(R()<.05 && s.wins.length){ const w=s.wins[R()*s.wins.length|0]; c.fillStyle='#07061a'; c.fillRect(...w); }
+    },
+    top(c, W, H, t, s){
+      // floating candles
+      for(const cd of s.candles){ const y = cd.y + Math.sin(t*.8+cd.p)*8, x = cd.x + Math.sin(t*.3+cd.p)*4, z=cd.z;
+        const fl=.8+.2*Math.sin(t*12+cd.p*3);
+        const g=c.createRadialGradient(x,y-12*z,0,x,y-12*z,18*z); g.addColorStop(0,`rgba(255,215,130,${.45*fl})`); g.addColorStop(1,'rgba(255,215,130,0)');
+        c.fillStyle=g; c.beginPath(); c.arc(x,y-12*z,18*z,0,TAU); c.fill();
+        c.fillStyle='#f6eedc'; c.fillRect(x-3*z,y-6*z,6*z,22*z);
+        c.fillStyle=`rgba(255,${200+fl*40|0},120,1)`; c.beginPath(); c.ellipse(x,y-11*z,2.4*z,5*z*fl,0,0,TAU); c.fill(); }
+      // owls
+      if(s.owls.length < 2 && R() < .004){ const ltr=R()<.5; s.owls.push({x:ltr?-40:W+40, y:rr(H*.1,H*.4), vx:(ltr?1:-1)*rr(1.6,2.6), p:R()*TAU}); }
+      c.fillStyle='#0a0818';
+      for(const o of s.owls){ o.x+=o.vx; o.p+=.18; const fl=Math.sin(o.p)*9, d=Math.sign(o.vx);
+        c.beginPath(); c.ellipse(o.x,o.y,9,6,0,0,TAU); c.fill();
+        c.beginPath(); c.arc(o.x+d*8,o.y-3,5,0,TAU); c.fill();
+        c.beginPath(); c.moveTo(o.x-4,o.y-2); c.quadraticCurveTo(o.x-14,o.y-14-fl,o.x-26,o.y-4-fl); c.quadraticCurveTo(o.x-14,o.y+2,o.x-2,o.y+2); c.fill();
+        c.beginPath(); c.moveTo(o.x+4,o.y-2); c.quadraticCurveTo(o.x+14,o.y-14-fl,o.x+26,o.y-4-fl); c.quadraticCurveTo(o.x+14,o.y+2,o.x+2,o.y+2); c.fill(); }
+      s.owls = s.owls.filter(o=>o.x>-60&&o.x<W+60);
+      // magic sparkle motes
+      if(s.motes.length < 50 && R() < .5) s.motes.push({x:R()*W, y:rr(H*.3,H), v:rr(.2,.7), l:1, col:R()<.5?'242,193,78':'190,170,255'});
+      for(const m of s.motes){ m.y-=m.v; m.l-=.006; c.fillStyle=`rgba(${m.col},${m.l*(.5+.5*Math.sin(t*6+m.x))})`; c.fillRect(m.x,m.y,2,2); }
+      s.motes = s.motes.filter(m=>m.l>0);
+    },
+  },
+};
+
+/* ---------- scene engine ---------- */
+const cv = $('bgCanvas'), ctx = cv.getContext('2d');
+let W, H, back, front, sceneState, dpr = Math.min(devicePixelRatio||1, 2), useCanvas = true;
+function layer(){ const l=document.createElement('canvas'); l.width=W*dpr; l.height=H*dpr; const g=l.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); return [l,g]; }
+function buildScene(){
+  W = innerWidth; H = innerHeight;
+  cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  let bg, fg; [back,bg] = layer(); [front,fg] = layer();
+  sceneState = SCENES[themeKey].build(bg, fg, W, H);
+}
+function loop(time){
+  if(useCanvas && sceneState){
+    const t = time/1000, S = SCENES[themeKey];
+    ctx.drawImage(back,0,0,W,H); S.mid(ctx,W,H,t,sceneState);
+    ctx.drawImage(front,0,0,W,H); S.top(ctx,W,H,t,sceneState);
+  }
+  requestAnimationFrame(loop);
+}
+addEventListener('resize', () => { if(useCanvas) buildScene(); });
+
+/* ---------- apply a theme ---------- */
+let charTimer, charIdx = 0, signalImg = null;
+function ornHTML(){ const o = (CONFIG.themes[themeKey]||{}).ornament; return o ? `<img src="${o}" alt="">` : orn(T.orn); }
+function showChar(src){
+  const ch = $('chara'); ch.classList.add('hide');
+  setTimeout(() => {
+    ch.onload = () => { ch.classList.toggle('wide', ch.naturalWidth > ch.naturalHeight * 1.05); ch.classList.remove('hide'); };
+    ch.src = src;
+  }, ch.src ? 450 : 0);
+}
+function applyTheme(key){
+  if(!THEMES[key]) key = 'sakura';
+  themeKey = key; T = THEMES[key];
+  const st = document.documentElement.style;
+  st.setProperty('--accent',T.accent); st.setProperty('--accent2',T.accent2); st.setProperty('--text',T.text);
+  st.setProperty('--muted',T.muted); st.setProperty('--card',T.card); st.setProperty('--line',T.line);
+  st.setProperty('--icon',T.icon); st.setProperty('--title',T.title); st.setProperty('--grad',T.grad);
+  document.body.dataset.theme = key;
+  const opt = CONFIG.themes[key] || {};
+  const o = ornHTML(), an = opt.ornament ? 'a-flip' : T.anim;
+  $('ornL').innerHTML = o; $('ornR').innerHTML = o;
+  $('ornL').className = 'orn ' + an; $('ornR').className = 'orn r ' + an;
+  $('sx1').innerHTML = o; $('sx2').innerHTML = o;
+  $('sx1').className = 'x ' + an; $('sx2').className = 'x r ' + an;
+  $('jp').textContent = T.subtitle; $('splashText').textContent = T.splash; $('splashSub').textContent = T.splashSub;
+  clearTimeout(bioTimer); bioI = 0; bioJ = 0; bioDel = false; typeTick();
+
+  const ch = $('chara'), list = [].concat(opt.character || []).filter(Boolean);
+  clearInterval(charTimer); charIdx = 0;
+  if(list.length){
+    ch.style.display = 'block'; ch.classList.toggle('left', opt.side === 'left');
+    showChar(list[0]);
+    if(list.length > 1) charTimer = setInterval(() => showChar(list[++charIdx % list.length]), (CONFIG.characterSwapSeconds||15)*1000);
+  } else ch.style.display = 'none';
+  signalImg = null;
+  if(opt.signal){ signalImg = new Image(); signalImg.src = opt.signal; }
+
+  const bgFile = opt.background || '', vid = $('bgVideo'), img = $('bgImage');
+  vid.style.display = img.style.display = 'none';
+  useCanvas = !bgFile;
+  if(bgFile && /\.(mp4|webm)$/i.test(bgFile)){ vid.src = bgFile; vid.style.display = 'block'; }
+  else if(bgFile){ img.src = bgFile; img.style.display = 'block'; }
+  cv.style.display = useCanvas ? 'block' : 'none';
+  if(useCanvas) buildScene();
+
+  renderUser(); renderServer(); rebuildPlaylist();
+  document.querySelectorAll('#themeMenu button').forEach(b => b.classList.toggle('on', b.dataset.k === key));
+  try{ localStorage.setItem('bioThemeTBC', key); }catch(e){}
+}
+
+/* ---------- theme picker ---------- */
+const isOwner = CONFIG.themePicker !== 'off' && location.hash === '#' + CONFIG.secretWord;
+const pickerOn = isOwner || CONFIG.themePicker === 'everyone';
+if(pickerOn){
+  $('themeMenu').innerHTML = Object.entries(THEMES).map(([k,v]) =>
+    `<button data-k="${k}"><i style="background:linear-gradient(135deg,${v.accent},${v.accent2})"></i>${v.label}</button>`).join('');
+  $('themeBtn').onclick = e => { e.stopPropagation(); $('themeMenu').classList.toggle('open'); };
+  $('themeMenu').onclick = e => { const b = e.target.closest('button'); if(b){ applyTheme(b.dataset.k); $('themeMenu').classList.remove('open'); } };
+  addEventListener('click', () => $('themeMenu').classList.remove('open'));
+} else $('themeBtn').style.display = 'none';
+
+let saved = null; try{ saved = localStorage.getItem('bioThemeTBC'); }catch(e){}
+applyTheme(pickerOn && saved ? saved : CONFIG.theme);
+requestAnimationFrame(loop);
+loadPresence(); setInterval(loadPresence, 30000);
+loadServer(); setInterval(loadServer, 120000);
+
+</script>
+</body>
+</html>
