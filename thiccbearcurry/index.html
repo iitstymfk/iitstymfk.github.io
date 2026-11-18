@@ -319,11 +319,11 @@ const CONFIG = {
   //  background = optional wallpaper / gif / mp4 instead of the animated scene
   characterSwapSeconds: 15,
   themes: {
-    apothecary: { character: ["chars/maomao_pink.png", "chars/maomao.png"], side: "right", background: "" },
-    // logo = image above the name, cursor = custom mouse pointer, flyer = image that zooms around the sky
+    apothecary: { character: ["chars/maomao_pink.png", "chars/maomao.png"], side: "right", cursor: "chars/hairpin_cursor.png", cursorHotspot: "2 2", background: "" },
+    // logo = image above the name, cursor = custom mouse pointer (cursorHotspot = "x y" click point), flyer = image that zooms around the sky
     wizard:     { character: [], side: "right", ornament: "chars/snitch.png", ornamentAnim: "a-sway",
                   logo: "chars/hp_logo.png", cursor: "chars/wand_cursor.png", flyer: "chars/snitch.png", background: "" },
-    sakura:     { character: [], side: "right", background: "" },
+    sakura:     { character: [], side: "right", cursor: "chars/sakura_cursor.png", cursorHotspot: "16 16", background: "" },
   },
 
   // ---- Discord (live once hosted online) ----
@@ -841,7 +841,7 @@ function applyTheme(key){
   const lg = $('themeLogo');
   if(opt.logo){ lg.src = opt.logo; lg.style.display = 'block'; } else lg.style.display = 'none';
   document.body.classList.toggle('customCursor', !!opt.cursor);
-  if(opt.cursor) document.body.style.setProperty('--cur', `url(${opt.cursor}) 2 2, auto`);
+  if(opt.cursor) document.body.style.setProperty('--cur', `url(${opt.cursor}) ${opt.cursorHotspot || '2 2'}, auto`);
 
   const bgFile = opt.background || '', vid = $('bgVideo'), img = $('bgImage');
   vid.style.display = img.style.display = 'none';
