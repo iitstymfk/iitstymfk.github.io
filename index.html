@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>@iitstymfk</title>
+<link rel="icon" id="favicon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=M+PLUS+Rounded+1c:wght@400;700;800&family=Creepster&family=Bangers&family=Russo+One&family=Anton&family=Dela+Gothic+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=M+PLUS+Rounded+1c:wght@400;700;800&family=Creepster&family=Bangers&family=Russo+One&family=Anton&family=Dela+Gothic+One&family=Metal+Mania&family=Bungee&family=Yuji+Syuku&family=Zen+Antique&family=Pirata+One&family=Permanent+Marker&family=Press+Start+2P&family=Rubik+Wet+Paint&family=Special+Elite&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
 <style>
 /* =====================================================================
    iitstymfk — bio page with switchable themes.
@@ -190,6 +191,21 @@ body[data-theme=hero] .jp{color:#fff;text-shadow:2px 2px 0 #111}
 body[data-theme=hero] .soc svg{filter:drop-shadow(3px 3px 0 #111)}
 body[data-theme=gotham] h1{letter-spacing:4px;text-transform:uppercase}
 body[data-theme=gotham] .card,body[data-theme=gotham] .player{border-radius:6px}
+/* ---------- extra animations + per-theme touches for the 10 newer themes ---------- */
+.a-spinfast{animation:spin 1.2s linear infinite}.a-spinfast.r{animation-direction:reverse}
+.a-pulse{animation:pulse8 1s steps(2) infinite}.a-pulse.r{animation-delay:-.5s}
+@keyframes pulse8{50%{transform:scale(1.25)}}
+#themeMenu{max-height:min(70vh,560px);overflow-y:auto}
+body[data-theme=chainsaw] h1{letter-spacing:3px}
+body[data-theme=mob] h1{letter-spacing:2px}
+body[data-theme=arcade] h1{font-size:clamp(20px,5vw,40px);line-height:1.4;letter-spacing:2px}
+body[data-theme=arcade] .card,body[data-theme=arcade] .player{border-radius:0;border:2px solid #00f0ff;box-shadow:4px 4px 0 #ff2bd6}
+body[data-theme=arcade] .cname{font-family:'Press Start 2P',monospace;font-size:11px;line-height:1.6}
+body[data-theme=noir] h1{letter-spacing:4px}
+body[data-theme=noir] .card,body[data-theme=noir] .player{border-radius:4px}
+body[data-theme=dragon] h1{letter-spacing:2px}
+body[data-theme=onepiece] h1{letter-spacing:2px}
+
 
 @media (max-width:560px){
   .cards{grid-template-columns:1fr}
@@ -222,6 +238,16 @@ input[type=text],input[type=password]{cursor:text!important}
     <ellipse cx="20" cy="22" rx="17" ry="6" fill="#ff4fa3" stroke="#111" stroke-width="1.6"/>
     <circle cx="10" cy="22" r="1.6" fill="#fff59a"/><circle cx="20" cy="24" r="1.6" fill="#fff59a"/><circle cx="30" cy="22" r="1.6" fill="#fff59a"/>
     <path d="M14 28 L10 38 L30 38 L26 28Z" fill="#39ff88" opacity=".35"/></g>
+  <g id="o-saw"><g transform="translate(20 20)"><polygon points="0,-18 3.5,-13 9,-15.5 9.4,-10 15,-9 12.5,-4.2 18,0 12.5,4.2 15,9 9.4,10 9,15.5 3.5,13 0,18 -3.5,13 -9,15.5 -9.4,10 -15,9 -12.5,4.2 -18,0 -12.5,-4.2 -15,-9 -9.4,-10 -9,-15.5 -3.5,-13" fill="#d0d0d0" stroke="#3a0a0a" stroke-width="1.5"/><circle r="7" fill="#ff6b1a" stroke="#3a0a0a" stroke-width="1.4"/><circle r="2.4" fill="#3a0a0a"/></g></g>
+  <g id="o-psy"><circle cx="20" cy="20" r="16" fill="none" stroke="#ff7ad9" stroke-width="3" stroke-dasharray="6 4"/><circle cx="20" cy="20" r="11" fill="#1d1450" stroke="#7df9ff" stroke-width="2.5"/><text x="20" y="26" text-anchor="middle" font-family="Bungee,Arial Black,sans-serif" font-size="15" fill="#ffe66d">%</text></g>
+  <g id="o-ofuda"><rect x="12" y="2" width="16" height="36" fill="#f3e6c4" stroke="#2a1606" stroke-width="1.4"/><rect x="14.5" y="4.5" width="11" height="31" fill="none" stroke="#c0392b" stroke-width="1.2"/><circle cx="20" cy="12" r="3.5" fill="none" stroke="#c0392b" stroke-width="1.4"/><path d="M16.5 20 H23.5 M20 17.5 V33 M16.5 26 L23.5 29" stroke="#c0392b" stroke-width="1.6"/></g>
+  <g id="o-wave"><circle cx="20" cy="20" r="17" fill="#0b1a33" stroke="#4fc3f7" stroke-width="2"/><path d="M5 24 Q11 14 18 20 Q22 24 26 18 Q30 12 35 17" fill="none" stroke="#bfe8ff" stroke-width="3" stroke-linecap="round"/><path d="M6 30 Q13 22 20 27 Q26 31 34 24" fill="none" stroke="#4fc3f7" stroke-width="2.4" stroke-linecap="round"/><circle cx="26" cy="13" r="2" fill="#b48cff"/></g>
+  <g id="o-hat"><ellipse cx="20" cy="25" rx="18" ry="7" fill="#f2c94c" stroke="#5a3a0a" stroke-width="1.6"/><path d="M10 24 Q10 9 20 9 Q30 9 30 24Z" fill="#f2c94c" stroke="#5a3a0a" stroke-width="1.6"/><path d="M10.4 20 Q20 23 29.6 20 L30 24 Q20 27 10 24Z" fill="#e8333b"/></g>
+  <g id="o-kunai"><path d="M20 2 L26 14 L20 20 L14 14Z" fill="#cfd6de" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><path d="M20 3 V19" stroke="#7e8a96"/><rect x="17.5" y="20" width="5" height="11" fill="#2a2a2a"/><path d="M17.5 23 h5 M17.5 26 h5 M17.5 29 h5" stroke="#e8e0d0" stroke-width="1"/><circle cx="20" cy="34.5" r="3.5" fill="none" stroke="#111" stroke-width="2"/></g>
+  <g id="o-pixel" shape-rendering="crispEdges"><path d="M8 8h4v4h-4zM28 8h4v4h-4zM12 12h4v4h-4zM24 12h4v4h-4zM8 16h24v4H8zM4 20h8v4H4zM16 20h8v4h-8zM28 20h8v4h-8zM4 24h32v4H4zM4 28h4v4H4zM12 28h16v4H12zM32 28h4v4h-4zM12 32h4v4h-4zM24 32h4v4h-4z" fill="#00f0ff"/><path d="M12 20h4v4h-4zM24 20h4v4h-4z" fill="#ff2bd6"/></g>
+  <g id="o-card"><rect x="8" y="3" width="24" height="34" rx="3" fill="#f4f1ea" stroke="#111" stroke-width="1.6"/><rect x="11" y="6" width="18" height="28" rx="2" fill="none" stroke="#7dff4f" stroke-width="1"/><text x="20" y="26" text-anchor="middle" font-family="Georgia,serif" font-size="16" font-weight="700" fill="#7a2fbf">J</text><text x="12" y="13" font-size="7" fill="#2f9e1f">♠</text></g>
+  <g id="o-fedora"><ellipse cx="20" cy="27" rx="18" ry="5" fill="#2b2b2b" stroke="#111" stroke-width="1.2"/><path d="M10 26 Q9 12 14 10 Q20 13 26 10 Q31 12 30 26Z" fill="#3a3a3a" stroke="#111" stroke-width="1.2"/><path d="M10.4 22 Q20 25 29.6 22 L30 26 Q20 28.5 10 26Z" fill="#e63946"/></g>
+  <g id="o-flame"><path d="M20 2 C25 11 34 16 31 27 A11.5 11.5 0 0 1 9 27 C8 19 14 15 15 9 C17 14 19.5 14 20 2Z" fill="#ff7a1a" stroke="#4a1500" stroke-width="1.4"/><path d="M20 15 C23 20 26 22 24.5 27.5 A5 5 0 0 1 15.5 27.5 C15 23.5 19 21 20 15Z" fill="#ffe66d"/></g>
   <g id="o-riddle"><text x="20" y="34" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="36" fill="#3ddc6a" stroke="#06200f" stroke-width="1.4">?</text></g>
 </defs></svg>
 
@@ -325,7 +351,8 @@ input[type=text],input[type=password]{cursor:text!important}
 const CONFIG = {
   name: "iitstymfk",
 
-  // Which theme loads first: "sakura", "haunted", "dandadan", "cursed", "hero", "gotham"
+  // Which theme loads first: "sakura", "haunted", "dandadan", "cursed", "hero", "gotham",
+  //   "chainsaw", "mob", "mononoke", "demonslayer", "onepiece", "naruto", "arcade", "joker", "noir", "dragon"
   theme: "sakura",
   // Who gets the 🎨 theme button and 🎵 music panel:
   //   "secret"   = hidden unless the link ends in #owner (yoursite/#owner)
@@ -351,6 +378,16 @@ const CONFIG = {
     cursed:  { character: ["chars/megumi.png", "chars/jjk_group.png"], side: "right", background: "" },
     hero:    { character: ["chars/toga.png"],     side: "right", background: "" },
     gotham:  { character: ["chars/batman.png"],   side: "right", ornament: "chars/bat_logo.png", signal: "chars/bat_logo.png", background: "" },
+    chainsaw:    { character: [], side: "right", background: "" },
+    mob:         { character: [], side: "right", background: "" },
+    mononoke:    { character: [], side: "right", background: "" },
+    demonslayer: { character: [], side: "right", background: "" },
+    onepiece:    { character: [], side: "right", background: "" },
+    naruto:      { character: [], side: "right", background: "" },
+    arcade:      { character: [], side: "right", background: "" },
+    joker:       { character: [], side: "right", background: "" },
+    noir:        { character: [], side: "right", background: "" },
+    dragon:      { character: [], side: "right", background: "" },
   },
 
   // ---- Discord (live once hosted online) ----
@@ -387,7 +424,7 @@ const CONFIG = {
 /* Theme definitions — colours, fonts, text and animated scene. */
 const THEMES = {
   sakura: {
-    label: "Sakura Night", accent: "#ff7eb6", accent2: "#9d8bff", text: "#f6f0ff", muted: "#d9c8ea",
+    label: "Sakura Night", tab: "🌸", accent: "#ff7eb6", accent2: "#9d8bff", text: "#f6f0ff", muted: "#d9c8ea",
     card: "rgba(30,18,48,.45)", line: "rgba(255,190,225,.2)", icon: "#f6f0ff",
     title: "'Mochiy Pop One',sans-serif", grad: "linear-gradient(90deg,#fff,#ffc4e1,#c9b8ff,#fff)",
     orn: "sakura", anim: "a-spin", sparks: ["✿","✦"],
@@ -395,7 +432,7 @@ const THEMES = {
     bios: ["gamer. night owl. anime enjoyer.", "probably in a lobby right now", "currently watching: dan da dan", "darling, gg ✿"],
   },
   haunted: {
-    label: "Mystery Inc.", accent: "#7dffb2", accent2: "#b48cff", text: "#ecfff4", muted: "#a9cbbb",
+    label: "Mystery Inc.", tab: "🔍", accent: "#7dffb2", accent2: "#b48cff", text: "#ecfff4", muted: "#a9cbbb",
     card: "rgba(6,22,20,.55)", line: "rgba(125,255,178,.18)", icon: "#ecfff4",
     title: "'Creepster',cursive", grad: "linear-gradient(90deg,#d9ffe9,#7dffb2,#b48cff,#d9ffe9)",
     orn: "wisp", anim: "a-sway", sparks: ["👻","·"],
@@ -403,7 +440,7 @@ const THEMES = {
     bios: ["and i would've gotten away with it too...", "the culprit was the groundskeeper", "ghost hunting tonight. bring snacks.", "zoinks."],
   },
   dandadan: {
-    label: "Dan Da Dan", accent: "#39ff88", accent2: "#ff4fa3", text: "#f4fff8", muted: "#bfe9d4",
+    label: "Dan Da Dan", tab: "🛸", accent: "#39ff88", accent2: "#ff4fa3", text: "#f4fff8", muted: "#bfe9d4",
     card: "rgba(14,8,30,.6)", line: "rgba(57,255,136,.25)", icon: "#f4fff8",
     title: "'Dela Gothic One',sans-serif", grad: "linear-gradient(90deg,#39ff88,#e9fff2,#ff4fa3,#39ff88)",
     orn: "ufo", anim: "a-sway", sparks: ["👽","✦"],
@@ -411,7 +448,7 @@ const THEMES = {
     bios: ["ghosts or aliens? why not both", "abducted by aliens. back in 5", "turbo granny is faster than my wifi", "occult club: active member"],
   },
   cursed: {
-    label: "Cursed Energy", accent: "#8b5cff", accent2: "#00e5ff", text: "#f1ecff", muted: "#a99fd0",
+    label: "Cursed Energy", tab: "🌀", accent: "#8b5cff", accent2: "#00e5ff", text: "#f1ecff", muted: "#a99fd0",
     card: "rgba(10,6,28,.6)", line: "rgba(139,92,255,.3)", icon: "#f1ecff",
     title: "'Russo One',sans-serif", grad: "linear-gradient(90deg,#fff,#b79bff,#00e5ff,#fff)",
     orn: "spiral", anim: "a-spin", sparks: ["✧","·"],
@@ -419,7 +456,7 @@ const THEMES = {
     bios: ["cursed energy: overflowing", "psychic power at 100%", "special grade gamer", "throughout every lobby, i alone am online"],
   },
   hero: {
-    label: "Hero Academy", accent: "#ffd23f", accent2: "#ff3b3b", text: "#ffffff", muted: "#fff2c4",
+    label: "Hero Academy", tab: "⭐", accent: "#ffd23f", accent2: "#ff3b3b", text: "#ffffff", muted: "#fff2c4",
     card: "#fffdf3", line: "#111", icon: "#ffffff",
     title: "'Bangers',cursive", grad: "linear-gradient(90deg,#ffd23f,#fff3a6,#ff6b3b,#ffd23f)",
     orn: "star", anim: "a-spin", sparks: ["★","✦"],
@@ -427,7 +464,7 @@ const THEMES = {
     bios: ["PLUS ULTRA!!", "quirk: unlimited respawns", "villain arc loading...", "top hero (of my lobby)"],
   },
   gotham: {
-    label: "Gotham Night", accent: "#ffc53d", accent2: "#5d7bff", text: "#eef1f7", muted: "#9aa3b5",
+    label: "Gotham Night", tab: "🦇", accent: "#ffc53d", accent2: "#5d7bff", text: "#eef1f7", muted: "#9aa3b5",
     card: "rgba(8,10,16,.66)", line: "rgba(255,197,61,.2)", icon: "#eef1f7",
     title: "'Anton',sans-serif", grad: "linear-gradient(90deg,#fff,#ffc53d,#c8d1e6,#fff)",
     orn: "riddle", anim: "a-flip", sparks: ["?","·"],
@@ -951,6 +988,447 @@ const SCENES = {
   },
 };
 
+/* =====================================================================
+   10 MORE THEMES (added 2026-11-18)
+   ===================================================================== */
+Object.assign(THEMES, {
+  chainsaw: {
+    label: "Devil Hunter", accent: "#ff3b2f", accent2: "#ff9a3c", text: "#fff1ec", muted: "#e0a99f",
+    card: "rgba(20,4,4,.62)", line: "rgba(255,59,47,.28)", icon: "#fff1ec", tab: "🪚",
+    title: "'Metal Mania',cursive", grad: "linear-gradient(90deg,#fff,#ff6b4a,#ffb36b,#fff)",
+    orn: "saw", anim: "a-spinfast", sparks: ["✦","▴"],
+    splash: "PULL THE CORD", splashSub: "click to rev up", subtitle: "PUBLIC SAFETY • DEVIL HUNTER",
+    bios: ["devil hunter for hire", "bread with jam is peak cuisine", "woof.", "my dream is a normal life (and a lobby win)"],
+  },
+  mob: {
+    label: "Psychic 100%", accent: "#7df9ff", accent2: "#ff7ad9", text: "#f5f2ff", muted: "#cbbfe8",
+    card: "rgba(24,14,48,.55)", line: "rgba(125,249,255,.28)", icon: "#f5f2ff", tab: "💯",
+    title: "'Bungee',sans-serif", grad: "linear-gradient(90deg,#7df9ff,#ffffff,#ff7ad9,#ffe66d,#7df9ff)",
+    orn: "psy", anim: "a-spin", sparks: ["%","✧"],
+    splash: "???%", splashSub: "click to release", subtitle: "EMOTION METER RISING",
+    bios: ["emotion meter: 37%", "body improvement club member", "just a normal middle school gamer", "???%"],
+  },
+  mononoke: {
+    label: "Medicine Seller", accent: "#e0453a", accent2: "#e8c15a", text: "#fbf3e2", muted: "#d6c3a3",
+    card: "rgba(28,14,30,.62)", line: "rgba(232,193,90,.28)", icon: "#fbf3e2", tab: "🧧",
+    title: "'Yuji Syuku',serif", grad: "linear-gradient(90deg,#fbf3e2,#e8c15a,#e0453a,#fbf3e2)",
+    orn: "ofuda", anim: "a-sway", sparks: ["卍","·"],
+    splash: "form • truth • reason", splashSub: "click to unsheathe", subtitle: "形 ✦ 真 ✦ 理",
+    bios: ["form, truth and reason", "mononoke spotted in the lobby", "the sword cannot be drawn yet", "ghost stories after dark"],
+  },
+  demonslayer: {
+    label: "Breath of Water", accent: "#4fc3f7", accent2: "#b48cff", text: "#eef8ff", muted: "#a9c7dc",
+    card: "rgba(6,12,30,.6)", line: "rgba(79,195,247,.28)", icon: "#eef8ff", tab: "🌊",
+    title: "'Zen Antique',serif", grad: "linear-gradient(90deg,#eef8ff,#4fc3f7,#b48cff,#eef8ff)",
+    orn: "wave", anim: "a-spin", sparks: ["〰","·"],
+    splash: "total concentration", splashSub: "click to breathe", subtitle: "水の呼吸 ✦ 鬼殺隊",
+    bios: ["water breathing, first form", "set your heart ablaze", "wisteria keeps the demons away", "slaying demons and lobbies"],
+  },
+  onepiece: {
+    label: "Grand Line", accent: "#ffb347", accent2: "#e8333b", text: "#fff8ec", muted: "#f2d2b0",
+    card: "rgba(14,26,58,.55)", line: "rgba(255,179,71,.3)", icon: "#fff8ec", tab: "🏴‍☠️",
+    title: "'Pirata One',cursive", grad: "linear-gradient(90deg,#fff8ec,#ffb347,#e8333b,#fff8ec)",
+    orn: "hat", anim: "a-flip", sparks: ["⚓","✦"],
+    splash: "set sail!", splashSub: "click to board", subtitle: "SEARCHING FOR THE ONE PIECE",
+    bios: ["i'm gonna be king of the gamers", "meat first, questions later", "the one piece is real", "nakama > everything"],
+  },
+  naruto: {
+    label: "Hidden Leaf", accent: "#ff8c1a", accent2: "#3b82f6", text: "#fff6ea", muted: "#f1cfa5",
+    card: "rgba(30,14,10,.55)", line: "rgba(255,140,26,.3)", icon: "#fff6ea", tab: "🍃",
+    title: "'Permanent Marker',cursive", grad: "linear-gradient(90deg,#fff6ea,#ff8c1a,#ffd36e,#fff6ea)",
+    orn: "kunai", anim: "a-spin", sparks: ["🍃","·"],
+    splash: "believe it!", splashSub: "click to enter the village", subtitle: "NINJA WAY • NEVER GIVE UP",
+    bios: ["that's my ninja way", "ramen break, brb", "shadow clone jutsu: x100 alt accounts", "never going back on my word"],
+  },
+  arcade: {
+    label: "Retro Arcade", accent: "#ff2bd6", accent2: "#00f0ff", text: "#ffffff", muted: "#d2b8ff",
+    card: "rgba(18,4,40,.62)", line: "rgba(0,240,255,.35)", icon: "#ffffff", tab: "👾",
+    title: "'Press Start 2P',monospace", grad: "linear-gradient(90deg,#00f0ff,#ffffff,#ff2bd6,#ffe66d,#00f0ff)",
+    orn: "pixel", anim: "a-pulse", sparks: ["■","+"],
+    splash: "INSERT COIN", splashSub: "PRESS START", subtitle: "HIGH SCORE • PLAYER 1",
+    bios: ["player 1 ready", "new high score!", "1 credit remaining", "game over? never."],
+  },
+  joker: {
+    label: "Arkham Chaos", accent: "#7dff4f", accent2: "#a24bff", text: "#f3ffef", muted: "#b9c7b0",
+    card: "rgba(14,6,22,.66)", line: "rgba(125,255,79,.25)", icon: "#f3ffef", tab: "🃏",
+    title: "'Rubik Wet Paint',cursive", grad: "linear-gradient(90deg,#7dff4f,#f3ffef,#a24bff,#7dff4f)",
+    orn: "card", anim: "a-flip", sparks: ["♠","♦"],
+    splash: "WHY SO SERIOUS?", splashSub: "click if you dare", subtitle: "ARKHAM ASYLUM • WARD 13",
+    bios: ["all it takes is one bad day", "introduce a little chaos", "the cards never lie", "ha. ha. ha."],
+  },
+  noir: {
+    label: "Case Files", accent: "#e63946", accent2: "#d9d9d9", text: "#f2f2f2", muted: "#a8a8a8",
+    card: "rgba(10,10,10,.7)", line: "rgba(230,57,70,.3)", icon: "#f2f2f2", tab: "🕵️",
+    title: "'Special Elite',monospace", grad: "linear-gradient(90deg,#ffffff,#bdbdbd,#e63946,#ffffff)",
+    orn: "fedora", anim: "a-sway", sparks: ["·","✦"],
+    splash: "the case is open", splashSub: "click to investigate", subtitle: "PRIVATE INVESTIGATOR • NIGHT SHIFT",
+    bios: ["it was a dark and stormy night", "everybody's a suspect", "the butler had an alibi. barely.", "case closed. next."],
+  },
+  dragon: {
+    label: "Dragon's Keep", accent: "#ff7a1a", accent2: "#ffd36e", text: "#fff4e6", muted: "#e3c39f",
+    card: "rgba(24,8,4,.6)", line: "rgba(255,122,26,.3)", icon: "#fff4e6", tab: "🐉",
+    title: "'Cinzel Decorative',serif", grad: "linear-gradient(90deg,#fff4e6,#ffd36e,#ff7a1a,#fff4e6)",
+    orn: "flame", anim: "a-sway", sparks: ["✦","🔥"],
+    splash: "enter the keep", splashSub: "here be dragons", subtitle: "GUILD OF THE EMBER WING",
+    bios: ["here be dragons", "a quest awaits", "rolled a nat 20", "the hoard is mine"],
+  },
+});
+
+/* ---------- helpers for the new scenes ---------- */
+function drawDragon(c, x, y, s, flap, dir){
+  c.save(); c.translate(x, y); c.scale(dir*s, s); c.fillStyle = '#060208';
+  c.beginPath(); c.ellipse(0, 0, 34, 10, -.08, 0, TAU); c.fill();                       // body
+  c.beginPath(); c.moveTo(28,-4); c.quadraticCurveTo(48,-22,62,-18); c.lineTo(70,-16); c.lineTo(62,-11); c.quadraticCurveTo(50,-10,32,4); c.fill(); // neck+head
+  c.beginPath(); c.moveTo(66,-19); c.lineTo(60,-27); c.lineTo(62,-18); c.fill();           // horn
+  c.beginPath(); c.moveTo(-30,0); c.quadraticCurveTo(-60,10,-84,-4); c.lineTo(-92,-2); c.lineTo(-84,2); c.quadraticCurveTo(-58,16,-28,6); c.fill(); // tail
+  const wy = -flap*42;
+  c.beginPath(); c.moveTo(-4,-6); c.lineTo(10,-6); c.lineTo(-6, wy-40);
+  c.quadraticCurveTo(-22, wy-14, -40, wy-24); c.quadraticCurveTo(-30, wy, -46, wy-6); c.quadraticCurveTo(-26, -4, -4, -6); c.fill(); // wing
+  c.restore();
+}
+function ofuda(c, x, y, r, s){
+  c.save(); c.translate(x,y); c.rotate(r); c.scale(s,s);
+  c.fillStyle='#f3e6c4'; c.fillRect(-9,-24,18,48);
+  c.strokeStyle='#c0392b'; c.lineWidth=1.6; c.strokeRect(-7,-22,14,44);
+  c.beginPath(); c.arc(0,-12,4.5,0,TAU); c.stroke();
+  c.lineWidth=2; c.beginPath(); c.moveTo(-4,-2); c.lineTo(4,-2); c.moveTo(0,-5); c.lineTo(0,16); c.moveTo(-4,6); c.lineTo(4,10); c.moveTo(-4,14); c.lineTo(4,12); c.stroke();
+  c.restore();
+}
+
+Object.assign(SCENES, {
+  /* ---------------- DEVIL HUNTER (Chainsaw Man) ---------------- */
+  chainsaw: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#070000'); sky.addColorStop(.55,'#2a0505'); sky.addColorStop(1,'#6a0c0c');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      const mx=W*.76, my=H*.22, mr=Math.min(W,H)*.11;
+      const halo=b.createRadialGradient(mx,my,mr*.8,mx,my,mr*4); halo.addColorStop(0,'rgba(255,40,30,.35)'); halo.addColorStop(1,'rgba(255,40,30,0)');
+      b.fillStyle=halo; b.fillRect(0,0,W,H);
+      b.fillStyle='#c4161c'; b.beginPath(); b.arc(mx,my,mr,0,TAU); b.fill();
+      b.fillStyle='rgba(90,0,0,.45)'; [[.3,.2,.2],[-.35,.3,.14],[-.1,-.4,.12]].forEach(([a,c2,r])=>{b.beginPath();b.arc(mx+a*mr,my+c2*mr,r*mr,0,TAU);b.fill();});
+      skyline(f,W,H,{col:'#060101',minW:30,maxW:90,minH:.14,maxH:.45,gap:3,
+        win:{gx:8,gy:10,w:3,h:4,p:.05,col:()=>R()<.7?'rgba(255,70,50,.75)':'rgba(255,190,120,.6)'}});
+      f.fillStyle='#030000'; f.fillRect(0,H*.96,W,H*.04);
+      return { ash: [], sparks: [], next: 1 };
+    },
+    mid(c, W, H, t, s){
+      const g=c.createLinearGradient(0,H*.6,0,H); g.addColorStop(0,'rgba(255,30,20,0)'); g.addColorStop(1,`rgba(255,30,20,${.18+.08*Math.sin(t*3)})`);
+      c.fillStyle=g; c.fillRect(0,H*.6,W,H*.4);
+    },
+    top(c, W, H, t, s){
+      if(s.ash.length < 70) s.ash.push({x:R()*W, y:-5, v:rr(.4,1.2), p:R()*TAU, sz:rr(1,3)});
+      c.fillStyle='rgba(200,190,190,.55)';
+      for(const a of s.ash){ a.y+=a.v; a.p+=.03; c.fillRect(a.x+Math.sin(a.p)*12, a.y, a.sz, a.sz); }
+      s.ash = s.ash.filter(a=>a.y<H+5);
+      if(t > s.next){ s.next = t + rr(1.2,2.8); const sx = R()<.5 ? rr(0,W*.25) : rr(W*.75,W), sy = H*rr(.75,.95);
+        for(let i=0;i<40;i++){ const a=-Math.PI/2+rr(-.9,.9), v=rr(4,11); s.sparks.push({x:sx,y:sy,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:1}); } }
+      c.lineWidth=2; c.lineCap='round';
+      for(const p of s.sparks){ c.strokeStyle=`rgba(255,${180+R()*60|0},80,${p.l})`; c.beginPath(); c.moveTo(p.x,p.y); c.lineTo(p.x-p.vx*1.5,p.y-p.vy*1.5); c.stroke();
+        p.x+=p.vx; p.y+=p.vy; p.vy+=.35; p.l-=.025; }
+      s.sparks = s.sparks.filter(p=>p.l>0);
+    },
+  },
+
+  /* ---------------- PSYCHIC 100% (Mob Psycho 100) ---------------- */
+  mob: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#1d1450'); sky.addColorStop(.6,'#5b3aa0'); sky.addColorStop(1,'#ff9ed1');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      for(let i=0;i<8;i++){ const cx=R()*W, cy=rr(H*.1,H*.5), cw=rr(120,260); b.fillStyle='rgba(255,255,255,.07)';
+        b.beginPath(); b.ellipse(cx,cy,cw,cw*.22,0,0,TAU); b.fill(); }
+      skyline(f,W,H,{col:'#1a1240',minW:40,maxW:100,minH:.1,maxH:.3,gap:6,
+        win:{gx:11,gy:13,w:5,h:6,p:.3,col:()=>['#7df9ff','#ff7ad9','#ffe66d'][R()*3|0]}});
+      return { rocks: [], pct: 0, flash: 0 };
+    },
+    mid(c, W, H, t, s){
+      const cx=W/2, cy=H*.42, k=Math.min(W,H)/800;
+      for(let i=0;i<7;i++){
+        const r=(120+i*45+Math.sin(t*2+i)*10)*k*1.3;
+        c.strokeStyle=`hsla(${(t*60+i*45)%360},100%,72%,${.28-i*.03})`; c.lineWidth=10*k+4;
+        c.beginPath(); c.arc(cx,cy,r,0,TAU); c.stroke();
+      }
+    },
+    top(c, W, H, t, s){
+      if(s.rocks.length < 18 && R()<.05){ const n=5+R()*3|0, pts=[]; for(let i=0;i<n;i++){ const a=i/n*TAU, r=rr(6,16); pts.push([Math.cos(a)*r,Math.sin(a)*r]); }
+        s.rocks.push({x:R()*W, y:H+20, v:rr(.4,1.3), r:R()*TAU, vr:rr(-.03,.03), pts, z:rr(.7,1.8)}); }
+      for(const o of s.rocks){ o.y-=o.v; o.r+=o.vr; c.save(); c.translate(o.x+Math.sin(t+o.x)*6,o.y); c.rotate(o.r); c.scale(o.z,o.z);
+        c.shadowColor='#7df9ff'; c.shadowBlur=10; c.fillStyle='#5a4e78'; c.strokeStyle='#7df9ff'; c.lineWidth=1.2;
+        c.beginPath(); o.pts.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y)); c.closePath(); c.fill(); c.stroke(); c.restore(); }
+      c.shadowBlur=0; s.rocks = s.rocks.filter(o=>o.y>-40);
+      // emotion meter
+      s.pct += .06; if(s.pct >= 101){ s.pct = 0; s.flash = 1; }
+      const label = s.pct >= 100 ? '???%' : (s.pct|0) + '%';
+      c.font = `${Math.max(14, Math.min(W,H)*.03)|0}px Bungee, sans-serif`; c.textAlign='left'; c.textBaseline='bottom';
+      c.fillStyle = s.pct >= 100 ? `hsl(${t*300%360},100%,70%)` : 'rgba(255,255,255,.75)';
+      c.fillText('MOB ' + label, 18, H - 40);
+      if(s.flash > 0){ c.fillStyle=`rgba(255,255,255,${s.flash*.35})`; c.fillRect(0,0,W,H); s.flash -= .03; }
+    },
+  },
+
+  /* ---------------- MEDICINE SELLER (Mononoke / Ghost Stories) ---------------- */
+  mononoke: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#160c28'); sky.addColorStop(.55,'#3a1430'); sky.addColorStop(1,'#7a1f2b');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      b.strokeStyle='rgba(232,193,90,.09)'; b.lineWidth=1.4;                 // seigaiha wave pattern
+      for(let y=0;y<H+40;y+=22) for(let x=((y/22)%2)*22;x<W+44;x+=44) for(let r=6;r<=22;r+=6){ b.beginPath(); b.arc(x,y,r,Math.PI,0); b.stroke(); }
+      const sx=W*.8, sy=H*.22, sr=Math.min(W,H)*.1;
+      b.fillStyle='#d7432f'; b.beginPath(); b.arc(sx,sy,sr,0,TAU); b.fill();
+      b.strokeStyle='#e8c15a'; b.lineWidth=2;                                  // swirl clouds
+      for(let i=0;i<5;i++){ const cx=rr(0,W), cy=rr(H*.08,H*.5), r=rr(14,26);
+        b.fillStyle='rgba(40,16,40,.9)'; b.beginPath(); b.ellipse(cx,cy,r*3,r,0,0,TAU); b.fill();
+        b.beginPath(); for(let a=0;a<TAU*2;a+=.2){ const rr2=r*(1-a/(TAU*2.4)); const px=cx-r*1.6+Math.cos(a)*rr2*.6, py=cy+Math.sin(a)*rr2*.6; a?b.lineTo(px,py):b.moveTo(px,py);} b.stroke();
+        b.beginPath(); b.ellipse(cx,cy,r*3,r,0,0,TAU); b.stroke(); }
+      for(let L=0;L<3;L++){ f.fillStyle=['#1d5f5a','#164a46','#0f3532'][L]; f.beginPath(); f.moveTo(0,H);   // great-wave style crests
+        for(let x=0;x<=W;x+=6){ const y=H*(.82+L*.05)+Math.sin(x*.012+L*2)*18+Math.sin(x*.035+L)*6; f.lineTo(x,y); } f.lineTo(W,H); f.fill();
+        f.fillStyle='rgba(251,243,226,.8)'; for(let x=0;x<W;x+=rr(20,50)){ const y=H*(.82+L*.05)+Math.sin(x*.012+L*2)*18+Math.sin(x*.035+L)*6; f.beginPath(); f.arc(x,y-3,rr(2,4),0,TAU); f.fill(); } }
+      return { talis: Array.from({length:12},()=>({x:R()*W, y:rr(H*.1,H*.8), v:rr(.2,.6)*(R()<.5?-1:1), r:rr(-.4,.4), p:R()*TAU, s:rr(.7,1.3)})) };
+    },
+    mid(c, W, H, t, s){
+      const g=c.createRadialGradient(W/2,H*.45,0,W/2,H*.45,Math.max(W,H)*.6);
+      g.addColorStop(0,`rgba(224,69,58,${.08+.05*Math.sin(t*1.2)})`); g.addColorStop(1,'rgba(224,69,58,0)'); c.fillStyle=g; c.fillRect(0,0,W,H);
+    },
+    top(c, W, H, t, s){
+      for(const o of s.talis){ o.x+=o.v; o.p+=.02; if(o.x<-40) o.x=W+40; if(o.x>W+40) o.x=-40;
+        ofuda(c, o.x, o.y+Math.sin(o.p)*14, o.r+Math.sin(o.p)*.25, o.s); }
+    },
+  },
+
+  /* ---------------- BREATH OF WATER (Demon Slayer) ---------------- */
+  demonslayer: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#04060f'); sky.addColorStop(.6,'#121a3a'); sky.addColorStop(1,'#22304f');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      b.fillStyle='#eef2ff'; b.shadowColor='#cfe0ff'; b.shadowBlur=40; b.beginPath(); b.arc(W*.2,H*.2,Math.min(W,H)*.06,0,TAU); b.fill(); b.shadowBlur=0;
+      const pines=(base,col,hmin,hmax)=>{ f.fillStyle=col; for(let x=-20;x<W+20;x+=rr(18,34)){ const h=H*rr(hmin,hmax), w=h*.28;
+        f.beginPath(); f.moveTo(x,base-h); f.lineTo(x-w,base); f.lineTo(x+w,base); f.fill(); } f.fillRect(0,base,W,H-base); };
+      pines(H*.9,'#0b1428',.18,.34); pines(H*.97,'#050913',.12,.24);
+      for(let x=0;x<W;x+=rr(14,26)){ const len=rr(H*.06,H*.22);                // hanging wisteria
+        for(let y=0;y<len;y+=5){ const a=1-y/len; b.fillStyle=`rgba(${180+R()*40|0},${130+R()*40|0},255,${.75*a+.1})`;
+          b.beginPath(); b.arc(x+Math.sin(y*.2)*3+rr(-3,3), y, rr(2.5,4.5)*(.5+a*.6), 0, TAU); b.fill(); } }
+      return { petals: [] };
+    },
+    mid(c, W, H, t, s){
+      c.lineCap='round';
+      for(let k=0;k<3;k++){
+        const base=H*(.55+k*.1), amp=26-k*6, sp=1.2+k*.5;
+        for(let L=0;L<2;L++){
+          c.strokeStyle = L ? `rgba(255,255,255,${.35-k*.08})` : `rgba(79,195,247,${.5-k*.12})`; c.lineWidth = L ? 2 : 14-k*3;
+          c.beginPath(); for(let x=0;x<=W;x+=8){ const y=base+Math.sin(x*.008+t*sp+k)*amp+Math.sin(x*.02-t*sp*1.3)*amp*.35; x?c.lineTo(x,y):c.moveTo(x,y); } c.stroke();
+        }
+      }
+    },
+    top(c, W, H, t, s){
+      if(s.petals.length < 40 && R()<.3) s.petals.push({x:R()*W, y:-5, v:rr(.5,1.3), p:R()*TAU, r:R()*TAU});
+      for(const p of s.petals){ p.y+=p.v; p.p+=.04; p.r+=.03; c.save(); c.translate(p.x+Math.sin(p.p)*10,p.y); c.rotate(p.r);
+        c.fillStyle='rgba(200,160,255,.85)'; c.beginPath(); c.ellipse(0,0,4,2.5,0,0,TAU); c.fill(); c.restore(); }
+      s.petals = s.petals.filter(p=>p.y<H+10);
+    },
+  },
+
+  /* ---------------- GRAND LINE (One Piece) ---------------- */
+  onepiece: {
+    build(b, f, W, H){
+      const hz=H*.62;
+      const sky=b.createLinearGradient(0,0,0,hz); sky.addColorStop(0,'#24357f'); sky.addColorStop(.6,'#ff7a59'); sky.addColorStop(1,'#ffc46b');
+      b.fillStyle=sky; b.fillRect(0,0,W,hz);
+      const sr=Math.min(W,H)*.1; b.fillStyle='#fff1b8'; b.shadowColor='#ffd27a'; b.shadowBlur=60; b.beginPath(); b.arc(W*.5,hz,sr,Math.PI,0); b.fill(); b.shadowBlur=0;
+      const sea=b.createLinearGradient(0,hz,0,H); sea.addColorStop(0,'#2a5ea8'); sea.addColorStop(1,'#0a1f45'); b.fillStyle=sea; b.fillRect(0,hz,W,H-hz);
+      b.fillStyle='rgba(30,30,60,.7)'; [[.12,.05],[.86,.04]].forEach(([x,h])=>{ b.beginPath(); b.ellipse(W*x,hz,W*.08,H*h,0,Math.PI,0); b.fill(); });
+      for(let i=0;i<6;i++){ const cx=rr(0,W), cy=rr(H*.08,H*.35), cw=rr(80,180); b.fillStyle='rgba(255,220,200,.25)'; b.beginPath(); b.ellipse(cx,cy,cw,cw*.2,0,0,TAU); b.fill(); }
+      return { hz, ship: -120, gulls: Array.from({length:5},()=>({x:R()*W, y:rr(H*.1,H*.4), v:rr(.4,1), p:R()*TAU})) };
+    },
+    mid(c, W, H, t, s){
+      const hz=s.hz;
+      for(let i=0;i<14;i++){ const y=hz+6+i*7, w=(60-i*3)*(1+.3*Math.sin(t*2+i)); c.fillStyle=`rgba(255,230,160,${.5-i*.03})`; c.fillRect(W*.5-w/2, y, w, 2); }
+      s.ship += .35; if(s.ship > W+160) s.ship = -160;
+      const k=Math.min(W,H)/800, bx=s.ship, by=hz+4+Math.sin(t*1.5)*3;
+      c.save(); c.translate(bx,by); c.rotate(Math.sin(t*1.5)*.04); c.scale(k,k); c.fillStyle='#120a14';
+      c.beginPath(); c.moveTo(-70,-8); c.quadraticCurveTo(0,22,80,-8); c.lineTo(66,8); c.lineTo(-58,8); c.fill();
+      c.fillRect(-4,-100,5,92); c.fillRect(-44,-70,4,62);
+      c.beginPath(); c.moveTo(4,-92); c.quadraticCurveTo(46,-62,4,-24); c.fill(); c.beginPath(); c.moveTo(-38,-64); c.quadraticCurveTo(-8,-46,-38,-22); c.fill();
+      c.fillRect(-3,-114,22,12); c.fillStyle='#fff'; c.beginPath(); c.arc(8,-108,3,0,TAU); c.fill();
+      c.restore();
+      c.strokeStyle='#1a1020'; c.lineWidth=2;
+      for(const g of s.gulls){ g.x+=g.v; g.p+=.1; if(g.x>W+20) g.x=-20; const f2=Math.sin(g.p)*5;
+        c.beginPath(); c.moveTo(g.x-10,g.y-f2); c.quadraticCurveTo(g.x-5,g.y-6,g.x,g.y); c.quadraticCurveTo(g.x+5,g.y-6,g.x+10,g.y-f2); c.stroke(); }
+    },
+    top(c, W, H, t, s){
+      for(let L=0;L<3;L++){ c.fillStyle=['rgba(20,60,120,.75)','rgba(14,44,96,.85)','rgba(8,28,64,.95)'][L];
+        const base=H*(.8+L*.07), sp=.8+L*.4; c.beginPath(); c.moveTo(0,H);
+        for(let x=0;x<=W;x+=8) c.lineTo(x, base+Math.sin(x*.015+t*sp+L)*10+Math.sin(x*.04-t*sp)*4); c.lineTo(W,H); c.fill();
+        c.strokeStyle='rgba(255,255,255,.35)'; c.lineWidth=1.5; c.beginPath();
+        for(let x=0;x<=W;x+=8){ const y=base+Math.sin(x*.015+t*sp+L)*10+Math.sin(x*.04-t*sp)*4; x?c.lineTo(x,y):c.moveTo(x,y); } c.stroke(); }
+    },
+  },
+
+  /* ---------------- HIDDEN LEAF (Naruto) ---------------- */
+  naruto: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#2b1b5a'); sky.addColorStop(.5,'#d9534f'); sky.addColorStop(1,'#ffb347');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      b.fillStyle='rgba(255,230,180,.9)'; b.beginPath(); b.arc(W*.25,H*.3,Math.min(W,H)*.07,0,TAU); b.fill();
+      hills(b,W,H,H*.6,50,'#5a2a4a',1); hills(b,W,H,H*.7,35,'#3a1a34',4);
+      let x=-20; f.fillStyle='#1e0f18';                                         // village rooftops
+      while(x<W){ const w=rr(50,110), h=rr(30,80), y=H*.9-h;
+        f.fillRect(x+6,y,w-12,H); f.beginPath(); f.moveTo(x-8,y+4); f.quadraticCurveTo(x+w/2,y-h*.35,x+w+8,y+4); f.lineTo(x+w,y+10); f.lineTo(x,y+10); f.fill();
+        if(R()<.6){ f.fillStyle='rgba(255,200,120,.85)'; f.fillRect(x+w*.35,y+h*.4,8,10); f.fillStyle='#1e0f18'; }
+        x+=w+rr(4,20); }
+      const tx=W*.8, ty=H*.9;                                                  // water tower
+      f.fillRect(tx-3,ty-H*.22,6,H*.22); f.fillRect(tx+30,ty-H*.22,6,H*.22); f.beginPath(); f.ellipse(tx+18,ty-H*.24,34,22,0,0,TAU); f.fill();
+      f.fillRect(0,H*.95,W,H*.05);
+      return { leaves: [], clouds: Array.from({length:5},()=>({x:R()*W, y:rr(H*.08,H*.35), w:rr(80,180), v:rr(.1,.3)})) };
+    },
+    mid(c, W, H, t, s){
+      for(const cl of s.clouds){ cl.x+=cl.v; if(cl.x-cl.w>W) cl.x=-cl.w; c.fillStyle='rgba(255,210,190,.22)'; c.beginPath(); c.ellipse(cl.x,cl.y,cl.w,cl.w*.22,0,0,TAU); c.fill(); }
+    },
+    top(c, W, H, t, s){
+      if(s.leaves.length < 45 && R()<.3) s.leaves.push({x:R()*W*1.2, y:-10, vx:rr(-1.5,-.3), vy:rr(.6,1.6), r:R()*TAU, vr:rr(-.06,.06), p:R()*TAU, col:R()<.6?'#5fbf4a':(R()<.5?'#ff8c1a':'#e8c23a')});
+      for(const l of s.leaves){ l.p+=.05; l.x+=l.vx+Math.sin(l.p)*.8; l.y+=l.vy; l.r+=l.vr;
+        c.save(); c.translate(l.x,l.y); c.rotate(l.r); c.scale(1,Math.abs(Math.cos(l.p))+.25);
+        c.fillStyle=l.col; c.beginPath(); c.moveTo(0,-8); c.quadraticCurveTo(6,0,0,8); c.quadraticCurveTo(-6,0,0,-8); c.fill();
+        c.strokeStyle='rgba(0,0,0,.25)'; c.lineWidth=.8; c.beginPath(); c.moveTo(0,-8); c.lineTo(0,10); c.stroke(); c.restore(); }
+      s.leaves = s.leaves.filter(l=>l.y<H+20);
+    },
+  },
+
+  /* ---------------- RETRO ARCADE (synthwave) ---------------- */
+  arcade: {
+    build(b, f, W, H){
+      const hz=H*.62;
+      const sky=b.createLinearGradient(0,0,0,hz); sky.addColorStop(0,'#070019'); sky.addColorStop(.6,'#3b0a5c'); sky.addColorStop(1,'#ff2bd6');
+      b.fillStyle=sky; b.fillRect(0,0,W,hz);
+      const sr=Math.min(W,H)*.17, sx=W/2, sy=hz-sr*.35;
+      const sg=b.createLinearGradient(0,sy-sr,0,sy+sr); sg.addColorStop(0,'#ffe66d'); sg.addColorStop(1,'#ff2b8a');
+      b.save(); b.beginPath(); b.arc(sx,sy,sr,0,TAU); b.clip(); b.fillStyle=sg; b.fillRect(sx-sr,sy-sr,sr*2,sr*2);
+      b.fillStyle='#3b0a5c'; for(let i=0;i<7;i++){ const y=sy+sr*(.05+i*.14), h=2+i*1.6; b.fillRect(sx-sr,y,sr*2,h); } b.restore();
+      b.strokeStyle='#00f0ff'; b.lineWidth=2; b.fillStyle='#14002b';
+      [[0,.75,.16],[.35,.5,.1],[.65,.85,.14]].forEach(([a,e,h])=>{ b.beginPath(); b.moveTo(W*a,hz); b.lineTo(W*(a+e)/2*1, hz-H*h); b.lineTo(W*e,hz); b.closePath(); b.fill(); b.stroke(); });
+      b.fillStyle='#0b0019'; b.fillRect(0,hz,W,H-hz);
+      return { hz, stars: starsArr(W,H,.5,W*H/6000|0) };
+    },
+    mid(c, W, H, t, s){
+      drawStars(c, s.stars, t, '#ffffff');
+      const hz=s.hz; c.strokeStyle='rgba(255,43,214,.8)'; c.lineWidth=1.5; c.shadowColor='#ff2bd6'; c.shadowBlur=8;
+      c.beginPath();
+      for(let i=0;i<18;i++){ const p=((i/18)+t*.12)%1, y=hz+(H-hz)*p*p; c.moveTo(0,y); c.lineTo(W,y); }
+      for(let i=-24;i<=24;i++){ c.moveTo(W/2+i*8,hz); c.lineTo(W/2+i*W*.09,H); }
+      c.stroke(); c.shadowBlur=0;
+    },
+    top(c, W, H, t, s){
+      c.fillStyle='rgba(0,0,0,.18)'; for(let y=0;y<H;y+=3) c.fillRect(0,y,W,1);
+      if(R()<.015){ const y=R()*H; c.fillStyle='rgba(0,240,255,.2)'; c.fillRect(0,y,W,rr(3,12)); }
+    },
+  },
+
+  /* ---------------- ARKHAM CHAOS (Joker) ---------------- */
+  joker: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#08040e'); sky.addColorStop(.6,'#22103a'); sky.addColorStop(1,'#14301a');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      const s=Math.min(W,H)/800, ax=W*.5, ay=H*.95; f.fillStyle='#050308';  // asylum
+      const R3=(x,y,w,h)=>f.fillRect(ax+x*s,ay+y*s,w*s,h*s);
+      const roof=(x,y,w,h)=>{f.beginPath();f.moveTo(ax+x*s,ay+y*s);f.lineTo(ax+(x+w/2)*s,ay+(y-h)*s);f.lineTo(ax+(x+w)*s,ay+y*s);f.fill();};
+      R3(-420,-160,840,170); R3(-120,-300,240,300); roof(-135,-300,270,90); R3(-360,-250,80,250); roof(-372,-250,104,100); R3(280,-250,80,250); roof(268,-250,104,100);
+      R3(-8,-470,16,90);
+      f.fillStyle='rgba(125,255,79,.75)';
+      for(let i=-6;i<=6;i++) for(let j=0;j<2;j++) if(R()<.55){ R3(i*58-8,-130+j*55,16,26); }
+      f.fillStyle='#050308'; f.fillRect(0,H*.96,W,H*.04);
+      return { cards: [], ha: [], fog: Array.from({length:7},()=>({x:R()*W, y:rr(H*.6,H), w:rr(250,500), v:rr(.2,.5)*(R()<.5?-1:1)})), next: 1 };
+    },
+    mid(c, W, H, t, s){
+      for(const fo of s.fog){ fo.x+=fo.v; if(fo.x>W+fo.w) fo.x=-fo.w; if(fo.x<-fo.w) fo.x=W+fo.w;
+        const g=c.createRadialGradient(fo.x,fo.y,0,fo.x,fo.y,fo.w); g.addColorStop(0,'rgba(90,255,60,.12)'); g.addColorStop(1,'rgba(90,255,60,0)');
+        c.fillStyle=g; c.beginPath(); c.ellipse(fo.x,fo.y,fo.w,fo.w*.2,0,0,TAU); c.fill(); }
+    },
+    top(c, W, H, t, s){
+      if(s.cards.length < 16 && R()<.05) s.cards.push({x:R()*W, y:-40, v:rr(.8,1.8), r:R()*TAU, vr:rr(-.04,.04), f:R()*TAU, suit:'♠♥♦♣'[R()*4|0]});
+      for(const k of s.cards){ k.y+=k.v; k.r+=k.vr; k.f+=.05; const sx=Math.cos(k.f);
+        c.save(); c.translate(k.x,k.y); c.rotate(k.r); c.scale(sx,1);
+        c.fillStyle= sx>0 ? '#f4f1ea' : '#4b1f7a'; c.strokeStyle='#111'; c.lineWidth=1.5; c.fillRect(-14,-20,28,40); c.strokeRect(-14,-20,28,40);
+        if(sx>0){ c.fillStyle='♥♦'.includes(k.suit)?'#d62828':'#111'; c.font='18px serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(k.suit,0,1); }
+        else { c.strokeStyle='#7dff4f'; c.strokeRect(-10,-16,20,32); }
+        c.restore(); }
+      s.cards = s.cards.filter(k=>k.y<H+40);
+      if(t > s.next){ s.next = t + rr(1.5,3); s.ha.push({x: R()<.5 ? rr(W*.05,W*.25) : rr(W*.75,W*.95), y: rr(H*.15,H*.7), r: rr(-.3,.3), l:0, col: R()<.5?'#7dff4f':'#c36bff'}); }
+      for(const h of s.ha){ h.l+=.012; const a=h.l<.15?h.l/.15:(h.l>.7?(1-h.l)/.3:1);
+        c.save(); c.globalAlpha=Math.max(0,a); c.translate(h.x,h.y); c.rotate(h.r); c.font=`${Math.min(W,H)*.06|0}px "Rubik Wet Paint", Impact, sans-serif`;
+        c.textAlign='center'; c.fillStyle=h.col; c.shadowColor=h.col; c.shadowBlur=14; c.fillText('HA HA',0,0); c.restore(); }
+      s.ha = s.ha.filter(h=>h.l<1);
+    },
+  },
+
+  /* ---------------- CASE FILES (detective noir) ---------------- */
+  noir: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#040404'); sky.addColorStop(.6,'#161616'); sky.addColorStop(1,'#2a2a2a');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      skyline(f,W,H,{col:'#0a0a0a',minW:40,maxW:100,minH:.2,maxH:.55,gap:2,deco:true,
+        win:{gx:9,gy:11,w:3,h:5,p:.07,col:()=>'rgba(255,230,170,.65)'}});
+      const sx=W*.86, sy=H*.42; f.fillStyle='#0a0a0a'; f.fillRect(sx-12,sy-10,24,H);
+      return { sx, sy, drops: Array.from({length:60},()=>({x:R()*W, y:R()*H, v:rr(4,9), l:rr(10,30)})),
+        beads: Array.from({length:40},()=>({x:R()*W, y:R()*H, r:rr(1.5,4), v:R()<.2?rr(.3,1.2):0})), smoke: [] };
+    },
+    mid(c, W, H, t, s){
+      const on = !(R()<.04 || (t%7>6.6 && t%7<6.8));                         // flickering neon sign
+      c.font=`${Math.min(W,H)*.04|0}px "Special Elite", monospace`; c.textAlign='center'; c.textBaseline='middle';
+      c.save(); c.translate(s.sx, s.sy); c.rotate(-Math.PI/2);
+      c.fillStyle = on ? '#ff4d5a' : '#3a1215'; c.shadowColor='#ff2b3a'; c.shadowBlur = on ? 22 : 0; c.fillText('HOTEL', 0, 0); c.restore(); c.shadowBlur=0;
+      c.save(); c.globalCompositeOperation='lighter'; c.rotate(-.35);        // venetian-blind light
+      for(let i=-10;i<30;i++){ const y=i*44+((t*6)%44); c.fillStyle='rgba(255,245,220,.035)'; c.fillRect(-W, y, W*3, 18); }
+      c.restore();
+      if(s.smoke.length < 25 && R()<.15) s.smoke.push({x:W*.08+rr(-10,10), y:H*.95, r:rr(10,20), l:1, p:R()*TAU});
+      for(const m of s.smoke){ m.y-=.8; m.r+=.25; m.p+=.03; m.l-=.006;
+        c.fillStyle=`rgba(200,200,200,${m.l*.07})`; c.beginPath(); c.arc(m.x+Math.sin(m.p)*20, m.y, m.r, 0, TAU); c.fill(); }
+      s.smoke = s.smoke.filter(m=>m.l>0);
+    },
+    top(c, W, H, t, s){
+      c.strokeStyle='rgba(200,210,230,.18)'; c.lineWidth=1; c.beginPath();
+      for(const d of s.drops){ c.moveTo(d.x,d.y); c.lineTo(d.x,d.y+d.l); d.y+=d.v; if(d.y>H){ d.y=-30; d.x=R()*W; } } c.stroke();
+      for(const bd of s.beads){ bd.y+=bd.v; if(bd.y>H){ bd.y=-5; bd.x=R()*W; }
+        c.fillStyle='rgba(220,230,255,.18)'; c.beginPath(); c.arc(bd.x,bd.y,bd.r,0,TAU); c.fill();
+        c.fillStyle='rgba(255,255,255,.35)'; c.beginPath(); c.arc(bd.x-bd.r*.3,bd.y-bd.r*.3,bd.r*.35,0,TAU); c.fill(); }
+      const v=c.createRadialGradient(W/2,H/2,Math.min(W,H)*.3,W/2,H/2,Math.max(W,H)*.75); v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,.55)');
+      c.fillStyle=v; c.fillRect(0,0,W,H);
+    },
+  },
+
+  /* ---------------- DRAGON'S KEEP (fantasy) ---------------- */
+  dragon: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#08081c'); sky.addColorStop(.55,'#2a1033'); sky.addColorStop(1,'#6a2210');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      const mx=W*.3, my=H*.24, mr=Math.min(W,H)*.13;
+      const halo=b.createRadialGradient(mx,my,mr,mx,my,mr*3.5); halo.addColorStop(0,'rgba(255,190,120,.25)'); halo.addColorStop(1,'rgba(255,190,120,0)');
+      b.fillStyle=halo; b.fillRect(0,0,W,H); b.fillStyle='#ffd9a8'; b.beginPath(); b.arc(mx,my,mr,0,TAU); b.fill();
+      hills(f,W,H,H*.72,45,'#1a0a14',2);
+      const s=Math.min(W,H)/800, cx=W*.8, cy=H*.68; f.fillStyle='#08040a';     // castle on a cliff
+      f.beginPath(); f.moveTo(cx-170*s,H); f.lineTo(cx-120*s,cy); f.lineTo(cx+150*s,cy); f.lineTo(cx+200*s,H); f.fill();
+      const tower=(x,w,h)=>{ f.fillRect(cx+x*s,cy-h*s,w*s,h*s); f.beginPath(); f.moveTo(cx+(x-6)*s,cy-h*s); f.lineTo(cx+(x+w/2)*s,cy-(h+w*1.3)*s); f.lineTo(cx+(x+w+6)*s,cy-h*s); f.fill(); };
+      f.fillRect(cx-110*s,cy-90*s,240*s,90*s); tower(-120,40,170); tower(-30,50,240); tower(80,40,190);
+      for(let x=-110;x<130;x+=16) f.fillRect(cx+x*s,cy-100*s,9*s,10*s);
+      f.fillStyle='rgba(255,170,70,.85)'; [[-108,-130],[-12,-190],[-12,-140],[92,-150],[-60,-60],[40,-60]].forEach(([x,y])=>f.fillRect(cx+x*s,cy+y*s,9*s,14*s));
+      hills(f,W,H,H*.93,10,'#050206',7);
+      return { embers: [], drag: { x:-300, y:H*.3, dir:1, active:false }, next: 2 };
+    },
+    mid(c, W, H, t, s){
+      const g=c.createLinearGradient(0,H*.7,0,H); g.addColorStop(0,'rgba(255,90,20,0)'); g.addColorStop(1,`rgba(255,90,20,${.22+.08*Math.sin(t*2)})`);
+      c.fillStyle=g; c.fillRect(0,H*.7,W,H*.3);
+      const d=s.drag, k=Math.min(W,H)/800;
+      if(!d.active && t > s.next){ d.active=true; d.dir = R()<.5?1:-1; d.x = d.dir>0 ? -200 : W+200; d.y = rr(H*.12,H*.4); }
+      if(d.active){ d.x += d.dir*2.6; const yy = d.y + Math.sin(d.x*.01)*20;
+        drawDragon(c, d.x, yy, k*1.1, Math.sin(t*6), d.dir);
+        if(d.x < -260 || d.x > W+260){ d.active=false; s.next = t + rr(4,9); } }
+    },
+    top(c, W, H, t, s){
+      if(s.embers.length < 80) s.embers.push({x:R()*W, y:H+5, v:rr(.6,2), sz:rr(1,3), p:R()*TAU});
+      for(const e of s.embers){ e.y-=e.v; e.p+=.06; const a=Math.min(1,e.y/H*1.4);
+        c.fillStyle=`rgba(255,${120+R()*100|0},40,${a})`; c.beginPath(); c.arc(e.x+Math.sin(e.p)*10,e.y,e.sz,0,TAU); c.fill(); }
+      s.embers = s.embers.filter(e=>e.y>-10);
+    },
+  },
+});
+
 /* ---------- scene engine ---------- */
 const cv = $('bgCanvas'), ctx = cv.getContext('2d');
 let W, H, back, front, sceneState, dpr = Math.min(devicePixelRatio||1, 2), useCanvas = true;
@@ -982,6 +1460,18 @@ const CURSORS = {
   hero: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><polygon points="16,1.5 20,11.5 30.5,12.3 22.5,19.2 25,29.8 16,24 7,29.8 9.5,19.2 1.5,12.3 12,11.5" fill="#ffd23f" stroke="#111" stroke-width="2.4" stroke-linejoin="round"/><path d="M12 13 L15 9" stroke="#fff6c4" stroke-width="2" stroke-linecap="round"/></svg>`, 16, 16],
   gotham: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16 10 L14.5 7.5 L13.8 10.5 C11 9 6 8.5 1.5 11.5 C5 12.5 6.5 15 6 18 C8.5 16.5 11 17 12.5 19.5 C13.5 18 14.8 17.6 16 19 C17.2 17.6 18.5 18 19.5 19.5 C21 17 23.5 16.5 26 18 C25.5 15 27 12.5 30.5 11.5 C26 8.5 21 9 18.2 10.5 L17.5 7.5Z" fill="#111" stroke="#ffc53d" stroke-width="1.4" stroke-linejoin="round"/></svg>`, 16, 13],
 };
+Object.assign(CURSORS, {
+  chainsaw: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><g transform="translate(16 16)"><polygon points="0,-15 3,-11 7.5,-13 7.8,-8.5 12.5,-7.5 10.5,-3.5 15,0 10.5,3.5 12.5,7.5 7.8,8.5 7.5,13 3,11 0,15 -3,11 -7.5,13 -7.8,8.5 -12.5,7.5 -10.5,3.5 -15,0 -10.5,-3.5 -12.5,-7.5 -7.8,-8.5 -7.5,-13 -3,-11" fill="#c9c9c9" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/><circle r="6" fill="#ff6b1a" stroke="#111" stroke-width="1.2"/><circle r="2" fill="#111"/></g></svg>`, 16, 16],
+  mob: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="none" stroke="#ff7ad9" stroke-width="3"/><circle cx="16" cy="16" r="9.5" fill="#111" stroke="#7df9ff" stroke-width="2"/><text x="16" y="21" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="13" font-weight="900" fill="#ffe66d">%</text></svg>`, 16, 16],
+  mononoke: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><g transform="rotate(-25 16 16)"><rect x="10" y="2" width="12" height="28" fill="#f3e6c4" stroke="#2a1606" stroke-width="1.4"/><rect x="11.8" y="3.8" width="8.4" height="24.4" fill="none" stroke="#c0392b" stroke-width="1"/><circle cx="16" cy="10" r="2.8" fill="none" stroke="#c0392b" stroke-width="1.2"/><path d="M13.5 16 H18.5 M16 14 V26 M13.5 21 L18.5 23" stroke="#c0392b" stroke-width="1.3"/></g></svg>`, 9, 4],
+  demonslayer: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M2 2 L19 19" stroke="#111" stroke-width="4" stroke-linecap="round"/><path d="M2 2 L19 19" stroke="#bfe8ff" stroke-width="2.2" stroke-linecap="round"/><path d="M4 3 L18 17" stroke="#4fc3f7" stroke-width=".9"/><ellipse cx="20.5" cy="20.5" rx="4.2" ry="4.2" fill="#111" stroke="#c9a227" stroke-width="1"/><path d="M22 22 L29.5 29.5" stroke="#111" stroke-width="4.2" stroke-linecap="round"/><path d="M23.5 23.5 l1.4 -1.4 M25.5 25.5 l1.4 -1.4 M27.5 27.5 l1.4 -1.4" stroke="#2bb0a0" stroke-width="1.6"/></svg>`, 2, 2],
+  onepiece: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><ellipse cx="16" cy="20" rx="14.5" ry="6" fill="#f2c94c" stroke="#5a3a0a" stroke-width="1.5"/><path d="M8 19 Q8 7 16 7 Q24 7 24 19Z" fill="#f2c94c" stroke="#5a3a0a" stroke-width="1.5"/><path d="M8.3 16 Q16 18.5 23.7 16 L24 19 Q16 21.5 8 19Z" fill="#e8333b"/></svg>`, 16, 16],
+  naruto: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M2 2 L13 9 L15 15 L9 13Z" fill="#cfd6de" stroke="#111" stroke-width="1.3" stroke-linejoin="round"/><path d="M2 2 L14 14" stroke="#7e8a96" stroke-width=".8"/><path d="M14 14 L23 23" stroke="#111" stroke-width="4" stroke-linecap="round"/><path d="M15.5 15.5 l1.4 -1.4 M17.5 17.5 l1.4 -1.4 M19.5 19.5 l1.4 -1.4 M21.5 21.5 l1.4 -1.4" stroke="#e8e0d0" stroke-width="1.2"/><circle cx="26" cy="26" r="3.5" fill="none" stroke="#111" stroke-width="2"/></svg>`, 2, 2],
+  arcade: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges"><path d="M2 2 H4 V4 H6 V6 H8 V8 H10 V10 H12 V12 H14 V14 H16 V16 H10 V18 H12 V20 H14 V24 H12 V26 H10 V22 H8 V20 H6 V22 H4 V24 H2 Z" fill="#fff" stroke="#000" stroke-width="2"/><path d="M4 6 H6 V8 H4Z M4 10 H8 V12 H4Z" fill="#00f0ff"/></svg>`, 2, 2],
+  joker: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><g transform="rotate(-18 16 16)"><rect x="7" y="3" width="18" height="26" rx="2.5" fill="#f4f1ea" stroke="#111" stroke-width="1.6"/><text x="16" y="21" text-anchor="middle" font-family="Georgia,serif" font-size="14" font-weight="700" fill="#7a2fbf">J</text><text x="10.5" y="10" font-family="Georgia,serif" font-size="6" fill="#2f9e1f">♠</text></g></svg>`, 8, 5],
+  noir: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M2 2 L9 6 L14 14 L6 9Z" fill="#d9b44a" stroke="#111" stroke-width="1.2" stroke-linejoin="round"/><path d="M2 2 L9 9" stroke="#111" stroke-width="1"/><path d="M12 12 L28 28" stroke="#111" stroke-width="6.5" stroke-linecap="round"/><path d="M12 12 L28 28" stroke="#b3202c" stroke-width="4" stroke-linecap="round"/><path d="M17 17 l2 -2" stroke="#d9b44a" stroke-width="1.6"/></svg>`, 2, 2],
+  dragon: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16 2 C20 9 27 13 25 21 A9 9 0 0 1 7 21 C6 15 11 12 12 7 C13.5 11 15.5 11 16 2Z" fill="#ff7a1a" stroke="#4a1500" stroke-width="1.4"/><path d="M16 12 C18.5 16 21 18 19.5 22 A4 4 0 0 1 12.5 22 C12 19 15 17 16 12Z" fill="#ffe66d"/></svg>`, 16, 4],
+});
 function applyCursor(key){
   const o = (CONFIG.themes[key] || {});
   let val = 'auto';
@@ -989,6 +1479,10 @@ function applyCursor(key){
   else if(CURSORS[key]){ const [svgTxt, x, y] = CURSORS[key];
     val = `url("data:image/svg+xml,${encodeURIComponent(svgTxt)}") ${x} ${y}, auto`; }
   document.documentElement.style.setProperty('--cur', val);
+  // tab icon: the theme's ornament image if it has one, otherwise its cursor art
+  const fav = $('favicon');
+  if(fav){ if(o.ornament) fav.href = o.ornament;
+    else if(CURSORS[key]) fav.href = 'data:image/svg+xml,' + encodeURIComponent(CURSORS[key][0]); }
 }
 
 /* ---------- apply a theme ---------- */
@@ -1061,7 +1555,7 @@ requestAnimationFrame(loop);
 (function tabTitle(){
   const full = '@' + CONFIG.name; let i = 1, dir = 1;
   setInterval(() => {
-    document.title = full.slice(0, i) || '@';
+    document.title = (T && T.tab ? T.tab + ' ' : '') + (full.slice(0, i) || '@');
     i += dir;
     if(i > full.length){ dir = -1; i = full.length; }
     if(i < 1){ dir = 1; i = 1; }
