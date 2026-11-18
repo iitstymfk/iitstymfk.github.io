@@ -191,6 +191,7 @@ body[data-theme=hero] .soc svg{filter:drop-shadow(3px 3px 0 #111)}
 body[data-theme=gotham] h1{letter-spacing:4px;text-transform:uppercase}
 body[data-theme=gotham] .card,body[data-theme=gotham] .player{border-radius:6px}
 
+body.customCursor,body.customCursor *{cursor:var(--cur) !important}
 @media (max-width:560px){
   .cards{grid-template-columns:1fr}
   .orn{width:30px;height:30px;flex-basis:30px}
@@ -248,6 +249,7 @@ body[data-theme=gotham] .card,body[data-theme=gotham] .player{border-radius:6px}
 
 <main id="stage">
   <section id="profile">
+    <img id="themeLogo" alt="" style="display:none;margin:0 auto 6px;width:min(320px,70vw);filter:drop-shadow(0 0 12px rgba(242,193,78,.45))">
     <div class="nameRow">
       <span class="orn" id="ornL"></span>
       <h1 id="name"></h1>
@@ -317,8 +319,10 @@ const CONFIG = {
   //  background = optional wallpaper / gif / mp4 instead of the animated scene
   characterSwapSeconds: 15,
   themes: {
-    apothecary: { character: [], side: "right", background: "" },
-    wizard:     { character: [], side: "right", background: "" },
+    apothecary: { character: ["chars/maomao_pink.png", "chars/maomao.png"], side: "right", background: "" },
+    // logo = image above the name, cursor = custom mouse pointer, flyer = image that zooms around the sky
+    wizard:     { character: [], side: "right", ornament: "chars/snitch.png", ornamentAnim: "a-sway",
+                  logo: "chars/hp_logo.png", cursor: "chars/wand_cursor.png", flyer: "chars/snitch.png", background: "" },
     sakura:     { character: [], side: "right", background: "" },
   },
 
@@ -761,6 +765,15 @@ const SCENES = {
       if(s.motes.length < 50 && R() < .5) s.motes.push({x:R()*W, y:rr(H*.3,H), v:rr(.2,.7), l:1, col:R()<.5?'242,193,78':'190,170,255'});
       for(const m of s.motes){ m.y-=m.v; m.l-=.006; c.fillStyle=`rgba(${m.col},${m.l*(.5+.5*Math.sin(t*6+m.x))})`; c.fillRect(m.x,m.y,2,2); }
       s.motes = s.motes.filter(m=>m.l>0);
+      // golden flyer zipping around
+      if(flyerImg && flyerImg.complete && flyerImg.naturalWidth){
+        const fx = W/2 + Math.sin(t*.55)*W*.42 + Math.sin(t*2.3)*40, fy = H*.32 + Math.sin(t*.9)*H*.22 + Math.cos(t*3.1)*24;
+        s.trail = (s.trail || []); s.trail.push([fx,fy]); if(s.trail.length > 18) s.trail.shift();
+        s.trail.forEach(([x,y],i)=>{ c.fillStyle=`rgba(255,215,110,${i/18*.5})`; c.beginPath(); c.arc(x,y,1+i/6,0,TAU); c.fill(); });
+        const sz = Math.min(W,H)*.07, dx = Math.cos(t*.55)*.4 + Math.cos(t*2.3)*.1;
+        c.save(); c.translate(fx,fy); c.rotate(dx*.6); c.scale(1, .85 + .15*Math.sin(t*30));
+        c.drawImage(flyerImg, -sz/2, -sz/2, sz, sz*flyerImg.naturalHeight/flyerImg.naturalWidth); c.restore();
+      }
     },
   },
 };
@@ -786,7 +799,7 @@ function loop(time){
 addEventListener('resize', () => { if(useCanvas) buildScene(); });
 
 /* ---------- apply a theme ---------- */
-let charTimer, charIdx = 0, signalImg = null;
+let charTimer, charIdx = 0, signalImg = null, flyerImg = null;
 function ornHTML(){ const o = (CONFIG.themes[themeKey]||{}).ornament; return o ? `<img src="${o}" alt="">` : orn(T.orn); }
 function showChar(src){
   const ch = $('chara'); ch.classList.add('hide');
@@ -804,7 +817,7 @@ function applyTheme(key){
   st.setProperty('--icon',T.icon); st.setProperty('--title',T.title); st.setProperty('--grad',T.grad);
   document.body.dataset.theme = key;
   const opt = CONFIG.themes[key] || {};
-  const o = ornHTML(), an = opt.ornament ? 'a-flip' : T.anim;
+  const o = ornHTML(), an = opt.ornamentAnim || (opt.ornament ? 'a-flip' : T.anim);
   $('ornL').innerHTML = o; $('ornR').innerHTML = o;
   $('ornL').className = 'orn ' + an; $('ornR').className = 'orn r ' + an;
   $('sx1').innerHTML = o; $('sx2').innerHTML = o;
@@ -821,6 +834,12 @@ function applyTheme(key){
   } else ch.style.display = 'none';
   signalImg = null;
   if(opt.signal){ signalImg = new Image(); signalImg.src = opt.signal; }
+  flyerImg = null;
+  if(opt.flyer){ flyerImg = new Image(); flyerImg.src = opt.flyer; }
+  const lg = $('themeLogo');
+  if(opt.logo){ lg.src = opt.logo; lg.style.display = 'block'; } else lg.style.display = 'none';
+  document.body.classList.toggle('customCursor', !!opt.cursor);
+  if(opt.cursor) document.body.style.setProperty('--cur', `url(${opt.cursor}) 2 2, auto`);
 
   const bgFile = opt.background || '', vid = $('bgVideo'), img = $('bgImage');
   vid.style.display = img.style.display = 'none';
