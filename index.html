@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>@iitstymfk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=M+PLUS+Rounded+1c:wght@400;700;800&family=Creepster&family=Bangers&family=Russo+One&family=Anton&family=Dela+Gothic+One&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   iitstymfk — bio page with switchable themes.
+   Everything you'd want to change is in CONFIG near the bottom.
+   ===================================================================== */
+:root{
+  --accent:#ff7eb6; --accent2:#9d8bff;
+  --text:#f6f0ff; --muted:#c9b8dc;
+  --card:rgba(30,18,48,.45); --line:rgba(255,190,225,.18);
+  --icon:#f2eefc;
+  --title:'Mochiy Pop One',sans-serif;
+  --grad:linear-gradient(90deg,#fff,#ffc4e1,#c9b8ff,#fff);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;color:var(--text);font-family:'M PLUS Rounded 1c',sans-serif;overflow:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+#bgCanvas,#bgVideo,#bgImage{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+#bgVideo,#bgImage{display:none;filter:brightness(.7)}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.6) 100%)}
+
+/* ---------- splash ---------- */
+#splash{position:fixed;inset:0;z-index:50;display:grid;place-items:center;cursor:pointer;
+  background:rgba(5,3,12,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:opacity .9s ease,visibility .9s;text-align:center}
+#splash.gone{opacity:0;visibility:hidden}
+#splashText{font-family:var(--title);font-size:clamp(24px,5vw,40px);letter-spacing:1px;
+  text-shadow:0 0 14px var(--accent);animation:breathe 2.4s ease-in-out infinite;display:block}
+#splash small{display:block;font-size:12px;color:var(--muted);margin-top:8px;letter-spacing:4px}
+@keyframes breathe{50%{opacity:.45;transform:scale(.97)}}
+
+/* ---------- layout ---------- */
+#stage{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;
+  padding:20px;perspective:1100px;overflow-y:auto}
+#profile{width:min(640px,100%);transform-style:preserve-3d;opacity:0;transform:translateY(30px) scale(.97)}
+#profile.show{opacity:1;transform:none;transition:opacity 1.1s ease,transform 1.1s cubic-bezier(.2,.8,.2,1)}
+#profile.tilting{transition:transform .15s ease-out}
+
+.nameRow{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:4px}
+.orn{width:42px;height:42px;flex:0 0 42px;filter:drop-shadow(0 0 8px var(--accent))}
+.orn svg{width:100%;height:100%;display:block}
+.a-spin{animation:spin 6s linear infinite}.a-spin.r{animation-direction:reverse}
+.a-flip{animation:flip 3s ease-in-out infinite}.a-flip.r{animation-delay:-1.5s}
+.a-sway{animation:sway 2.2s ease-in-out infinite;transform-origin:50% 90%}.a-sway.r{animation-delay:-1.1s}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flip{to{transform:rotateY(360deg)}}
+@keyframes sway{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.12)}}
+
+h1{font-family:var(--title);font-weight:400;font-size:clamp(38px,9vw,66px);line-height:1.05;letter-spacing:1px;
+  background:var(--grad);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shine 6s linear infinite;filter:drop-shadow(0 0 10px var(--accent))}
+@keyframes shine{to{background-position:300% 0}}
+.jp{display:block;text-align:center;font-size:12px;letter-spacing:6px;color:var(--accent);opacity:.9;margin-bottom:6px}
+.bio{text-align:center;min-height:24px;color:var(--muted);font-size:14px;margin-bottom:22px}
+.bio .cur{display:inline-block;width:8px;background:var(--text);margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---------- cards ---------- */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;gap:12px;align-items:center;
+  position:relative;overflow:hidden;min-height:86px;transition:border-color .3s,box-shadow .3s,transform .3s}
+.card:hover{border-color:var(--accent);box-shadow:0 0 24px color-mix(in srgb,var(--accent) 30%,transparent)}
+.card .tag{position:absolute;top:8px;right:12px;font-size:10px;color:var(--muted);opacity:.8;display:flex;gap:4px;align-items:center}
+.av{position:relative;flex:0 0 56px;height:56px}
+.av img,.av svg{width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;border:2px solid var(--accent)}
+.av::before{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px dashed var(--accent);opacity:.55;animation:spin 12s linear infinite}
+.dot{position:absolute;right:0;bottom:0;width:15px;height:15px;border-radius:50%;border:3px solid #0b0910;background:#747f8d}
+.dot.online{background:#23a55a}.dot.idle{background:#f0b232}.dot.dnd{background:#f23f43}
+.cinfo{min-width:0}
+.cname{font-family:var(--title);font-size:17px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.csub{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.counts{display:flex;gap:10px;font-size:11px;color:var(--muted);margin-top:4px}
+.counts i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:1px}
+.join{display:inline-block;margin-top:6px;background:#23a55a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:6px}
+.join:hover{filter:brightness(1.2)}
+.sicon{flex:0 0 56px;height:56px;border-radius:16px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));overflow:hidden}
+.sicon img{width:100%;height:100%;object-fit:cover}
+.sicon svg{width:36px;height:36px}
+
+/* ---------- socials ---------- */
+.socials{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.socials .x{width:18px;height:18px;display:inline-block}
+.socials .x svg{width:100%;height:100%}
+.soc{width:38px;height:38px;display:grid;place-items:center;position:relative;transition:transform .25s}
+.soc svg{width:30px;height:30px;fill:var(--icon);filter:drop-shadow(0 0 6px color-mix(in srgb,var(--accent) 60%,transparent))}
+.soc:hover{transform:translateY(-4px) scale(1.12)}
+.soc:hover svg{filter:drop-shadow(0 0 10px var(--accent))}
+.soc .tip{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap;color:#fff;
+  background:rgba(0,0,0,.8);padding:2px 7px;border-radius:5px;opacity:0;pointer-events:none;transition:opacity .2s}
+.soc:hover .tip{opacity:1}
+
+/* ---------- player ---------- */
+.player{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;padding:12px 14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.cover{flex:0 0 58px;height:58px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;font-size:24px;color:#fff}
+.cover img{width:100%;height:100%;object-fit:cover}
+.cover.spin{animation:spin 8s linear infinite}
+.pmid{flex:1;min-width:0}
+.ptitle{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.partist{font-size:11px;color:var(--muted);margin-bottom:6px}
+.bar{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--muted)}
+.track{flex:1;height:4px;border-radius:4px;background:rgba(127,127,127,.3);cursor:pointer;position:relative}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.pbtns{display:flex;align-items:center;gap:6px}
+.pbtns button{width:30px;height:30px;display:grid;place-items:center;border-radius:50%}
+.pbtns button:hover{background:rgba(127,127,127,.18)}
+.pbtns svg{width:18px;height:18px;fill:var(--icon)}
+.pbtns .big svg{width:24px;height:24px}
+#loadSong{font-size:10px;color:var(--muted);text-align:center;margin-top:8px;display:block;width:100%;opacity:.75}
+#loadSong:hover{opacity:1}
+
+/* ---------- corner widgets ---------- */
+.cornerBtn{position:fixed;top:16px;z-index:20;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;
+  background:rgba(15,10,25,.55);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px)}
+.cornerBtn svg{width:22px;height:22px;fill:#eee}
+#mute{left:16px}#themeBtn{right:16px}#musicBtn{right:72px}
+#themeMenu{position:fixed;top:70px;right:16px;z-index:21;background:rgba(12,8,20,.92);border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;padding:6px;display:none;min-width:190px;backdrop-filter:blur(10px)}
+#themeMenu.open{display:block}
+#musicPanel{position:fixed;top:70px;right:16px;z-index:21;width:min(340px,92vw);max-height:calc(100vh - 90px);overflow:auto;
+  background:rgba(12,8,20,.95);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px;display:none;color:#eee;font-size:12.5px}
+#musicPanel.open{display:block}
+#musicPanel h3{font-size:14px;margin-bottom:8px}
+#musicPanel p{color:#aaa;margin:6px 0;line-height:1.45}
+#musicPanel input[type=text],#musicPanel input[type=password]{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
+  color:#fff;border-radius:8px;padding:7px 9px;margin:4px 0;font:inherit}
+#musicPanel input[type=file]{width:100%;margin:4px 0;color:#ccc;font-size:11.5px}
+#musicPanel .row{display:flex;gap:6px;margin-top:6px}
+#musicPanel .row button,#musicPanel .wbtn{flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}
+#musicPanel .wbtn{width:100%;margin-top:6px;display:block}
+#musicPanel .row button.go,#musicPanel .go{background:var(--accent);color:#111}
+#musicPanel hr{border:0;border-top:1px solid rgba(255,255,255,.1);margin:12px 0}
+#musicPanel summary{cursor:pointer;color:#ccc;margin-top:4px}
+#mpList .song{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.05);margin-bottom:4px}
+#mpList .song span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mpList .song button{opacity:.6}#mpList .song button:hover{opacity:1}
+#mpStatus{margin-top:8px;min-height:16px;color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.chip{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:20px;background:rgba(255,255,255,.07);font-size:11px;cursor:pointer;user-select:none}
+.chip input{accent-color:var(--accent)}
+.chip:has(input:checked){background:color-mix(in srgb,var(--accent) 35%,transparent)}
+#mpList .song{flex-wrap:wrap}
+#mpList .tags{flex-basis:100%;font-size:10.5px;color:#999;padding-left:14px}
+#mpList .edit{flex-basis:100%}
+#themeMenu button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:9px;font-size:13px;color:#eee;text-align:left}
+#themeMenu button:hover,#themeMenu button.on{background:rgba(255,255,255,.08)}
+#themeMenu i{width:14px;height:14px;border-radius:50%;flex:0 0 14px}
+.foot{position:fixed;bottom:14px;right:16px;z-index:20;font-size:10px;color:rgba(255,255,255,.4)}
+
+#chara{position:fixed;z-index:4;right:3vw;bottom:0;height:min(80vh,740px);max-width:30vw;object-fit:contain;object-position:bottom;
+  display:none;filter:drop-shadow(0 0 18px color-mix(in srgb,var(--accent) 55%,transparent));animation:float 6s ease-in-out infinite;pointer-events:none}
+#chara.left{right:auto;left:3vw}
+#chara{transition:opacity .6s}
+#chara.hide{opacity:0!important}
+#chara.wide{height:auto;width:min(30vw,560px);max-width:none;bottom:2vh}
+.orn img,.socials .x img{width:100%;height:100%;object-fit:contain;display:block}
+.sicon img.ornimg{width:80%;height:80%;object-fit:contain}
+@keyframes float{50%{transform:translateY(-14px)}}
+
+.spark{position:fixed;z-index:60;pointer-events:none;font-size:12px;color:var(--accent);
+  text-shadow:0 0 6px var(--accent);animation:sparkFade .9s forwards}
+@keyframes sparkFade{to{opacity:0;transform:translateY(18px) scale(.3) rotate(90deg)}}
+.spark.burst{animation:sparkBurst .8s ease-out forwards}
+@keyframes sparkBurst{to{opacity:0;transform:translate(var(--bx),var(--by)) scale(.4) rotate(180deg)}}
+
+/* ---------- per-theme touches ---------- */
+body[data-theme=haunted] h1{letter-spacing:3px}
+body[data-theme=cursed] h1{font-style:italic;letter-spacing:2px}
+body[data-theme=hero] h1{-webkit-text-stroke:2px #111;filter:drop-shadow(4px 4px 0 #111);letter-spacing:3px}
+body[data-theme=hero] .card,body[data-theme=hero] .player{background:#fffdf3;color:#151515;border:3px solid #111;
+  box-shadow:5px 5px 0 #111;border-radius:12px;backdrop-filter:none}
+body[data-theme=hero] .card .csub,body[data-theme=hero] .card .counts,body[data-theme=hero] .partist,body[data-theme=hero] .bar,body[data-theme=hero] .card .tag{color:#555}
+body[data-theme=hero] .pbtns svg{fill:#151515}
+body[data-theme=hero] .bio{color:#fff;text-shadow:2px 2px 0 #111;font-weight:800}
+body[data-theme=hero] .jp{color:#fff;text-shadow:2px 2px 0 #111}
+body[data-theme=hero] .soc svg{filter:drop-shadow(3px 3px 0 #111)}
+body[data-theme=gotham] h1{letter-spacing:4px;text-transform:uppercase}
+body[data-theme=gotham] .card,body[data-theme=gotham] .player{border-radius:6px}
+
+@media (max-width:560px){
+  .cards{grid-template-columns:1fr}
+  .orn{width:30px;height:30px;flex-basis:30px}
+  #stage{align-items:flex-start;padding-top:80px}
+  #chara{opacity:.3;max-width:75vw;right:-10vw}
+  #chara.wide{width:90vw;right:-5vw}
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important} }
+</style>
+</head>
+<body data-theme="sakura">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="pk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe3f0"/><stop offset="1" stop-color="#ff7eb6"/></linearGradient>
+  <radialGradient id="wg" cx="50%" cy="65%" r="60%"><stop offset="0" stop-color="#eafff4"/><stop offset=".45" stop-color="#7dffb2"/><stop offset="1" stop-color="#1fa37a"/></radialGradient>
+  <g id="o-sakura"><g transform="translate(20 20)">
+    <path id="pt" d="M0 -3 C-6 -8 -6 -16 -2 -18 L0 -15 L2 -18 C6 -16 6 -8 0 -3Z" fill="url(#pk)"/>
+    <use href="#pt" transform="rotate(72)"/><use href="#pt" transform="rotate(144)"/><use href="#pt" transform="rotate(216)"/><use href="#pt" transform="rotate(288)"/>
+    <circle r="2.6" fill="#ffd36e"/></g></g>
+  <g id="o-wisp"><path d="M20 2 C24 10 33 16 31 26 A11 11 0 0 1 9 26 C8 19 14 15 15 9 C17 15 19 15 20 2Z" fill="url(#wg)"/>
+    <circle cx="20" cy="27" r="5" fill="#eafff4" opacity=".9"/></g>
+  <g id="o-spiral"><path d="M20 20 m0 -2 a2 2 0 1 1 -2 2 a4 4 0 1 1 4 4 a6 6 0 1 1 -6 -6 a8 8 0 1 1 8 8 a10 10 0 1 1 -10 -10 a12 12 0 1 1 12 12" fill="none" stroke="#b79bff" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="20" cy="20" r="2.5" fill="#00e5ff"/></g>
+  <g id="o-star"><polygon points="20,2 25,14 38,15 28,24 31,37 20,30 9,37 12,24 2,15 15,14" fill="#ffd23f" stroke="#111" stroke-width="2.4" stroke-linejoin="round"/></g>
+  <g id="o-ufo"><ellipse cx="20" cy="17" rx="7" ry="6" fill="#9fffd0" opacity=".9"/>
+    <ellipse cx="20" cy="22" rx="17" ry="6" fill="#ff4fa3" stroke="#111" stroke-width="1.6"/>
+    <circle cx="10" cy="22" r="1.6" fill="#fff59a"/><circle cx="20" cy="24" r="1.6" fill="#fff59a"/><circle cx="30" cy="22" r="1.6" fill="#fff59a"/>
+    <path d="M14 28 L10 38 L30 38 L26 28Z" fill="#39ff88" opacity=".35"/></g>
+  <g id="o-riddle"><text x="20" y="34" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="36" fill="#3ddc6a" stroke="#06200f" stroke-width="1.4">?</text></g>
+</defs></svg>
+
+<canvas id="bgCanvas"></canvas>
+<video id="bgVideo" autoplay muted loop playsinline></video>
+<img id="bgImage" alt="">
+<div class="vignette"></div>
+<img id="chara" alt="">
+
+<div id="splash"><div><span id="splashText">click to enter</span><small id="splashSub">ようこそ</small></div></div>
+
+<button id="mute" class="cornerBtn" aria-label="Mute or unmute"></button>
+<button id="themeBtn" class="cornerBtn" aria-label="Change theme" title="Change theme">
+  <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 000 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0022 10c0-4.4-4.5-8-10-8zM6.5 12a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3-4a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3 4a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>
+</button>
+<div id="themeMenu"></div>
+<button id="musicBtn" class="cornerBtn" aria-label="Manage music" title="Manage music" style="display:none">
+  <svg viewBox="0 0 24 24"><path d="M12 3v10.6A4 4 0 1014 17V7h4V3z"/></svg>
+</button>
+<div id="musicPanel">
+  <h3>🎵 Your music</h3>
+  <div id="mpList"></div>
+  <hr>
+  <b>Add a song</b>
+  <input type="file" id="mpFile" accept="audio/*">
+  <input type="text" id="mpTitle" placeholder="Song title">
+  <input type="text" id="mpArtist" placeholder="Artist">
+  <p style="margin-bottom:0">Plays on which themes? <i>(none ticked = all themes)</i></p>
+  <div class="chips" id="mpThemes"></div>
+  <div class="row"><button id="mpTest">▶ Test here only</button><button id="mpUpload" class="go">⬆ Upload to site</button></div>
+  <details id="mpTokBox">
+    <summary>GitHub key (one-time setup)</summary>
+    <p>Uploading saves the song to your GitHub site so everyone hears it. Make a key at
+      github.com → Settings → Developer settings → Fine-grained tokens → Generate. Pick <b>Only select repositories</b> → your .github.io repo,
+      and set <b>Contents: Read and write</b>. Paste it below. It's saved only on this device.</p>
+    <input type="password" id="mpToken" placeholder="github_pat_...">
+    <div class="row"><button id="mpSaveTok" class="go">Save key</button><button id="mpForget">Forget key</button></div>
+  </details>
+  <hr>
+  <button id="mpDefault" class="wbtn">🎨 Make the current theme everyone's default</button>
+  <div id="mpStatus"></div>
+</div>
+<div class="foot" id="foot"></div>
+
+<main id="stage">
+  <section id="profile">
+    <div class="nameRow">
+      <span class="orn" id="ornL"></span>
+      <h1 id="name"></h1>
+      <span class="orn" id="ornR"></span>
+    </div>
+    <span class="jp" id="jp"></span>
+    <p class="bio"><span id="bioText"></span><span class="cur">&nbsp;</span></p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="av"><span id="uAv"></span><span class="dot" id="uDot"></span></div>
+        <div class="cinfo">
+          <div class="cname" id="uName"></div>
+          <div class="csub" id="uStatus"></div>
+          <div class="csub" id="uActivity"></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="tag"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.8 19.8 0 0015.4 3l-.6 1.3a18.4 18.4 0 00-5.6 0L8.6 3a19.7 19.7 0 00-4.9 1.4C.6 9-.3 13.6.1 18a19.9 19.9 0 006 3l1.3-2a12.9 12.9 0 01-2-1l.5-.4a14.2 14.2 0 0012.2 0l.5.4a12.9 12.9 0 01-2 1l1.3 2a19.8 19.8 0 006-3c.5-5.1-.8-9.6-3.6-13.6z"/></svg>discord</span>
+        <div class="sicon" id="sIcon"></div>
+        <div class="cinfo">
+          <div class="cname" id="sName"></div>
+          <div class="counts">
+            <span><i style="background:#23a55a"></i><b id="sOnline">0</b> online</span>
+            <span><i style="background:#80848e"></i><b id="sMembers">0</b> members</span>
+          </div>
+          <a class="join" id="sJoin" target="_blank" rel="noopener">join</a>
+        </div>
+      </div>
+    </div>
+
+    <nav class="socials" id="socials"></nav>
+
+    <div class="player" id="player">
+      <div class="cover" id="pCover">♪</div>
+      <div class="pmid">
+        <div class="ptitle" id="pTitle">no song loaded</div>
+        <div class="partist" id="pArtist">—</div>
+        <div class="bar"><span id="pCur">0:00</span><div class="track" id="pTrack"><div class="fill" id="pFill"></div></div><span id="pDur">0:00</span></div>
+      </div>
+      <div class="pbtns">
+        <button id="pPrev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button id="pPlay" class="big" aria-label="Play"></button>
+        <button id="pNext" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
+      </div>
+    </div>
+  </section>
+</main>
+<audio id="audio" preload="auto"></audio>
+
+<script>
+/* =====================================================================
+   CONFIG — edit this part.
+   ===================================================================== */
+const CONFIG = {
+  name: "iitstymfk",
+
+  // Which theme loads first: "sakura", "haunted", "dandadan", "cursed", "hero", "gotham"
+  theme: "sakura",
+  // Who gets the 🎨 theme button and 🎵 music panel:
+  //   "secret"   = hidden unless the link ends in #owner (yoursite/#owner)
+  //   "everyone" = visitors get the 🎨 button too (music panel stays secret)
+  //   "off"      = nobody
+  themePicker: "secret",
+  secretWord: "owner",
+
+  // Your GitHub site (used by the hidden music uploader)
+  github: { owner: "tylerkrieg7-commits", repo: "tylerkrieg7-commits.github.io", branch: "main" },
+
+  // Per-theme pictures. Put image files in the "chars" folder.
+  //  character  = transparent PNG beside your card. Use a list of several
+  //               and they take turns, swapping every few seconds.
+  //  side       = "right" or "left"
+  //  ornament   = optional image used for the spinning icons by your name
+  //  background = optional wallpaper / looping gif / mp4 (replaces the animated scene)
+  characterSwapSeconds: 15,
+  themes: {
+    sakura:  { character: ["chars/zerotwo.png"],  side: "right", background: "" },
+    haunted: { character: ["chars/mystery_machine.png"], side: "right", ornament: "chars/sd_badge.png", background: "" },
+    dandadan:{ character: ["chars/momo.png"],     side: "right", background: "" },
+    cursed:  { character: ["chars/megumi.png", "chars/jjk_group.png"], side: "right", background: "" },
+    hero:    { character: ["chars/toga.png"],     side: "right", background: "" },
+    gotham:  { character: ["chars/batman.png"],   side: "right", ornament: "chars/bat_logo.png", signal: "chars/bat_logo.png", background: "" },
+  },
+
+  // ---- Discord (live once hosted online) ----
+  // User ID: Discord > Settings > Advanced > Developer Mode, then right-click
+  // yourself > Copy User ID. Also join discord.gg/lanyard once.
+  discordUserId: "",
+  discordInvite: "",   // the code after discord.gg/
+  fallbackUser:   { name: "iitstymfk", status: "offline", note: "last seen recently" },
+  fallbackServer: { name: "Starfall Guild", online: 0, members: 0 },
+
+  // ---- Social links (url "" hides it) ----
+  // discord, youtube, twitch, tiktok, instagram, steam, spotify, xbox, playstation, x, github
+  socials: [
+    { type: "discord", url: "#", label: "Discord" },
+    { type: "youtube", url: "#", label: "YouTube" },
+    { type: "twitch",  url: "#", label: "Twitch" },
+    { type: "tiktok",  url: "#", label: "TikTok" },
+    { type: "steam",   url: "#", label: "Steam" },
+    { type: "xbox",    url: "#", label: "Xbox" },
+    { type: "spotify", url: "#", label: "Spotify" },
+  ],
+
+  // ---- Music (mp3s next to index.html) ----
+  // Easiest: use the hidden 🎵 panel (#owner) instead of editing this.
+  // themes: [] or left out = plays on every theme; ["haunted"] = only Mystery Inc.
+  songs: [
+    // { title: "Song Name", artist: "Artist", src: "song1.mp3", cover: "", themes: ["sakura","cursed"] },
+  ],
+  volume: 0.35,
+};
+/* ======================= end of config ============================== */
+
+/* Theme definitions — colours, fonts, text and animated scene. */
+const THEMES = {
+  sakura: {
+    label: "Sakura Night", accent: "#ff7eb6", accent2: "#9d8bff", text: "#f6f0ff", muted: "#d9c8ea",
+    card: "rgba(30,18,48,.45)", line: "rgba(255,190,225,.2)", icon: "#f6f0ff",
+    title: "'Mochiy Pop One',sans-serif", grad: "linear-gradient(90deg,#fff,#ffc4e1,#c9b8ff,#fff)",
+    orn: "sakura", anim: "a-spin", sparks: ["✿","✦"],
+    splash: "click to enter ✿", splashSub: "ようこそ", subtitle: "ゲーマー ✿ 夜更かし",
+    bios: ["gamer. night owl. anime enjoyer.", "probably in a lobby right now", "currently watching: dan da dan", "darling, gg ✿"],
+  },
+  haunted: {
+    label: "Mystery Inc.", accent: "#7dffb2", accent2: "#b48cff", text: "#ecfff4", muted: "#a9cbbb",
+    card: "rgba(6,22,20,.55)", line: "rgba(125,255,178,.18)", icon: "#ecfff4",
+    title: "'Creepster',cursive", grad: "linear-gradient(90deg,#d9ffe9,#7dffb2,#b48cff,#d9ffe9)",
+    orn: "wisp", anim: "a-sway", sparks: ["👻","·"],
+    splash: "enter... if you dare", splashSub: "the case is open", subtitle: "MYSTERY SOLVING ✦ GHOST HUNTING",
+    bios: ["and i would've gotten away with it too...", "the culprit was the groundskeeper", "ghost hunting tonight. bring snacks.", "zoinks."],
+  },
+  dandadan: {
+    label: "Dan Da Dan", accent: "#39ff88", accent2: "#ff4fa3", text: "#f4fff8", muted: "#bfe9d4",
+    card: "rgba(14,8,30,.6)", line: "rgba(57,255,136,.25)", icon: "#f4fff8",
+    title: "'Dela Gothic One',sans-serif", grad: "linear-gradient(90deg,#39ff88,#e9fff2,#ff4fa3,#39ff88)",
+    orn: "ufo", anim: "a-sway", sparks: ["👽","✦"],
+    splash: "do you believe?", splashSub: "ghosts ✦ aliens ✦ click to enter", subtitle: "オカルト ✦ UFO ✦ 妖怪",
+    bios: ["ghosts or aliens? why not both", "abducted by aliens. back in 5", "turbo granny is faster than my wifi", "occult club: active member"],
+  },
+  cursed: {
+    label: "Cursed Energy", accent: "#8b5cff", accent2: "#00e5ff", text: "#f1ecff", muted: "#a99fd0",
+    card: "rgba(10,6,28,.6)", line: "rgba(139,92,255,.3)", icon: "#f1ecff",
+    title: "'Russo One',sans-serif", grad: "linear-gradient(90deg,#fff,#b79bff,#00e5ff,#fff)",
+    orn: "spiral", anim: "a-spin", sparks: ["✧","·"],
+    splash: "domain expansion", splashSub: "click to enter", subtitle: "呪力 100%",
+    bios: ["cursed energy: overflowing", "psychic power at 100%", "special grade gamer", "throughout every lobby, i alone am online"],
+  },
+  hero: {
+    label: "Hero Academy", accent: "#ffd23f", accent2: "#ff3b3b", text: "#ffffff", muted: "#fff2c4",
+    card: "#fffdf3", line: "#111", icon: "#ffffff",
+    title: "'Bangers',cursive", grad: "linear-gradient(90deg,#ffd23f,#fff3a6,#ff6b3b,#ffd23f)",
+    orn: "star", anim: "a-spin", sparks: ["★","✦"],
+    splash: "GO BEYOND!", splashSub: "click to enter", subtitle: "QUIRK: GAMING",
+    bios: ["PLUS ULTRA!!", "quirk: unlimited respawns", "villain arc loading...", "top hero (of my lobby)"],
+  },
+  gotham: {
+    label: "Gotham Night", accent: "#ffc53d", accent2: "#5d7bff", text: "#eef1f7", muted: "#9aa3b5",
+    card: "rgba(8,10,16,.66)", line: "rgba(255,197,61,.2)", icon: "#eef1f7",
+    title: "'Anton',sans-serif", grad: "linear-gradient(90deg,#fff,#ffc53d,#c8d1e6,#fff)",
+    orn: "riddle", anim: "a-flip", sparks: ["?","·"],
+    splash: "THE CITY NEEDS YOU", splashSub: "click to enter", subtitle: "AFTER DARK • ROGUES GALLERY",
+    bios: ["why so serious?", "riddle me this: who's online?", "the night is darkest just before the dawn", "every villain is a hero in their own story"],
+  },
+};
+
+const $ = id => document.getElementById(id);
+let T = null, themeKey = null;
+
+/* ---------- icons ---------- */
+const ICONS = {
+  discord:'<path d="M20.3 4.4A19.8 19.8 0 0015.4 3l-.6 1.3a18.4 18.4 0 00-5.6 0L8.6 3a19.7 19.7 0 00-4.9 1.4C.6 9-.3 13.6.1 18a19.9 19.9 0 006 3l1.3-2a12.9 12.9 0 01-2-1l.5-.4a14.2 14.2 0 0012.2 0l.5.4a12.9 12.9 0 01-2 1l1.3 2a19.8 19.8 0 006-3c.5-5.1-.8-9.6-3.6-13.6zM8.5 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4zm7 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4z"/>',
+  youtube:'<path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 00.5 6.2 31 31 0 000 12a31 31 0 00.5 5.8 3 3 0 002.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 002.1-2.1A31 31 0 0024 12a31 31 0 00-.5-5.8zM9.6 15.6V8.4l6.2 3.6z"/>',
+  twitch:'<path d="M2.1 0L.5 4.2v17h5.7V24h3.2l3.1-2.8h4.7L23.5 15V0zm19.3 14l-3.7 3.7h-5.7l-3.2 3v-3H4.2V2.1h17.2zM17.7 6.4v6.2h-2.1V6.4zm-5.7 0v6.2H9.9V6.4z"/>',
+  tiktok:'<path d="M19.6 6.7a4.8 4.8 0 01-3.8-4.3V2h-3.4v13.7a2.9 2.9 0 11-2-2.8V9.4a6.3 6.3 0 105.4 6.3V8.6a8.2 8.2 0 004.8 1.5V6.7z"/>',
+  instagram:'<path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0 8.2a3.2 3.2 0 110-6.4 3.2 3.2 0 010 6.4zM17.3 5.5a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4zM12 2.2c3.2 0 3.6 0 4.8.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.8c-.1 3.2-1.7 4.8-4.9 4.9-1.3.1-1.6.1-4.8.1s-3.6 0-4.8-.1c-3.3-.1-4.8-1.7-4.9-4.9C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.8C2.4 3.9 3.9 2.4 7.2 2.3 8.4 2.2 8.8 2.2 12 2.2z"/>',
+  steam:'<path d="M12 0A12 12 0 00.1 11l6.4 2.7a3.4 3.4 0 011.9-.6h.2l2.9-4.2v-.1a4.5 4.5 0 114.5 4.5h-.1l-4.1 3v.2a3.4 3.4 0 01-6.7.7L.6 15.3A12 12 0 1012 0zM7.5 18.2l-1.5-.6a2.5 2.5 0 104.6-2 2.5 2.5 0 00-1.9-1.4l1.5.6a1.9 1.9 0 01-1.5 3.4zm11-9.3a3 3 0 10-3 3 3 3 0 003-3zm-5.3 0a2.3 2.3 0 112.3 2.3 2.3 2.3 0 01-2.3-2.3z"/>',
+  spotify:'<path d="M12 0a12 12 0 100 24 12 12 0 000-24zm5.5 17.3a.7.7 0 01-1 .3c-2.8-1.7-6.4-2.1-10.6-1.2a.7.7 0 11-.3-1.4c4.6-1 8.6-.6 11.7 1.3a.7.7 0 01.2 1zm1.5-3.3a.9.9 0 01-1.3.3c-3.2-2-8.2-2.6-12-1.4a.9.9 0 11-.5-1.8c4.4-1.3 9.8-.7 13.5 1.6a.9.9 0 01.3 1.3zm.1-3.4C15.3 8.3 8.9 8.1 5.2 9.2a1.1 1.1 0 11-.6-2.1c4.3-1.3 11.3-1 15.7 1.6a1.1 1.1 0 01-1.2 1.9z"/>',
+  xbox:'<path d="M4.7 21.9A12 12 0 0012 24a12 12 0 007.3-2.1c1.3-1.4-3.2-6.3-7.3-9.6-4.1 3.3-8.6 8.2-7.3 9.6zM12 4.7S8.7 2.3 6.5 2.9C5 3.3 3.5 4.7 3.5 4.7 1.3 7 0 9.5 0 12a12 12 0 002.8 7.7C1.5 15.6 7.5 7.4 12 4.7zm0 0c4.5 2.7 10.5 10.9 9.2 15A12 12 0 0024 12c0-2.5-1.3-5-3.5-7.3 0 0-1.5-1.4-3-1.8C15.3 2.3 12 4.7 12 4.7zM12 1a11.9 11.9 0 017.9 3.4c-.9-.6-1.7-.8-2.6-.5C15 1.9 12.8 1 12 1zm0 0c-.8 0-3 .9-5.3 2.9-.9-.3-1.7-.1-2.6.5A11.9 11.9 0 0112 1z"/>',
+  playstation:'<path d="M9 2.6v17.8l4 1.3V6.8c0-.7.3-1.2.8-1 .7.2.8.9.8 1.6v6c2.5 1.2 4.4 0 4.4-3.3 0-3.4-1.2-4.9-4.6-6.1A42 42 0 009 2.6zM14 17l6.5-2.3c.7-.3.8-.6.2-.8a3.7 3.7 0 00-2.2-.1L14 15.4v-2.4l.3-.1a12 12 0 012.6-.5 9 9 0 014 .4c1.8.6 2 1.5 1.5 2.1a4 4 0 01-1.6 1L14 19.3zM1.3 17.6c-1.6-.5-1.8-1.4-1.1-2a5.4 5.4 0 011.7-.8L7 13v2.4l-3.6 1.3c-.6.3-.7.6-.2.8a3.7 3.7 0 002.2.1L7 17.2v2.2l-.4.1a12.2 12.2 0 01-5.3-1.9z"/>',
+  x:'<path d="M18.2 2.3h3.4l-7.4 8.4L23 21.7h-6.8l-5.3-7-6.1 7H1.4l7.9-9L1 2.3h7l4.8 6.4zm-1.2 17.4h1.9L7 4.2H5z"/>',
+  github:'<path d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 016 0C17.3 4.8 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1.1.9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0012 .3"/>',
+};
+const svg = p => `<svg viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
+const orn = k => `<svg viewBox="0 0 40 40"><use href="#o-${k}"/></svg>`;
+const PLAY  = svg('<path d="M8 5v14l11-7z"/>');
+const PAUSE = svg('<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>');
+const VOL   = svg('<path d="M3 9v6h4l5 5V4L7 9zm13.5 3A4.5 4.5 0 0014 8v8a4.5 4.5 0 002.5-4zM14 3.2v2.1a7 7 0 010 13.4v2.1a9 9 0 000-17.6z"/>');
+const MUTED = svg('<path d="M16.5 12A4.5 4.5 0 0014 8v2.2l2.5 2.5V12zM19 12a7 7 0 01-.6 2.8l1.5 1.5A9 9 0 0014 3.2v2.1a7 7 0 015 6.7zM4.3 3L3 4.3 7.7 9H3v6h4l5 5v-6.7l4.3 4.2a7 7 0 01-2.3 1.2v2.1a9 9 0 003.7-1.8l2 2 1.3-1.3zM12 4L9.9 6.1 12 8.2z"/>');
+
+function sigil(letter){
+  return `<svg viewBox="0 0 56 56"><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--accent2)"/></linearGradient></defs>
+  <circle cx="28" cy="28" r="28" fill="url(#sg)"/><text x="28" y="37" text-anchor="middle" style="font-family:var(--title)" font-size="24" fill="#fff">${letter}</text></svg>`;
+}
+
+/* ---------- static bits ---------- */
+$('name').textContent = CONFIG.name;
+$('foot').textContent = CONFIG.name;
+$('socials').innerHTML = '<span class="x" id="sx1"></span>' +
+  CONFIG.socials.filter(s=>s.url).map(s =>
+    `<a class="soc" href="${s.url}" target="_blank" rel="noopener" aria-label="${s.label}">${svg(ICONS[s.type]||'')}<span class="tip">${s.label}</span></a>`
+  ).join('') + '<span class="x" id="sx2"></span>';
+
+/* ---------- typewriter ---------- */
+let bioI = 0, bioJ = 0, bioDel = false, bioTimer;
+function typeTick(){
+  const lines = T.bios, line = lines[bioI % lines.length] || '';
+  $('bioText').textContent = line.slice(0, bioJ);
+  if(!bioDel && bioJ < line.length){ bioJ++; return bioTimer = setTimeout(typeTick, 60); }
+  if(!bioDel){ bioDel = true; return bioTimer = setTimeout(typeTick, 2200); }
+  if(bioJ > 0){ bioJ--; return bioTimer = setTimeout(typeTick, 28); }
+  bioDel = false; bioI++; bioTimer = setTimeout(typeTick, 400);
+}
+
+/* ---------- discord ---------- */
+const STATUS_TEXT = {online:'online', idle:'idle', dnd:'do not disturb', offline:'offline'};
+let user = {...CONFIG.fallbackUser}, server = {...CONFIG.fallbackServer};
+function renderUser(){
+  const u = user;
+  $('uAv').innerHTML = u.avatar ? `<img src="${u.avatar}" alt="">` : sigil(CONFIG.name[0].toUpperCase());
+  $('uName').textContent = u.name;
+  $('uDot').className = 'dot ' + u.status;
+  $('uStatus').textContent = u.custom || (u.status === 'offline' ? (u.note || 'offline') : STATUS_TEXT[u.status]);
+  $('uActivity').textContent = u.activity ? '▸ playing ' + u.activity : '';
+}
+function renderServer(){
+  const s = server;
+  $('sName').textContent = s.name;
+  $('sOnline').textContent = s.online.toLocaleString();
+  $('sMembers').textContent = s.members.toLocaleString();
+  const oi = (CONFIG.themes[themeKey]||{}).ornament;
+  $('sIcon').innerHTML = s.icon ? `<img src="${s.icon}" alt="">` : (oi ? `<img class="ornimg" src="${oi}" alt="">` : orn(T.orn));
+  const j = $('sJoin');
+  if(CONFIG.discordInvite) j.href = 'https://discord.gg/' + CONFIG.discordInvite;
+  else { j.removeAttribute('href'); j.style.opacity = .55; j.style.cursor = 'default'; }
+}
+async function loadPresence(){
+  if(!CONFIG.discordUserId) return;
+  try{
+    const {data} = await (await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordUserId}`)).json();
+    const d = data.discord_user;
+    user = { name: d.global_name || d.username,
+      avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.${d.avatar.startsWith('a_')?'gif':'png'}?size=128` : '',
+      status: data.discord_status, custom: (data.activities.find(a=>a.type===4)||{}).state,
+      activity: (data.activities.find(a=>a.type===0)||{}).name, note: CONFIG.fallbackUser.note };
+    renderUser();
+  }catch(e){}
+}
+async function loadServer(){
+  if(!CONFIG.discordInvite) return;
+  try{
+    const d = await (await fetch(`https://discord.com/api/v9/invites/${CONFIG.discordInvite}?with_counts=true`)).json();
+    server = { name: d.guild.name, icon: d.guild.icon ? `https://cdn.discordapp.com/icons/${d.guild.id}/${d.guild.icon}.png?size=128` : '',
+      online: d.approximate_presence_count || 0, members: d.approximate_member_count || 0 };
+    renderServer();
+  }catch(e){}
+}
+
+/* ---------- music ---------- */
+const audio = $('audio');
+let songs = [], siteSongs = [], localSongs = [], idx = 0, muted = false;
+audio.volume = CONFIG.volume;
+const fmt = t => isFinite(t) ? Math.floor(t/60) + ':' + String(Math.floor(t%60)).padStart(2,'0') : '0:00';
+function loadSongAt(i){
+  if(!songs.length) return;
+  idx = (i + songs.length) % songs.length; const s = songs[idx];
+  audio.src = s.src; $('pTitle').textContent = s.title || 'untitled'; $('pArtist').textContent = s.artist || '—';
+  $('pCover').innerHTML = s.cover ? `<img src="${s.cover}" alt="">` : '♪';
+}
+const setPlayIcon = () => { $('pPlay').innerHTML = audio.paused ? PLAY : PAUSE; $('pCover').classList.toggle('spin', !audio.paused); };
+const play = () => { if(songs.length) audio.play().catch(()=>{}); };
+$('pPlay').onclick = () => { if(songs.length) audio.paused ? play() : audio.pause(); };
+$('pNext').onclick = () => { loadSongAt(idx+1); play(); };
+$('pPrev').onclick = () => { if(audio.currentTime > 3) audio.currentTime = 0; else { loadSongAt(idx-1); play(); } };
+audio.onplay = audio.onpause = setPlayIcon;
+audio.onended = () => { loadSongAt(idx+1); play(); };
+audio.ontimeupdate = () => {
+  $('pCur').textContent = fmt(audio.currentTime); $('pDur').textContent = fmt(audio.duration);
+  $('pFill').style.width = (audio.currentTime / audio.duration * 100 || 0) + '%';
+};
+$('pTrack').onclick = e => { const r = e.currentTarget.getBoundingClientRect(); if(audio.duration) audio.currentTime = (e.clientX-r.left)/r.width*audio.duration; };
+const allSongs = () => [...CONFIG.songs, ...siteSongs, ...localSongs];
+const fitsTheme = (s, k) => !s.themes || !s.themes.length || s.themes.includes(k);
+function rebuildPlaylist(){
+  const wasPlaying = !audio.paused, cur = songs[idx];
+  // songs made for this theme play first, "all themes" songs after
+  const own = allSongs().filter(s => s.themes && s.themes.includes(themeKey));
+  const any = allSongs().filter(s => !s.themes || !s.themes.length);
+  songs = [...own, ...any];
+  let ni = cur ? songs.findIndex(s => s.src === cur.src) : -1;
+  if(own.length && ni >= own.length) ni = -1; // theme has its own songs → switch to them
+  if(ni >= 0){ idx = ni; }
+  else {
+    audio.pause(); audio.removeAttribute('src'); idx = 0;
+    $('pTitle').textContent = 'no song loaded'; $('pArtist').textContent = '—'; $('pFill').style.width = 0;
+    if(songs.length){ loadSongAt(0); if(wasPlaying) play(); }
+  }
+  refreshPlayer(); setPlayIcon();
+}
+function refreshPlayer(){
+  $('player').style.display = songs.length ? 'flex' : 'none';
+  if(songs.length && !audio.getAttribute('src')) loadSongAt(0);
+}
+setPlayIcon();
+$('mute').innerHTML = VOL;
+$('mute').onclick = () => { muted = !muted; audio.muted = muted; $('mute').innerHTML = muted ? MUTED : VOL; };
+
+/* ---------- splash / tilt / sparkles ---------- */
+$('splash').onclick = () => { $('splash').classList.add('gone'); $('profile').classList.add('show'); play();
+  setTimeout(()=>$('profile').classList.add('tilting'), 1200); };
+if(matchMedia('(hover:hover)').matches){
+  addEventListener('mousemove', e => {
+    if(!$('profile').classList.contains('tilting')) return;
+    const x = e.clientX/innerWidth - .5, y = e.clientY/innerHeight - .5;
+    $('profile').style.transform = `rotateY(${x*10}deg) rotateX(${-y*10}deg)`;
+  });
+}
+let lastSpark = 0;
+function spark(x, y, burst){
+  const s = document.createElement('span'); s.className = 'spark' + (burst ? ' burst' : '');
+  s.textContent = T.sparks[Math.random() < .5 ? 0 : 1];
+  s.style.left = x + 'px'; s.style.top = y + 'px';
+  if(burst){ const a = Math.random()*Math.PI*2, d = 30 + Math.random()*40;
+    s.style.setProperty('--bx', Math.cos(a)*d + 'px'); s.style.setProperty('--by', Math.sin(a)*d + 'px');
+    s.style.fontSize = (12 + Math.random()*10) + 'px'; }
+  document.body.appendChild(s); setTimeout(() => s.remove(), 900);
+}
+function trail(x, y){ const now = performance.now(); if(now - lastSpark < 35) return; lastSpark = now; spark(x, y); }
+// mouse / pen trail
+addEventListener('pointermove', e => { if(e.pointerType !== 'touch') trail(e.clientX, e.clientY); });
+// finger swipe trail (touchmove keeps firing while the page scrolls)
+addEventListener('touchmove', e => { for(const t of e.touches) trail(t.clientX, t.clientY); }, {passive:true});
+// tap / click = little burst
+addEventListener('pointerdown', e => { for(let i=0;i<8;i++) spark(e.clientX, e.clientY, true); });
+
+/* =====================================================================
+   ANIMATED SCENES — one per theme
+   Each scene: build(back, front, W, H) draws static layers once,
+   mid(ctx,...) animates between them, top(ctx,...) animates on top.
+   ===================================================================== */
+const R = Math.random, TAU = Math.PI*2;
+const rr = (a,b) => a + R()*(b-a);
+
+function hills(g, W, H, base, amp, col, seed){
+  g.fillStyle = col; g.beginPath(); g.moveTo(0,H);
+  for(let x=0;x<=W;x+=8) g.lineTo(x, base + Math.sin(x*.004+seed)*amp + Math.sin(x*.011+seed*2)*amp*.4);
+  g.lineTo(W,H); g.fill();
+}
+function tree(g, x, y, a, len, w, d, leaf){
+  if(d > 6 || len < 6){ if(leaf) leaf(x,y); return; }
+  const nx = x + Math.cos(a)*len, ny = y + Math.sin(a)*len;
+  g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(x,y); g.lineTo(nx,ny); g.stroke();
+  tree(g, nx, ny, a - rr(.35,.65), len*.74, w*.68, d+1, leaf);
+  tree(g, nx, ny, a + rr(.3,.6),  len*.7,  w*.68, d+1, leaf);
+}
+function starsArr(W,H,yMax,n){ return Array.from({length:n},()=>({x:R()*W,y:R()*H*yMax,r:rr(.3,1.6),p:R()*6,s:rr(.5,2.5)})); }
+function drawStars(ctx, st, t, col){
+  for(const s of st){ ctx.globalAlpha = .3 + .7*Math.abs(Math.sin(t*s.s+s.p)); ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,TAU); ctx.fill(); }
+  ctx.globalAlpha = 1;
+}
+function skyline(g, W, H, opts){
+  let x = -10;
+  while(x < W){
+    const bw = rr(opts.minW, opts.maxW), bh = H*rr(opts.minH, opts.maxH), top = H - bh;
+    g.fillStyle = opts.col; g.fillRect(x, top, bw, bh);
+    if(opts.deco && R() < .4){ // stepped art-deco top + spire
+      g.fillRect(x+bw*.15, top-bh*.06, bw*.7, bh*.06);
+      g.fillRect(x+bw*.3, top-bh*.11, bw*.4, bh*.05);
+      g.fillRect(x+bw/2-1.5, top-bh*.2, 3, bh*.1);
+    }
+    if(opts.outline){ g.strokeStyle = '#111'; g.lineWidth = 3; g.strokeRect(x, top, bw, bh+4); }
+    if(opts.win){
+      for(let wy = top+8; wy < H-6; wy += opts.win.gy) for(let wx = x+5; wx < x+bw-6; wx += opts.win.gx)
+        if(R() < opts.win.p){ g.fillStyle = opts.win.col(); g.fillRect(wx, wy, opts.win.w, opts.win.h); }
+    }
+    x += bw + rr(0, opts.gap||4);
+  }
+}
+
+const SCENES = {
+  /* ---------------- SAKURA NIGHT ---------------- */
+  sakura: {
+    build(b, f, W, H){
+      const sky = b.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#0d0627'); sky.addColorStop(.45,'#2b1458'); sky.addColorStop(.75,'#7a2f7e'); sky.addColorStop(1,'#ff8db8');
+      b.fillStyle = sky; b.fillRect(0,0,W,H);
+      const mx=W*.22, my=H*.22, mr=Math.min(W,H)*.09;
+      const halo=b.createRadialGradient(mx,my,mr*.8,mx,my,mr*4); halo.addColorStop(0,'rgba(255,220,240,.35)'); halo.addColorStop(1,'rgba(255,220,240,0)');
+      b.fillStyle=halo; b.fillRect(0,0,W,H);
+      const moon=b.createRadialGradient(mx-mr*.3,my-mr*.3,0,mx,my,mr); moon.addColorStop(0,'#fffaf3'); moon.addColorStop(1,'#ffd9ea');
+      b.fillStyle=moon; b.beginPath(); b.arc(mx,my,mr,0,TAU); b.fill();
+      b.fillStyle='rgba(230,170,210,.35)';
+      [[.3,.2,.18],[-.25,.35,.12],[.1,-.35,.1]].forEach(([a,c,r])=>{b.beginPath();b.arc(mx+a*mr,my+c*mr,r*mr,0,TAU);b.fill();});
+      for(let i=0;i<7;i++){ const cx=R()*W, cy=H*rr(.35,.65), cw=rr(150,400);
+        const cg=b.createRadialGradient(cx,cy,0,cx,cy,cw); cg.addColorStop(0,'rgba(255,170,210,.16)'); cg.addColorStop(1,'rgba(255,170,210,0)');
+        b.fillStyle=cg; b.beginPath(); b.ellipse(cx,cy,cw,cw*.25,0,0,TAU); b.fill(); }
+      hills(f,W,H,H*.78,40,'#4a1f5e',1); hills(f,W,H,H*.85,28,'#2c1240',3);
+      const tx=W*.72, ty=H*.86, ts=Math.min(W,H)*.12; f.fillStyle='#1a0a28';
+      f.fillRect(tx-ts*.48,ty-ts*.82,ts*.96,ts*.07);
+      f.fillRect(tx-ts*.4,ty-ts*.98,ts*.08,ts*1.1); f.fillRect(tx+ts*.32,ty-ts*.98,ts*.08,ts*1.1);
+      f.beginPath(); f.moveTo(tx-ts*.62,ty-ts*1.1); f.quadraticCurveTo(tx,ty-ts*1.0,tx+ts*.62,ty-ts*1.1); f.lineTo(tx+ts*.6,ty-ts*.98); f.quadraticCurveTo(tx,ty-ts*.92,tx-ts*.6,ty-ts*.98); f.fill();
+      hills(f,W,H,H*.93,14,'#12061c',5);
+      f.strokeStyle='#12061c';
+      tree(f, W*.06, H, -Math.PI/2+.25, Math.min(W,H)*.16, 14, 0, (x,y)=>{
+        f.fillStyle=`rgba(255,${150+R()*60|0},${200+R()*40|0},.78)`; f.beginPath(); f.arc(x,y,rr(6,16),0,TAU); f.fill(); });
+      return { stars: starsArr(W,H,.65,W*H/5000|0), shoot: [], petals: [] };
+    },
+    mid(c, W, H, t, s){
+      drawStars(c, s.stars, t, '#fff0fa');
+      if(R() < .006) s.shoot.push({x:rr(W*.2,W), y:R()*H*.3, l:1});
+      s.shoot = s.shoot.filter(o=>o.l>0);
+      for(const o of s.shoot){ const g=c.createLinearGradient(o.x,o.y,o.x+90,o.y-40); g.addColorStop(0,`rgba(255,255,255,${o.l})`); g.addColorStop(1,'rgba(255,200,230,0)');
+        c.strokeStyle=g; c.lineWidth=2; c.beginPath(); c.moveTo(o.x,o.y); c.lineTo(o.x+90,o.y-40); c.stroke(); o.x-=9; o.y+=4; o.l-=.025; }
+    },
+    top(c, W, H, t, s){
+      if(s.petals.length < 45 && R() < .25) s.petals.push({x:R()*W*1.2, y:-10, vx:rr(-1.2,-.2), vy:rr(.6,1.5), r:R()*TAU, vr:rr(-.05,.05), z:rr(.6,1.4), w:R()*TAU});
+      for(const p of s.petals){
+        p.w += .03; p.x += p.vx + Math.sin(p.w)*.6; p.y += p.vy; p.r += p.vr;
+        c.save(); c.translate(p.x,p.y); c.rotate(p.r); c.scale(p.z, p.z*Math.abs(Math.cos(p.w))+.2);
+        c.fillStyle = '#ffb3d4'; c.beginPath(); c.ellipse(0,0,6,4,0,0,TAU); c.fill();
+        c.fillStyle = '#ffe1ee'; c.beginPath(); c.ellipse(-1.5,-1,2.5,1.5,0,0,TAU); c.fill(); c.restore();
+      }
+      s.petals = s.petals.filter(p => p.y < H+20);
+    },
+  },
+
+  /* ---------------- HAUNTED MYSTERY ---------------- */
+  haunted: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#03080b'); sky.addColorStop(.5,'#0c2426'); sky.addColorStop(1,'#2d4a3c');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      const mx=W*.7, my=H*.2, mr=Math.min(W,H)*.1;
+      const halo=b.createRadialGradient(mx,my,mr,mx,my,mr*4.5); halo.addColorStop(0,'rgba(220,255,200,.28)'); halo.addColorStop(1,'rgba(220,255,200,0)');
+      b.fillStyle=halo; b.fillRect(0,0,W,H);
+      b.fillStyle='#eef7c8'; b.beginPath(); b.arc(mx,my,mr,0,TAU); b.fill();
+      b.fillStyle='rgba(170,190,130,.35)'; [[.3,.25,.2],[-.3,-.1,.14],[.05,-.4,.1]].forEach(([a,c,r])=>{b.beginPath();b.arc(mx+a*mr,my+c*mr,r*mr,0,TAU);b.fill();});
+      // hill + mansion
+      hills(f,W,H,H*.74,30,'#0c1d1b',2);
+      const s=Math.min(W,H)/900, hx=W*.24, hy=H*.72;
+      f.fillStyle='#050c0c';
+      const R2=(x,y,w,h)=>f.fillRect(hx+x*s,hy+y*s,w*s,h*s);
+      const roof=(x,y,w,h)=>{f.beginPath();f.moveTo(hx+x*s,hy+y*s);f.lineTo(hx+(x+w/2)*s,hy+(y-h)*s);f.lineTo(hx+(x+w)*s,hy+y*s);f.fill();};
+      R2(-150,-120,300,130); roof(-165,-120,330,80);
+      R2(-200,-200,70,210); roof(-212,-200,94,110);
+      R2(120,-170,60,180); roof(110,-170,80,90);
+      R2(-30,-230,24,60); R2(60,-190,16,40);
+      const wins=[]; f.fillStyle='#ffd95a';
+      [[-185,-170],[-160,-170],[-185,-120],[-160,-120],[-120,-90],[-80,-90],[-40,-90],[40,-90],[80,-90],[135,-140],[135,-90],[-120,-50],[80,-50]].forEach(([x,y])=>{
+        if(R()<.7){ R2(x,y,16,22); wins.push([hx+x*s,hy+y*s,16*s,22*s]); } });
+      f.fillStyle='#050c0c';
+      f.strokeStyle='#071211';
+      tree(f, W*.9, H*.84, -Math.PI/2-.15, Math.min(W,H)*.14, 9, 0);
+      tree(f, W*.05, H*.9, -Math.PI/2+.2, Math.min(W,H)*.12, 8, 0);
+      hills(f,W,H,H*.9,12,'#040908',6);
+      f.fillStyle='#0d1716';
+      for(let i=0;i<9;i++){ const x=rr(W*.4,W*.85), y=H*.9+rr(-4,12), w=rr(14,24)*s*1.6, h=w*1.4;
+        f.beginPath(); f.moveTo(x,y); f.lineTo(x,y-h+w/2); f.arc(x+w/2,y-h+w/2,w/2,Math.PI,0); f.lineTo(x+w,y); f.fill(); }
+      return { stars: starsArr(W,H,.5,W*H/12000|0), wins,
+        clouds: Array.from({length:6},()=>({x:R()*W, y:rr(H*.08,H*.4), w:rr(160,320), v:rr(.1,.35)})),
+        fog: Array.from({length:7},()=>({x:R()*W, y:rr(H*.7,H), w:rr(300,600), v:rr(.15,.5)*(R()<.5?-1:1)})),
+        wisps: Array.from({length:14},()=>({x:R()*W, y:rr(H*.3,H), p:R()*TAU, v:rr(.2,.6), r:rr(2,5)})),
+        flick: 0 };
+    },
+    mid(c, W, H, t, s){
+      drawStars(c, s.stars, t, '#e8ffef');
+      for(const cl of s.clouds){ cl.x += cl.v; if(cl.x - cl.w > W) cl.x = -cl.w;
+        const g=c.createRadialGradient(cl.x,cl.y,0,cl.x,cl.y,cl.w); g.addColorStop(0,'rgba(10,22,22,.85)'); g.addColorStop(1,'rgba(10,22,22,0)');
+        c.fillStyle=g; c.beginPath(); c.ellipse(cl.x,cl.y,cl.w,cl.w*.22,0,0,TAU); c.fill(); }
+    },
+    top(c, W, H, t, s){
+      if(R() < .03) s.flick = 8;
+      if(s.flick-- > 0 && s.wins.length){ const w = s.wins[(t*7|0) % s.wins.length]; c.fillStyle='#050c0c'; c.fillRect(...w); }
+      for(const fo of s.fog){ fo.x += fo.v; if(fo.x > W+fo.w) fo.x = -fo.w; if(fo.x < -fo.w) fo.x = W+fo.w;
+        const g=c.createRadialGradient(fo.x,fo.y,0,fo.x,fo.y,fo.w); g.addColorStop(0,'rgba(170,220,200,.13)'); g.addColorStop(1,'rgba(170,220,200,0)');
+        c.fillStyle=g; c.beginPath(); c.ellipse(fo.x,fo.y,fo.w,fo.w*.18,0,0,TAU); c.fill(); }
+      for(const w of s.wisps){ w.y -= w.v; w.p += .02; const x = w.x + Math.sin(w.p)*20; if(w.y < H*.2){ w.y = H+10; w.x = R()*W; }
+        const a = .5 + .5*Math.sin(t*3+w.p);
+        const g=c.createRadialGradient(x,w.y,0,x,w.y,w.r*5); g.addColorStop(0,`rgba(200,255,225,${a})`); g.addColorStop(.3,`rgba(125,255,178,${a*.5})`); g.addColorStop(1,'rgba(125,255,178,0)');
+        c.fillStyle=g; c.beginPath(); c.arc(x,w.y,w.r*5,0,TAU); c.fill(); }
+    },
+  },
+
+  /* ---------------- DAN DA DAN ---------------- */
+  dandadan: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#07031a'); sky.addColorStop(.55,'#22104a'); sky.addColorStop(.85,'#4a1d5e'); sky.addColorStop(1,'#1d6b5a');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      // crescent moon
+      const mx=W*.15, my=H*.18, mr=Math.min(W,H)*.06;
+      b.fillStyle='#fff6c9'; b.shadowColor='#fff6c9'; b.shadowBlur=30; b.beginPath(); b.arc(mx,my,mr,0,TAU); b.arc(mx+mr*.45,my-mr*.2,mr*.9,0,TAU,true); b.fill('evenodd'); b.shadowBlur=0;
+      // town: low houses + telephone poles & wires
+      hills(f,W,H,H*.82,10,'#120a24',4);
+      let x=-20; f.fillStyle='#0a0618';
+      while(x<W){ const w=rr(60,120), h=rr(40,90), y=H*.86-h;
+        f.fillRect(x,y,w,h+H); f.beginPath(); f.moveTo(x-6,y); f.lineTo(x+w/2,y-h*.45); f.lineTo(x+w+6,y); f.fill();
+        if(R()<.6){ f.fillStyle=R()<.5?'rgba(255,220,140,.8)':'rgba(140,255,200,.6)'; f.fillRect(x+w*.3,y+h*.3,10,12); f.fillStyle='#0a0618'; }
+        x+=w+rr(10,40); }
+      f.strokeStyle='#05030c'; f.fillStyle='#05030c';
+      const poles=[]; for(let px=W*.05; px<W; px+=W*.22){ poles.push(px); f.fillRect(px-3,H*.45,6,H*.55); f.fillRect(px-26,H*.47,52,4); f.fillRect(px-18,H*.51,36,3); }
+      f.lineWidth=1.2;
+      for(let i=0;i<poles.length-1;i++) for(const [dy,o] of [[H*.47,-24],[H*.47,22],[H*.51,0]]){
+        f.beginPath(); f.moveTo(poles[i]+o,dy); f.quadraticCurveTo((poles[i]+poles[i+1])/2,dy+30,poles[i+1]+o,dy); f.stroke(); }
+      f.fillStyle='#030208'; f.fillRect(0,H*.95,W,H*.05);
+      return { stars: starsArr(W,H,.6,W*H/6000|0), debris: [], beamOn: 0 };
+    },
+    mid(c, W, H, t, s){
+      drawStars(c, s.stars, t, '#e9fff2');
+      const ux = W*.5 + Math.sin(t*.4)*W*.28, uy = H*.14 + Math.sin(t*1.3)*10, k = Math.min(W,H)/800;
+      // tractor beam (pulses on/off)
+      const on = (Math.sin(t*.7) + 1)/2;
+      if(on > .3){
+        const a = (on-.3)/.7*.35, g = c.createLinearGradient(ux,uy,ux,H);
+        g.addColorStop(0,`rgba(57,255,136,${a})`); g.addColorStop(1,'rgba(57,255,136,0)');
+        c.fillStyle=g; c.beginPath(); c.moveTo(ux-30*k,uy+10*k); c.lineTo(ux+30*k,uy+10*k); c.lineTo(ux+140*k,H); c.lineTo(ux-140*k,H); c.fill();
+        if(R()<.2) s.debris.push({x:ux+rr(-110,110)*k, y:H*.9, v:rr(1,2.5), r:R()*TAU, sz:rr(3,8)*k, ux});
+      }
+      s.debris = s.debris.filter(d=>d.y>uy+15);
+      for(const d of s.debris){ d.y-=d.v; d.x += (ux-d.x)*.01; d.r+=.05;
+        c.save(); c.translate(d.x,d.y); c.rotate(d.r); c.fillStyle='rgba(200,255,225,.8)'; c.fillRect(-d.sz/2,-d.sz/2,d.sz,d.sz); c.restore(); }
+      // saucer
+      c.save(); c.translate(ux,uy); c.rotate(Math.sin(t*1.7)*.08); c.scale(k*1.6,k*1.6);
+      c.fillStyle='rgba(159,255,208,.85)'; c.beginPath(); c.ellipse(0,-8,18,15,0,Math.PI,0); c.fill();
+      c.fillStyle='#ff4fa3'; c.strokeStyle='#111'; c.lineWidth=2.5; c.beginPath(); c.ellipse(0,0,46,13,0,0,TAU); c.fill(); c.stroke();
+      c.fillStyle='#c2306f'; c.beginPath(); c.ellipse(0,5,30,6,0,0,Math.PI); c.fill();
+      for(let i=0;i<6;i++){ const lx=-35+i*14, lit=((t*6|0)+i)%3===0;
+        c.fillStyle=lit?'#fff59a':'#ffd0e6'; c.beginPath(); c.arc(lx,1,3,0,TAU); c.fill(); }
+      c.restore();
+    },
+    top(c, W, H, t, s){
+      // occasional glitch bar
+      if(R()<.02){ const y=R()*H, h=rr(2,8); c.fillStyle=R()<.5?'rgba(57,255,136,.15)':'rgba(255,79,163,.15)'; c.fillRect(0,y,W,h); }
+    },
+  },
+
+  /* ---------------- CURSED ENERGY ---------------- */
+  cursed: {
+    build(b, f, W, H){
+      const sky=b.createRadialGradient(W/2,H*.42,0,W/2,H*.42,Math.max(W,H)*.8);
+      sky.addColorStop(0,'#2a1260'); sky.addColorStop(.4,'#100828'); sky.addColorStop(1,'#03020a');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      skyline(f,W,H,{col:'#07040f',minW:30,maxW:90,minH:.12,maxH:.38,gap:3,
+        win:{gx:7,gy:9,w:3,h:4,p:.06,col:()=>R()<.5?'rgba(139,92,255,.7)':'rgba(0,229,255,.55)'}});
+      f.fillStyle='#030207'; f.fillRect(0,H*.94,W,H*.06);
+      f.strokeStyle='rgba(139,92,255,.75)'; f.lineWidth=1.5; f.shadowColor='#8b5cff'; f.shadowBlur=8;
+      for(let i=0;i<6;i++){ let x=rr(0,W), y=H*.95; f.beginPath(); f.moveTo(x,y);
+        for(let k=0;k<6;k++){ x+=rr(-30,30); y+=rr(2,8); f.lineTo(x,y);} f.stroke(); }
+      f.shadowBlur=0;
+      return { rings: Array.from({length:7},(_,i)=>({r:60+i*38, a:R()*TAU, v:rr(.003,.012)*(i%2?1:-1), len:rr(1.2,3.6), col:i%3?'139,92,255':'0,229,255'})),
+        embers: [], bolts: [] };
+    },
+    mid(c, W, H, t, s){
+      const cx=W/2, cy=H*.42, k=Math.min(W,H)/800;
+      const g=c.createRadialGradient(cx,cy,0,cx,cy,300*k); g.addColorStop(0,`rgba(0,229,255,${.12+.06*Math.sin(t*2)})`); g.addColorStop(1,'rgba(0,229,255,0)');
+      c.fillStyle=g; c.fillRect(0,0,W,H);
+      c.lineCap='round';
+      for(const r of s.rings){ r.a += r.v;
+        c.strokeStyle=`rgba(${r.col},.55)`; c.lineWidth=3; c.shadowColor=`rgb(${r.col})`; c.shadowBlur=14;
+        c.beginPath(); c.arc(cx,cy,r.r*k*1.4,r.a,r.a+r.len); c.stroke();
+        c.beginPath(); c.arc(cx,cy,r.r*k*1.4,r.a+Math.PI,r.a+Math.PI+r.len*.6); c.stroke(); }
+      c.shadowBlur=0;
+      if(R() < .025){ const ang=R()*TAU, pts=[[cx+Math.cos(ang)*80*k, cy+Math.sin(ang)*80*k]];
+        for(let i=1;i<8;i++){ const d=(80+i*45)*k; pts.push([cx+Math.cos(ang)*d+rr(-25,25), cy+Math.sin(ang)*d+rr(-25,25)]); }
+        s.bolts.push({pts, l:1}); }
+      s.bolts = s.bolts.filter(b=>b.l>0);
+      for(const b of s.bolts){ c.strokeStyle=`rgba(200,240,255,${b.l})`; c.lineWidth=2; c.shadowColor='#00e5ff'; c.shadowBlur=12;
+        c.beginPath(); b.pts.forEach(([x,y],i)=> i?c.lineTo(x,y):c.moveTo(x,y)); c.stroke(); b.l -= .08; }
+      c.shadowBlur=0;
+    },
+    top(c, W, H, t, s){
+      if(s.embers.length < 90) s.embers.push({x:R()*W, y:H+5, v:rr(.5,2), sz:rr(1,3.2), p:R()*TAU, cyan:R()<.35});
+      for(const e of s.embers){ e.y -= e.v; e.p += .05; const x=e.x+Math.sin(e.p)*8, a=Math.min(1,(e.y/H));
+        c.fillStyle = e.cyan ? `rgba(0,229,255,${a})` : `rgba(180,150,255,${a})`;
+        c.fillRect(x, e.y, e.sz, e.sz); }
+      s.embers = s.embers.filter(e=>e.y > -10);
+    },
+  },
+
+  /* ---------------- HERO ACADEMY ---------------- */
+  hero: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#2d4fd6'); sky.addColorStop(.45,'#ff6d8a'); sky.addColorStop(.8,'#ffab3d'); sky.addColorStop(1,'#ffd23f');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      skyline(f,W,H,{col:'#2b2d6e',minW:40,maxW:110,minH:.14,maxH:.36,gap:8,outline:true,
+        win:{gx:12,gy:14,w:6,h:7,p:.35,col:()=>R()<.7?'#ffe680':'#7fd6ff'}});
+      skyline(f,W,H,{col:'#1a1b48',minW:50,maxW:120,minH:.06,maxH:.18,gap:10,outline:true,
+        win:{gx:14,gy:14,w:6,h:7,p:.25,col:()=>'#ffd23f'}});
+      // halftone dots
+      f.fillStyle='rgba(255,255,255,.14)';
+      for(let y=0;y<H;y+=14) for(let x=(y/14%2)*7;x<W;x+=14){ const r=2.6*(1-y/H); if(r>.3){ f.beginPath(); f.arc(x,y,r,0,TAU); f.fill(); } }
+      return { words: [], sparks: [], next: 1 };
+    },
+    mid(c, W, H, t, s){
+      const cx=W/2, cy=H*1.05, n=24;
+      c.save(); c.translate(cx,cy); c.rotate(t*.05);
+      c.fillStyle='rgba(255,255,255,.09)';
+      for(let i=0;i<n;i+=2){ const a1=i/n*TAU, a2=(i+1)/n*TAU, L=Math.max(W,H)*1.6;
+        c.beginPath(); c.moveTo(0,0); c.lineTo(Math.cos(a1)*L,Math.sin(a1)*L); c.lineTo(Math.cos(a2)*L,Math.sin(a2)*L); c.fill(); }
+      c.restore();
+    },
+    top(c, W, H, t, s){
+      if(t > s.next){
+        s.next = t + rr(1.8,3.2);
+        const left = R()<.5;
+        s.words.push({ txt: ['POW!','SMASH!','BOOM!','WHAM!','PLUS ULTRA!','KA-BOOM!','ZAP!'][R()*7|0],
+          x: left ? rr(W*.05,W*.22) : rr(W*.78,W*.95), y: rr(H*.12,H*.55), r: rr(-.3,.3), life: 0 });
+        for(let i=0;i<14;i++) s.sparks.push({x:s.words.at(-1).x, y:s.words.at(-1).y, vx:rr(-5,5), vy:rr(-5,5), l:1});
+      }
+      s.words = s.words.filter(w=>w.life<1);
+      for(const w of s.words){ w.life += .012;
+        const sc = w.life < .12 ? w.life/.12*1.2 : (w.life < .2 ? 1.2-(w.life-.12)*2.5 : 1), a = w.life > .75 ? (1-w.life)/.25 : 1;
+        c.save(); c.globalAlpha=a; c.translate(w.x,w.y); c.rotate(w.r); c.scale(sc,sc);
+        c.font = `${Math.min(W,H)*.07|0}px Bangers, Impact, sans-serif`; c.textAlign='center'; c.textBaseline='middle';
+        c.lineJoin='round'; c.lineWidth=8; c.strokeStyle='#111'; c.strokeText(w.txt,0,0);
+        c.fillStyle='#ffd23f'; c.fillText(w.txt,0,0); c.restore(); }
+      s.sparks = s.sparks.filter(p=>p.l>0);
+      for(const p of s.sparks){ p.x+=p.vx; p.y+=p.vy; p.l-=.03; c.fillStyle=`rgba(255,240,140,${p.l})`; c.fillRect(p.x,p.y,4,4); }
+    },
+  },
+
+  /* ---------------- GOTHAM NIGHT ---------------- */
+  gotham: {
+    build(b, f, W, H){
+      const sky=b.createLinearGradient(0,0,0,H);
+      sky.addColorStop(0,'#05070d'); sky.addColorStop(.5,'#141b2b'); sky.addColorStop(1,'#2a2f3f');
+      b.fillStyle=sky; b.fillRect(0,0,W,H);
+      for(let i=0;i<10;i++){ const cx=R()*W, cy=rr(H*.05,H*.35), cw=rr(200,420);
+        const g=b.createRadialGradient(cx,cy,0,cx,cy,cw); g.addColorStop(0,'rgba(60,70,95,.4)'); g.addColorStop(1,'rgba(60,70,95,0)');
+        b.fillStyle=g; b.beginPath(); b.ellipse(cx,cy,cw,cw*.25,0,0,TAU); b.fill(); }
+      skyline(f,W,H,{col:'#0c1018',minW:40,maxW:90,minH:.3,maxH:.62,gap:2,deco:true,
+        win:{gx:8,gy:10,w:3,h:4,p:.08,col:()=>R()<.85?'rgba(255,205,110,.75)':'rgba(170,200,255,.6)'}});
+      skyline(f,W,H,{col:'#06080d',minW:50,maxW:110,minH:.12,maxH:.3,gap:2,deco:true,
+        win:{gx:9,gy:11,w:3,h:4,p:.05,col:()=>'rgba(255,205,110,.7)'}});
+      return { rain: Array.from({length:W/5|0},()=>({x:R()*W, y:R()*H, v:rr(12,20), l:rr(10,22)})),
+        bats: [], flash: 0, bolt: null };
+    },
+    mid(c, W, H, t, s){
+      c.save(); c.globalCompositeOperation='lighter';
+      [[W*.28, .35, 0], [W*.74, -.3, 2]].forEach(([bx, base, ph])=>{
+        const a = -Math.PI/2 + base + Math.sin(t*.35+ph)*.35, L=H*1.1, w=.06;
+        const g=c.createLinearGradient(bx,H,bx+Math.cos(a)*L,H+Math.sin(a)*L);
+        g.addColorStop(0,'rgba(255,230,160,.35)'); g.addColorStop(1,'rgba(255,230,160,0)');
+        c.fillStyle=g; c.beginPath(); c.moveTo(bx,H); c.lineTo(bx+Math.cos(a-w)*L,H+Math.sin(a-w)*L); c.lineTo(bx+Math.cos(a+w)*L,H+Math.sin(a+w)*L); c.fill();
+      });
+      const sx=W*.5, sy=H*.16, pulse=.8+.2*Math.sin(t*1.3);
+      const sg=c.createRadialGradient(sx,sy,0,sx,sy,Math.min(W,H)*.12);
+      sg.addColorStop(0,`rgba(255,235,170,${.45*pulse})`); sg.addColorStop(.7,`rgba(255,220,130,${.25*pulse})`); sg.addColorStop(1,'rgba(255,220,130,0)');
+      c.fillStyle=sg; c.beginPath(); c.ellipse(sx,sy,Math.min(W,H)*.12,Math.min(W,H)*.08,0,0,TAU); c.fill();
+      if(signalImg && signalImg.complete && signalImg.naturalWidth){
+        c.save(); c.globalCompositeOperation='source-over'; c.globalAlpha=.55*pulse;
+        const sw=Math.min(W,H)*.2, sh=sw*signalImg.naturalHeight/signalImg.naturalWidth;
+        c.translate(sx,sy); c.transform(1,0,-.12,1,0,0); c.drawImage(signalImg,-sw/2,-sh/2,sw,sh); c.restore();
+      }
+      const bg=c.createLinearGradient(W*.5,H,sx,sy); bg.addColorStop(0,'rgba(255,230,160,.25)'); bg.addColorStop(1,'rgba(255,230,160,.04)');
+      c.fillStyle=bg; c.beginPath(); c.moveTo(W*.5-3,H); c.lineTo(sx-Math.min(W,H)*.1,sy); c.lineTo(sx+Math.min(W,H)*.1,sy); c.lineTo(W*.5+3,H); c.fill();
+      c.restore();
+      if(R() < .004){ s.flash = 1; const pts=[[rr(W*.1,W*.9),0]]; for(let i=0;i<9;i++){ const [x,y]=pts.at(-1); pts.push([x+rr(-40,40), y+H*.06]); } s.bolt={pts,l:1}; }
+      if(s.bolt && s.bolt.l>0){ c.strokeStyle=`rgba(220,230,255,${s.bolt.l})`; c.lineWidth=2.5; c.shadowColor='#bcd'; c.shadowBlur=16;
+        c.beginPath(); s.bolt.pts.forEach(([x,y],i)=> i?c.lineTo(x,y):c.moveTo(x,y)); c.stroke(); c.shadowBlur=0; s.bolt.l-=.06; }
+    },
+    top(c, W, H, t, s){
+      if(s.bats.length < 7 && R() < .012){ const ltr=R()<.5; s.bats.push({x:ltr?-40:W+40, y:rr(H*.08,H*.5), vx:(ltr?1:-1)*rr(2,4.5), p:R()*TAU, sz:rr(.6,1.4)}); }
+      c.fillStyle='#020306';
+      for(const b of s.bats){ b.x+=b.vx; b.p+=.35; b.y+=Math.sin(b.p*.3)*.8; const f=Math.sin(b.p)*8*b.sz, z=b.sz*10;
+        c.beginPath(); c.moveTo(b.x,b.y);
+        c.quadraticCurveTo(b.x-z*.8,b.y-f-z*.3,b.x-z*1.8,b.y-f); c.quadraticCurveTo(b.x-z*1.2,b.y-f*.2+z*.2,b.x-z*.6,b.y+z*.35);
+        c.lineTo(b.x,b.y+z*.2);
+        c.lineTo(b.x+z*.6,b.y+z*.35); c.quadraticCurveTo(b.x+z*1.2,b.y-f*.2+z*.2,b.x+z*1.8,b.y-f); c.quadraticCurveTo(b.x+z*.8,b.y-f-z*.3,b.x,b.y);
+        c.fill(); c.beginPath(); c.arc(b.x,b.y,z*.22,0,TAU); c.fill(); }
+      s.bats = s.bats.filter(b=>b.x>-60 && b.x<W+60);
+      c.strokeStyle='rgba(170,185,215,.22)'; c.lineWidth=1; c.beginPath();
+      for(const d of s.rain){ c.moveTo(d.x,d.y); c.lineTo(d.x-4,d.y+d.l); d.y+=d.v; d.x-=1.6; if(d.y>H){ d.y=-20; d.x=R()*W*1.15; } }
+      c.stroke();
+      if(s.flash > 0){ c.fillStyle=`rgba(210,220,255,${s.flash*.28})`; c.fillRect(0,0,W,H); s.flash -= .05; }
+    },
+  },
+};
+
+/* ---------- scene engine ---------- */
+const cv = $('bgCanvas'), ctx = cv.getContext('2d');
+let W, H, back, front, sceneState, dpr = Math.min(devicePixelRatio||1, 2), useCanvas = true;
+function layer(){ const l=document.createElement('canvas'); l.width=W*dpr; l.height=H*dpr; const g=l.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); return [l,g]; }
+function buildScene(){
+  W = innerWidth; H = innerHeight;
+  cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  let bg, fg; [back,bg] = layer(); [front,fg] = layer();
+  sceneState = SCENES[themeKey].build(bg, fg, W, H);
+}
+function loop(time){
+  if(useCanvas && sceneState){
+    const t = time/1000, S = SCENES[themeKey];
+    ctx.drawImage(back,0,0,W,H); S.mid(ctx,W,H,t,sceneState);
+    ctx.drawImage(front,0,0,W,H); S.top(ctx,W,H,t,sceneState);
+  }
+  requestAnimationFrame(loop);
+}
+addEventListener('resize', () => { if(useCanvas) buildScene(); });
+
+/* ---------- apply a theme ---------- */
+let charTimer, charIdx = 0, signalImg = null;
+function ornHTML(){ const o = (CONFIG.themes[themeKey]||{}).ornament; return o ? `<img src="${o}" alt="">` : orn(T.orn); }
+function showChar(src){
+  const ch = $('chara'); ch.classList.add('hide');
+  setTimeout(() => {
+    ch.onload = () => { ch.classList.toggle('wide', ch.naturalWidth > ch.naturalHeight * 1.05); ch.classList.remove('hide'); };
+    ch.src = src;
+  }, ch.src ? 450 : 0);
+}
+function applyTheme(key){
+  if(!THEMES[key]) key = 'sakura';
+  themeKey = key; T = THEMES[key];
+  const st = document.documentElement.style;
+  st.setProperty('--accent',T.accent); st.setProperty('--accent2',T.accent2); st.setProperty('--text',T.text);
+  st.setProperty('--muted',T.muted); st.setProperty('--card',T.card); st.setProperty('--line',T.line);
+  st.setProperty('--icon',T.icon); st.setProperty('--title',T.title); st.setProperty('--grad',T.grad);
+  document.body.dataset.theme = key;
+  const opt = CONFIG.themes[key] || {};
+  const o = ornHTML(), an = opt.ornament ? 'a-flip' : T.anim;
+  $('ornL').innerHTML = o; $('ornR').innerHTML = o;
+  $('ornL').className = 'orn ' + an; $('ornR').className = 'orn r ' + an;
+  $('sx1').innerHTML = o; $('sx2').innerHTML = o;
+  $('sx1').className = 'x ' + an; $('sx2').className = 'x r ' + an;
+  $('jp').textContent = T.subtitle; $('splashText').textContent = T.splash; $('splashSub').textContent = T.splashSub;
+  clearTimeout(bioTimer); bioI = 0; bioJ = 0; bioDel = false; typeTick();
+
+  const ch = $('chara'), list = [].concat(opt.character || []).filter(Boolean);
+  clearInterval(charTimer); charIdx = 0;
+  if(list.length){
+    ch.style.display = 'block'; ch.classList.toggle('left', opt.side === 'left');
+    showChar(list[0]);
+    if(list.length > 1) charTimer = setInterval(() => showChar(list[++charIdx % list.length]), (CONFIG.characterSwapSeconds||15)*1000);
+  } else ch.style.display = 'none';
+  signalImg = null;
+  if(opt.signal){ signalImg = new Image(); signalImg.src = opt.signal; }
+
+  const bgFile = opt.background || '', vid = $('bgVideo'), img = $('bgImage');
+  vid.style.display = img.style.display = 'none';
+  useCanvas = !bgFile;
+  if(bgFile && /\.(mp4|webm)$/i.test(bgFile)){ vid.src = bgFile; vid.style.display = 'block'; }
+  else if(bgFile){ img.src = bgFile; img.style.display = 'block'; }
+  cv.style.display = useCanvas ? 'block' : 'none';
+  if(useCanvas) buildScene();
+
+  renderUser(); renderServer(); rebuildPlaylist();
+  document.querySelectorAll('#themeMenu button').forEach(b => b.classList.toggle('on', b.dataset.k === key));
+  try{ localStorage.setItem('bioTheme', key); }catch(e){}
+}
+
+/* ---------- theme picker ---------- */
+const isOwner = CONFIG.themePicker !== 'off' && location.hash === '#' + CONFIG.secretWord;
+const pickerOn = isOwner || CONFIG.themePicker === 'everyone';
+if(pickerOn){
+  $('themeMenu').innerHTML = Object.entries(THEMES).map(([k,v]) =>
+    `<button data-k="${k}"><i style="background:linear-gradient(135deg,${v.accent},${v.accent2})"></i>${v.label}</button>`).join('');
+  $('themeBtn').onclick = e => { e.stopPropagation(); $('themeMenu').classList.toggle('open'); };
+  $('themeMenu').onclick = e => { const b = e.target.closest('button'); if(b){ applyTheme(b.dataset.k); $('themeMenu').classList.remove('open'); } };
+  addEventListener('click', () => $('themeMenu').classList.remove('open'));
+} else $('themeBtn').style.display = 'none';
+
+let saved = null; try{ saved = localStorage.getItem('bioTheme'); }catch(e){}
+applyTheme(pickerOn && saved ? saved : CONFIG.theme);
+requestAnimationFrame(loop);
+loadPresence(); setInterval(loadPresence, 30000);
+loadServer(); setInterval(loadServer, 120000);
+
+/* =====================================================================
+   site.json — songs + default theme saved by the hidden music panel
+   ===================================================================== */
+fetch('site.json?v=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json() : null).then(d => {
+  if(!d) return;
+  siteSongs = d.songs || [];
+  rebuildPlaylist(); renderSongList();
+  if(d.defaultTheme && THEMES[d.defaultTheme] && !(pickerOn && saved)) applyTheme(d.defaultTheme);
+}).catch(()=>{});
+
+/* ---------- hidden owner music panel ---------- */
+const GH = CONFIG.github;
+const getTok = () => { try{ return localStorage.getItem('ghToken') || ''; }catch(e){ return ''; } };
+const status = (msg) => $('mpStatus').textContent = msg;
+async function gh(path, opts = {}){
+  const r = await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}`, { ...opts,
+    headers: { Authorization: `Bearer ${getTok()}`, Accept: 'application/vnd.github+json', ...(opts.body ? {'Content-Type':'application/json'} : {}) } });
+  if(!r.ok && r.status !== 404){ let m = r.status; try{ m = (await r.json()).message; }catch(e){} throw new Error(m); }
+  return r;
+}
+const textB64 = str => btoa(unescape(encodeURIComponent(str)));
+const fileB64 = f => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result.split(',')[1]); fr.onerror = rej; fr.readAsDataURL(f); });
+async function shaOf(path){ const r = await gh(`${path}?ref=${GH.branch}`); return r.status === 404 ? null : (await r.json()).sha; }
+async function getSite(){
+  const r = await gh(`site.json?ref=${GH.branch}`);
+  if(r.status === 404) return { data: { defaultTheme: '', songs: [] }, sha: null };
+  const j = await r.json();
+  return { data: JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,''))))), sha: j.sha };
+}
+async function saveSite(change){
+  const { data, sha } = await getSite(); change(data);
+  await gh('site.json', { method:'PUT', body: JSON.stringify({ message:'Update site.json', content: textB64(JSON.stringify(data, null, 2)), branch: GH.branch, ...(sha ? {sha} : {}) }) });
+  return data;
+}
+function needKey(){ if(getTok()) return false; $('mpTokBox').open = true; status('Add your GitHub key first (below).'); return true; }
+
+const tagText = s => (!s.themes || !s.themes.length) ? 'all themes' : s.themes.map(k => (THEMES[k]||{}).label || k).join(', ');
+const chipsHTML = (sel = []) => Object.entries(THEMES).map(([k,v]) =>
+  `<label class="chip"><input type="checkbox" value="${k}" ${sel.includes(k)?'checked':''}>${v.label}</label>`).join('');
+const readChips = el => [...el.querySelectorAll('input:checked')].map(i => i.value);
+function renderSongList(){
+  const el = $('mpList'); if(!el) return;
+  const all = [...CONFIG.songs.map(s => ({...s, fixed:true})), ...siteSongs];
+  el.innerHTML = all.length ? all.map(s => `<div class="song" data-src="${s.src}">
+      <span>♪ ${s.title || s.src}${s.artist ? ' — ' + s.artist : ''}</span>
+      ${s.fixed ? '' : `<button data-act="edit" title="Pick themes">🎨</button><button data-act="del" title="Remove">✕</button>`}
+      <div class="tags">${tagText(s)}</div></div>`).join('')
+    : '<p>No songs yet — add one below.</p>';
+}
+
+if(isOwner){
+  $('musicBtn').style.display = 'grid';
+  $('musicBtn').onclick = e => { e.stopPropagation(); $('musicPanel').classList.toggle('open'); $('themeMenu').classList.remove('open'); };
+  $('musicPanel').onclick = e => e.stopPropagation();
+  addEventListener('click', () => $('musicPanel').classList.remove('open'));
+  renderSongList(); $('mpThemes').innerHTML = chipsHTML();
+  if(getTok()) $('mpToken').placeholder = 'key saved ✓';
+
+  $('mpSaveTok').onclick = () => { const v = $('mpToken').value.trim(); if(!v) return;
+    try{ localStorage.setItem('ghToken', v); }catch(e){} $('mpToken').value = ''; $('mpToken').placeholder = 'key saved ✓'; $('mpTokBox').open = false; status('Key saved on this device.'); };
+  $('mpForget').onclick = () => { try{ localStorage.removeItem('ghToken'); }catch(e){} $('mpToken').placeholder = 'github_pat_...'; status('Key removed from this device.'); };
+
+  $('mpFile').onchange = () => { const f = $('mpFile').files[0]; if(f && !$('mpTitle').value) $('mpTitle').value = f.name.replace(/\.[^.]+$/, ''); };
+
+  $('mpTest').onclick = () => {
+    const f = $('mpFile').files[0]; if(!f) return status('Pick a song file first.');
+    const sel = readChips($('mpThemes'));
+    const t = { title: $('mpTitle').value || f.name, artist: $('mpArtist').value || 'test (only you hear this)', src: URL.createObjectURL(f), themes: sel };
+    localSongs.push(t);
+    if(!fitsTheme(t, themeKey)) applyTheme(sel[0]);
+    rebuildPlaylist(); loadSongAt(songs.findIndex(x => x.src === t.src)); play(); status('Playing on this device only.');
+  };
+
+  $('mpUpload').onclick = async () => {
+    const f = $('mpFile').files[0]; if(!f) return status('Pick a song file first.');
+    if(needKey()) return;
+    if(f.size > 40e6) return status('That file is over 40 MB — try a smaller mp3.');
+    const name = f.name.toLowerCase().replace(/[^a-z0-9._-]+/g, '-'), path = `music/${name}`;
+    const song = { title: $('mpTitle').value.trim() || f.name.replace(/\.[^.]+$/, ''), artist: $('mpArtist').value.trim(), src: path, themes: readChips($('mpThemes')) };
+    try{
+      $('mpUpload').disabled = true; status('Uploading… (big files take a bit)');
+      const sha = await shaOf(path);
+      await gh(path, { method:'PUT', body: JSON.stringify({ message:`Add song ${name}`, content: await fileB64(f), branch: GH.branch, ...(sha ? {sha} : {}) }) });
+      status('Adding to playlist…');
+      const d = await saveSite(d => { d.songs = (d.songs || []).filter(s => s.src !== path); d.songs.push(song); });
+      siteSongs = d.songs; renderSongList(); rebuildPlaylist();
+      $('mpFile').value = ''; $('mpTitle').value = ''; $('mpArtist').value = ''; $('mpThemes').innerHTML = chipsHTML();
+      status('✓ Uploaded! It goes live for everyone in about a minute.');
+    }catch(e){ status('Upload failed: ' + e.message); }
+    finally{ $('mpUpload').disabled = false; }
+  };
+
+  $('mpList').onclick = async e => {
+    const b = e.target.closest('button[data-act]'); if(!b) return;
+    const row = b.closest('.song'), path = row.dataset.src;
+    if(b.dataset.act === 'edit'){
+      const open = row.querySelector('.edit'); if(open) return open.remove();
+      const cur = (siteSongs.find(s => s.src === path) || {}).themes || [];
+      const ed = document.createElement('div'); ed.className = 'edit';
+      ed.innerHTML = `<div class="chips">${chipsHTML(cur)}</div><button class="wbtn go">Save themes</button>`;
+      row.appendChild(ed);
+      ed.querySelector('button').onclick = async () => {
+        if(needKey()) return;
+        const sel = readChips(ed);
+        try{ status('Saving…');
+          const d = await saveSite(d => { (d.songs || []).forEach(s => { if(s.src === path) s.themes = sel; }); });
+          siteSongs = d.songs; renderSongList(); rebuildPlaylist(); status('✓ Saved. Live in about a minute.');
+        }catch(err){ status('Save failed: ' + err.message); }
+      };
+      return;
+    }
+    if(needKey()) return;
+    try{
+      status('Removing…');
+      const d = await saveSite(d => { d.songs = (d.songs || []).filter(s => s.src !== path); });
+      const sha = await shaOf(path);
+      if(sha) await gh(path, { method:'DELETE', body: JSON.stringify({ message:`Remove song ${path}`, sha, branch: GH.branch }) });
+      siteSongs = d.songs; renderSongList(); rebuildPlaylist(); status('✓ Removed. Updates in about a minute.');
+    }catch(e){ status('Remove failed: ' + e.message); }
+  };
+
+  $('mpDefault').onclick = async () => {
+    if(needKey()) return;
+    try{ status('Saving…'); await saveSite(d => { d.defaultTheme = themeKey; });
+      status(`✓ "${T.label}" is now everyone's default (live in about a minute).`); }
+    catch(e){ status('Save failed: ' + e.message); }
+  };
+}
+</script>
+</body>
+</html>
