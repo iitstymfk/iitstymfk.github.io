@@ -1032,6 +1032,17 @@ if(pickerOn){
 let saved = null; try{ saved = localStorage.getItem('bioTheme'); }catch(e){}
 applyTheme(pickerOn && saved ? saved : CONFIG.theme);
 requestAnimationFrame(loop);
+
+/* ---------- animated browser tab title: types "@name" out and back ---------- */
+(function tabTitle(){
+  const full = '@' + CONFIG.name; let i = 1, dir = 1;
+  setInterval(() => {
+    document.title = full.slice(0, i) || '@';
+    i += dir;
+    if(i > full.length){ dir = -1; i = full.length; }
+    if(i < 1){ dir = 1; i = 1; }
+  }, 350);
+})();
 loadPresence(); setInterval(loadPresence, 30000);
 loadServer(); setInterval(loadServer, 120000);
 
