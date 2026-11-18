@@ -191,6 +191,13 @@ body[data-theme=hero] .jp{color:#fff;text-shadow:2px 2px 0 #111}
 body[data-theme=hero] .soc svg{filter:drop-shadow(3px 3px 0 #111)}
 body[data-theme=gotham] h1{letter-spacing:4px;text-transform:uppercase}
 body[data-theme=gotham] .card,body[data-theme=gotham] .player{border-radius:6px}
+/* themed music circle (songs without cover art) */
+.cover.themed{background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--accent) 22%,#0b0814) 0%,#0b0814 72%);
+  border:2px solid var(--accent);box-shadow:0 0 14px color-mix(in srgb,var(--accent) 45%,transparent),inset 0 0 12px color-mix(in srgb,var(--accent2) 35%,transparent)}
+.cover.themed .coverOrn{display:block;width:70%;height:70%;animation:spin 4s linear infinite;filter:drop-shadow(0 0 6px var(--accent))}
+.cover.themed .coverOrn svg,.cover.themed .coverOrn img{width:100%;height:100%;display:block;object-fit:contain}
+.cover.themed.spin{animation:none}
+.cover.themed.spin .coverOrn{animation-duration:1.4s}
 /* no text highlighting / image dragging (inputs in the owner panel still work) */
 html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 img{-webkit-user-drag:none;user-drag:none}
@@ -582,7 +589,7 @@ function loadSongAt(i){
   if(!songs.length) return;
   idx = (i + songs.length) % songs.length; const s = songs[idx];
   audio.src = s.src; $('pTitle').textContent = s.title || 'untitled'; $('pArtist').textContent = s.artist || '—';
-  $('pCover').innerHTML = s.cover ? `<img src="${s.cover}" alt="">` : '♪';
+  setCover(s);
 }
 const setPlayIcon = () => { $('pPlay').innerHTML = audio.paused ? PLAY : PAUSE; $('pCover').classList.toggle('spin', !audio.paused); };
 const play = () => { if(songs.length) audio.play().catch(()=>{}); };
@@ -1495,6 +1502,14 @@ function applyCursor(key){
 
 /* ---------- apply a theme ---------- */
 let charTimer, charIdx = 0, signalImg = null;
+// music circle: the song's cover art, or a spinning theme icon when it has none
+function setCover(s){
+  const cv = $('pCover'); if(!cv) return;
+  s = s || songs[idx];
+  if(s && s.cover){ cv.classList.remove('themed'); cv.innerHTML = `<img src="${s.cover}" alt="">`; return; }
+  cv.classList.add('themed');
+  cv.innerHTML = `<span class="coverOrn">${T ? ornHTML() : '♪'}</span>`;
+}
 function ornHTML(){ const o = (CONFIG.themes[themeKey]||{}).ornament; return o ? `<img src="${o}" alt="">` : orn(T.orn); }
 function showChar(src){
   const ch = $('chara'); ch.classList.add('hide');
@@ -1539,7 +1554,7 @@ function applyTheme(key){
   cv.style.display = useCanvas ? 'block' : 'none';
   if(useCanvas) buildScene();
 
-  renderUser(); renderServer(); rebuildPlaylist();
+  renderUser(); renderServer(); rebuildPlaylist(); setCover();
   document.querySelectorAll('#themeMenu button').forEach(b => b.classList.toggle('on', b.dataset.k === key));
   try{ localStorage.setItem('bioTheme', key); }catch(e){}
 }
