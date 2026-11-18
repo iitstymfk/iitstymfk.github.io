@@ -329,7 +329,7 @@ const CONFIG = {
   // ---- Discord (live once hosted online) ----
   // User ID: Discord > Settings > Advanced > Developer Mode, then right-click
   // yourself > Copy User ID. Also join discord.gg/lanyard once.
-  discordUserId: "",
+  discordUserId: "811297422667677766",
   discordInvite: "",   // the code after discord.gg/
   fallbackUser:   { name: "thiccbearcurry", status: "offline", note: "last seen recently" },
   fallbackServer: { name: "", online: 0, members: 0 },
@@ -338,11 +338,12 @@ const CONFIG = {
   // ---- Social links (url "" hides it) ----
   // discord, youtube, twitch, tiktok, instagram, steam, spotify, xbox, playstation, x, github
   socials: [
-    { type: "discord",   url: "#", label: "Discord" },
-    { type: "tiktok",    url: "#", label: "TikTok" },
-    { type: "instagram", url: "#", label: "Instagram" },
-    { type: "spotify",   url: "#", label: "Spotify" },
-    { type: "youtube",   url: "#", label: "YouTube" },
+    { type: "discord",   url: "https://discord.com/users/811297422667677766", label: "Discord" },
+    { type: "steam",     url: "https://steamcommunity.com/profiles/76561199203315739", label: "Steam" },
+    { type: "tiktok",    url: "", label: "TikTok" },
+    { type: "instagram", url: "", label: "Instagram" },
+    { type: "spotify",   url: "", label: "Spotify" },
+    { type: "youtube",   url: "", label: "YouTube" },
   ],
 
   // ---- Music (mp3 files in this folder) ----
@@ -869,6 +870,17 @@ if(pickerOn){
 let saved = null; try{ saved = localStorage.getItem('bioThemeTBC'); }catch(e){}
 applyTheme(pickerOn && saved ? saved : CONFIG.theme);
 requestAnimationFrame(loop);
+
+/* ---------- animated browser tab title: types "@name" out and back ---------- */
+(function tabTitle(){
+  const full = '@' + CONFIG.name; let i = 1, dir = 1;
+  setInterval(() => {
+    document.title = full.slice(0, i) || '@';
+    i += dir;
+    if(i > full.length){ dir = -1; i = full.length; }
+    if(i < 1){ dir = 1; i = 1; }
+  }, 300);
+})();
 loadPresence(); setInterval(loadPresence, 30000);
 loadServer(); setInterval(loadServer, 120000);
 
