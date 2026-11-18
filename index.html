@@ -191,6 +191,13 @@ body[data-theme=hero] .jp{color:#fff;text-shadow:2px 2px 0 #111}
 body[data-theme=hero] .soc svg{filter:drop-shadow(3px 3px 0 #111)}
 body[data-theme=gotham] h1{letter-spacing:4px;text-transform:uppercase}
 body[data-theme=gotham] .card,body[data-theme=gotham] .player{border-radius:6px}
+/* no text highlighting / image dragging (inputs in the owner panel still work) */
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+img{-webkit-user-drag:none;user-drag:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);z-index:70;background:rgba(10,8,18,.92);color:#fff;
+  border:1px solid rgba(255,255,255,.15);padding:9px 14px;border-radius:10px;font-size:12.5px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
 /* ---------- extra animations + per-theme touches for the 10 newer themes ---------- */
 .a-spinfast{animation:spin 1.2s linear infinite}.a-spinfast.r{animation-direction:reverse}
 .a-pulse{animation:pulse8 1s steps(2) infinite}.a-pulse.r{animation-delay:-.5s}
@@ -264,6 +271,7 @@ input[type=text],input[type=password]{cursor:text!important}
   <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 000 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0022 10c0-4.4-4.5-8-10-8zM6.5 12a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3-4a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3 4a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>
 </button>
 <div id="themeMenu"></div>
+<div id="toast"></div>
 <button id="musicBtn" class="cornerBtn" aria-label="Manage music" title="Manage music" style="display:none">
   <svg viewBox="0 0 24 24"><path d="M12 3v10.6A4 4 0 1014 17V7h4V3z"/></svg>
 </button>
@@ -1543,12 +1551,28 @@ if(pickerOn){
   $('themeMenu').innerHTML = Object.entries(THEMES).map(([k,v]) =>
     `<button data-k="${k}"><i style="background:linear-gradient(135deg,${v.accent},${v.accent2})"></i>${v.label}</button>`).join('');
   $('themeBtn').onclick = e => { e.stopPropagation(); $('themeMenu').classList.toggle('open'); };
-  $('themeMenu').onclick = e => { const b = e.target.closest('button'); if(b){ applyTheme(b.dataset.k); $('themeMenu').classList.remove('open'); } };
+  $('themeMenu').onclick = e => { const b = e.target.closest('button'); if(!b) return;
+    applyTheme(b.dataset.k); $('themeMenu').classList.remove('open');
+    if(isOwner) saveThemeForEveryone(b.dataset.k); };
   addEventListener('click', () => $('themeMenu').classList.remove('open'));
 } else $('themeBtn').style.display = 'none';
 
 let saved = null; try{ saved = localStorage.getItem('bioTheme'); }catch(e){}
-applyTheme(pickerOn && saved ? saved : CONFIG.theme);
+if(saved && !THEMES[saved]) saved = null;
+// your last pick on this device wins; everyone else gets the saved default (site.json) or CONFIG.theme
+applyTheme(saved || CONFIG.theme);
+function toast(msg, ms = 3200){ const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), ms); }
+let saveTimer;
+function saveThemeForEveryone(key){
+  const label = THEMES[key].label;
+  if(!(typeof getTok === 'function' && getTok())){ toast(`Saved "${label}" on this device. Add your GitHub key in 🎵 to make it everyone's theme.`, 5000); return; }
+  toast(`Saving "${label}" for everyone…`);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try{ await saveSite(d => { d.defaultTheme = key; }); toast(`✓ "${label}" is now everyone's theme (live in ~1 min)`); }
+    catch(err){ toast('Couldn\'t save for everyone: ' + err.message, 5000); }
+  }, 1200);
+}
 requestAnimationFrame(loop);
 
 /* ---------- animated browser tab title: types "@name" out and back ---------- */
@@ -1571,7 +1595,7 @@ fetch('site.json?v=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json()
   if(!d) return;
   siteSongs = d.songs || [];
   rebuildPlaylist(); renderSongList();
-  if(d.defaultTheme && THEMES[d.defaultTheme] && !(pickerOn && saved)) applyTheme(d.defaultTheme);
+  if(d.defaultTheme && THEMES[d.defaultTheme] && !saved) applyTheme(d.defaultTheme);
 }).catch(()=>{});
 
 /* ---------- hidden owner music panel ---------- */
