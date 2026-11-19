@@ -1610,7 +1610,8 @@ fetch('site.json?v=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json()
   if(!d) return;
   siteSongs = d.songs || [];
   rebuildPlaylist(); renderSongList();
-  if(d.defaultTheme && THEMES[d.defaultTheme] && !saved) applyTheme(d.defaultTheme);
+  // normal visitors always get the theme you saved for everyone; only #owner keeps its own last pick
+  if(d.defaultTheme && THEMES[d.defaultTheme] && (!isOwner || !saved)) applyTheme(d.defaultTheme);
 }).catch(()=>{});
 
 /* ---------- hidden owner music panel ---------- */
@@ -1618,7 +1619,9 @@ const GH = CONFIG.github;
 const getTok = () => { try{ return localStorage.getItem('ghToken') || ''; }catch(e){ return ''; } };
 const status = (msg) => $('mpStatus').textContent = msg;
 async function gh(path, opts = {}){
-  const r = await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}`, { ...opts,
+  // GET requests skip GitHub's cache so we always see the newest copy (avoids "does not match" errors)
+  const url = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}` + (opts.method ? '' : `${path.includes('?') ? '&' : '?'}_=${Date.now()}`);
+  const r = await fetch(url, { cache: 'no-store', ...opts,
     headers: { Authorization: `Bearer ${getTok()}`, Accept: 'application/vnd.github+json', ...(opts.body ? {'Content-Type':'application/json'} : {}) } });
   if(!r.ok && r.status !== 404){ let m = r.status; try{ m = (await r.json()).message; }catch(e){} throw new Error(m); }
   return r;
@@ -1632,10 +1635,23 @@ async function getSite(){
   const j = await r.json();
   return { data: JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,''))))), sha: j.sha };
 }
-async function saveSite(change){
-  const { data, sha } = await getSite(); change(data);
-  await gh('site.json', { method:'PUT', body: JSON.stringify({ message:'Update site.json', content: textB64(JSON.stringify(data, null, 2)), branch: GH.branch, ...(sha ? {sha} : {}) }) });
-  return data;
+// saves run one at a time, and retry with a fresh copy if GitHub says the file changed
+let _siteQueue = Promise.resolve();
+function saveSite(change){
+  const job = _siteQueue.then(async () => {
+    for(let attempt = 1; ; attempt++){
+      const { data, sha } = await getSite(); change(data);
+      try{
+        await gh('site.json', { method:'PUT', body: JSON.stringify({ message:'Update site.json', content: textB64(JSON.stringify(data, null, 2)), branch: GH.branch, ...(sha ? {sha} : {}) }) });
+        return data;
+      }catch(err){
+        if(attempt >= 4 || !/does not match|409|conflict/i.test(String(err.message))) throw err;
+        await new Promise(r => setTimeout(r, 1200 * attempt));
+      }
+    }
+  });
+  _siteQueue = job.catch(() => {});
+  return job;
 }
 function needKey(){ if(getTok()) return false; $('mpTokBox').open = true; status('Add your GitHub key first (below).'); return true; }
 
