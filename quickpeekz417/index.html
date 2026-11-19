@@ -251,11 +251,10 @@ body[data-theme=space] h1,body[data-theme=galaxy] h1{letter-spacing:4px}
   <g id="o-riddle"><text x="20" y="34" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="36" fill="#3ddc6a" stroke="#06200f" stroke-width="1.4">?</text></g>
   <g id="o-scope"><circle cx="20" cy="20" r="15" fill="none" stroke="#eef6ff" stroke-width="2.4"/><circle cx="20" cy="20" r="8" fill="none" stroke="#4fb3ff" stroke-width="1.6"/><path d="M20 1 V11 M20 29 V39 M1 20 H11 M29 20 H39" stroke="#eef6ff" stroke-width="2.4" stroke-linecap="round"/><circle cx="20" cy="20" r="2.4" fill="#ff8a1f"/></g>
   <g id="o-charge"><polygon points="20,3 35,11.5 35,28.5 20,37 5,28.5 5,11.5" fill="#2a2d33" stroke="#ff6a1a" stroke-width="2.2" stroke-linejoin="round"/><rect x="12" y="15" width="16" height="10" rx="1.5" fill="#111" stroke="#ffd166" stroke-width="1.2"/><circle cx="24" cy="20" r="2.2" fill="#ff3c3c"/><path d="M14 20 H20" stroke="#ffd166" stroke-width="1.4"/></g>
+  <g id="o-sat"><g stroke="#0a1420" stroke-width="1.2"><rect x="2" y="15" width="12" height="10" fill="#2f6fd6"/><rect x="26" y="15" width="12" height="10" fill="#2f6fd6"/><path d="M6 15 V25 M10 15 V25 M30 15 V25 M34 15 V25" stroke="#7fd6ff" stroke-width=".8"/><rect x="14" y="12" width="12" height="16" rx="2" fill="#e8eef5"/><path d="M20 12 V6" stroke-width="2"/></g><circle cx="20" cy="5" r="2.6" fill="#7fd6ff"/></g>
+  <g id="o-ring"><ellipse cx="20" cy="20" rx="18" ry="7" fill="none" stroke="#ffb86b" stroke-width="3" transform="rotate(-20 20 20)"/><circle cx="20" cy="20" r="9" fill="#000" stroke="#c08bff" stroke-width="2"/><path d="M5 22 A16 6 -20 0 0 35 15" fill="none" stroke="#3fe0d0" stroke-width="2" transform="rotate(-20 20 20)"/></g>
+  <g id="o-bio"><circle cx="20" cy="20" r="18" fill="#0c1a10" stroke="#57ff8a" stroke-width="2"/><g fill="none" stroke="#57ff8a" stroke-width="2.6"><circle cx="20" cy="12.5" r="6"/><circle cx="13.5" cy="24" r="6"/><circle cx="26.5" cy="24" r="6"/><circle cx="20" cy="20" r="3.4"/></g></g>
   <g id="o-puckb"><ellipse cx="20" cy="24" rx="16" ry="7" fill="#111"/><rect x="4" y="16" width="32" height="8" fill="#111"/><ellipse cx="20" cy="16" rx="16" ry="7" fill="#2a2a2a" stroke="#2f7bff" stroke-width="1.6"/><ellipse cx="20" cy="16" rx="8" ry="3.4" fill="none" stroke="#ffc72c" stroke-width="1.2"/></g>
-  <g id="o-spark"><path d="M20 1 C21.5 14 26 18.5 39 20 C26 21.5 21.5 26 20 39 C18.5 26 14 21.5 1 20 C14 18.5 18.5 14 20 1Z" fill="#fff"/>
-    <circle cx="20" cy="20" r="3" fill="#bbb"/></g>
-  <g id="o-planet"><defs><linearGradient id="pl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fe8ff"/><stop offset=".5" stop-color="#ff9ff3"/><stop offset="1" stop-color="#ffe66d"/></linearGradient></defs><circle cx="20" cy="20" r="11" fill="url(#pl)"/><ellipse cx="20" cy="20" rx="19" ry="6" fill="none" stroke="#e8f6ff" stroke-width="2" transform="rotate(-20 20 20)"/><circle cx="16" cy="16" r="3" fill="rgba(255,255,255,.5)"/></g>
-  <g id="o-hazard"><circle cx="20" cy="20" r="18" fill="#ffe100" stroke="#111" stroke-width="2"/><g fill="#111"><path d="M20 20 L20 6 A14 14 0 0 1 32.1 13Z"/><path d="M20 20 L32.1 27 A14 14 0 0 1 7.9 27Z" transform="rotate(0 20 20)"/><path d="M20 20 L7.9 13 A14 14 0 0 1 20 6Z" transform="rotate(-120 20 20)"/></g><circle cx="20" cy="20" r="4.5" fill="#ffe100" stroke="#111" stroke-width="2"/></g>
 </defs></svg>
 
 <canvas id="bgCanvas"></canvas>
@@ -378,8 +377,8 @@ const CONFIG = {
     breach: { character: [], side: "right", background: "" },
     hockey: { character: [], side: "right", background: "" },
     space:  { character: [], side: "right", background: "" },
-    galaxy: { character: [], side: "right", background: "", cursor: "assets/galaxy-cursor.png", cursorHotspot: "2 2" },
-    toxic:  { character: [], side: "right", background: "", cursor: "assets/toxic-cursor.png", cursorHotspot: "16 2" },
+    galaxy: { character: [], side: "right", background: "" },
+    toxic:  { character: [], side: "right", background: "" },
   },
 
   // ---- Discord (live once hosted online) ----
@@ -435,28 +434,28 @@ const THEMES = {
     bios: ["hockey night 🏒", "top shelf, where mama keeps the cookies", "drop the gloves", "one-timer from the point", "✦ Schultz417 ✦"],
   },
   space: {
-    label: "Deep Space", tab: "🌑", accent: "#ffffff", accent2: "#8a8a8a", text: "#ffffff", muted: "#a8a8a8",
-    card: "rgba(14,14,14,.62)", line: "rgba(255,255,255,.1)", icon: "#ffffff",
-    title: "'Orbitron',sans-serif", grad: "linear-gradient(90deg,#fff,#fff,#9a9a9a,#fff,#fff)",
-    orn: "spark", anim: "a-spin", sparks: ["✦","·"],
-    splash: "click to enter...", splashSub: "", subtitle: "",
-    bios: ["lost in space", "quiet lobby", "✦ QuickPeekz417 ✦"],
+    label: "Orbital Recon", tab: "🛰️", accent: "#7fd6ff", accent2: "#ffffff", text: "#f1f8ff", muted: "#9fb3c6",
+    card: "rgba(4,10,20,.62)", line: "rgba(127,214,255,.25)", icon: "#f1f8ff",
+    title: "'Orbitron',sans-serif", grad: "linear-gradient(90deg,#ffffff,#7fd6ff,#ffffff)",
+    orn: "sat", anim: "a-sway", sparks: ["✦","·"],
+    splash: "uplink established", splashSub: "click to connect", subtitle: "",
+    bios: ["eyes in the sky", "scanning sector 417", "orbit locked", "✦ QuickPeekz417 ✦"],
   },
   galaxy: {
-    label: "Chrome Galaxy", tab: "🌌", accent: "#9fe8ff", accent2: "#ff9ff3", text: "#f5fbff", muted: "#b9c7e6",
-    card: "rgba(8,6,22,.6)", line: "rgba(159,232,255,.3)", icon: "#f5fbff",
-    title: "'Orbitron',sans-serif", grad: "linear-gradient(90deg,#9fe8ff,#ff9ff3,#ffe66d,#9fe8ff)",
-    orn: "planet", anim: "a-spin", sparks: ["✦","✧"],
-    splash: "click to launch...", splashSub: "", subtitle: "",
-    bios: ["orbiting the lobby", "made of stardust", "out of this world aim", "✦ QuickPeekz417 ✦"],
+    label: "Event Horizon", tab: "🌀", accent: "#c08bff", accent2: "#3fe0d0", text: "#f7f2ff", muted: "#b6a9d6",
+    card: "rgba(10,4,22,.62)", line: "rgba(192,139,255,.3)", icon: "#f7f2ff",
+    title: "'Orbitron',sans-serif", grad: "linear-gradient(90deg,#3fe0d0,#c08bff,#ffb86b,#3fe0d0)",
+    orn: "ring", anim: "a-spin", sparks: ["✧","·"],
+    splash: "crossing the horizon...", splashSub: "click to fall in", subtitle: "",
+    bios: ["pulled in like gravity", "no light escapes", "lost in the void", "✦ QuickPeekz417 ✦"],
   },
   toxic: {
-    label: "Toxic Drip", tab: "☢️", accent: "#9dff2e", accent2: "#ffe100", text: "#f3ffe6", muted: "#b6d39a",
-    card: "rgba(6,16,4,.66)", line: "rgba(157,255,46,.32)", icon: "#f3ffe6",
-    title: "'Bungee',sans-serif", grad: "linear-gradient(90deg,#f3ffe6,#9dff2e,#ffe100,#f3ffe6)",
-    orn: "hazard", anim: "a-spin", sparks: ["☢","·"],
-    splash: "click to enter the zone...", splashSub: "", subtitle: "",
-    bios: ["hazardous levels of skill", "radioactive", "do not touch", "✦ QuickPeekz417 ✦"],
+    label: "Outbreak Lab", tab: "🧪", accent: "#57ff8a", accent2: "#ff4040", text: "#effff3", muted: "#9cc7a8",
+    card: "rgba(4,14,8,.68)", line: "rgba(87,255,138,.3)", icon: "#effff3",
+    title: "'Black Ops One',cursive", grad: "linear-gradient(90deg,#effff3,#57ff8a,#ff4040,#effff3)",
+    orn: "bio", anim: "a-spin", sparks: ["☣","·"],
+    splash: "CONTAINMENT BREACH", splashSub: "click to suit up", subtitle: "",
+    bios: ["patient zero", "containment failed", "quarantine the lobby", "✦ QuickPeekz417 ✦"],
   },
 };
 
@@ -855,102 +854,133 @@ const SCENES = {
 };
 
 Object.assign(SCENES, {
+  /* ---------------- ORBITAL RECON (planet horizon + satellite) ---------------- */
   space: {
     build(b, f, W, H){
-      b.fillStyle='#000'; b.fillRect(0,0,W,H);
-      // faint purple nebula
-      for(let i=0;i<3;i++){ const cx=R()*W, cy=R()*H, r=rr(220,420);
-        const g=b.createRadialGradient(cx,cy,0,cx,cy,r); g.addColorStop(0,'rgba(255,255,255,.035)'); g.addColorStop(1,'rgba(255,255,255,0)');
-        b.fillStyle=g; b.fillRect(0,0,W,H); }
-      // dust
-      for(let i=0;i<W*H/900;i++){ b.fillStyle=`rgba(255,255,255,${R()*.25})`; b.fillRect(R()*W,R()*H,1,1); }
-      const layers=[.15,.35,.7].map((sp,k)=>Array.from({length:W*H/(k?9000:4000)|0},()=>({x:R()*W,y:R()*H,r:rr(.4,1)*(k+1)*.7,p:R()*6,sp})));
-      return { layers, shoot: [], dust: Array.from({length: Math.min(160, W*H/9000|0)}, () => newDust(W, H, true)) };
+      b.fillStyle='#01030a'; b.fillRect(0,0,W,H);
+      for(let i=0;i<W*H/1400;i++){ b.fillStyle=`rgba(255,255,255,${R()*.6})`; b.fillRect(R()*W,R()*H*.75,R()<.1?2:1,R()<.1?2:1); }
+      // planet limb across the bottom
+      const pr=Math.max(W,H)*1.3, pcx=W*.5, pcy=H+pr*.82;
+      const pg=b.createRadialGradient(pcx,pcy-pr*.3,pr*.2,pcx,pcy,pr); pg.addColorStop(0,'#1d4f8a'); pg.addColorStop(.85,'#0b2a4f'); pg.addColorStop(1,'#061528');
+      b.fillStyle=pg; b.beginPath(); b.arc(pcx,pcy,pr,0,TAU); b.fill();
+      b.save(); b.beginPath(); b.arc(pcx,pcy,pr,0,TAU); b.clip();                      // clouds
+      for(let i=0;i<70;i++){ const a=-Math.PI/2+rr(-.5,.5), d=pr*rr(.86,.99), x=pcx+Math.cos(a)*d, y=pcy+Math.sin(a)*d;
+        b.fillStyle=`rgba(230,240,255,${rr(.04,.12)})`; b.beginPath(); b.ellipse(x,y,rr(40,140),rr(6,16),a+Math.PI/2,0,TAU); b.fill(); }
+      b.restore();
+      const atm=b.createRadialGradient(pcx,pcy,pr*.98,pcx,pcy,pr*1.05); atm.addColorStop(0,'rgba(127,214,255,.55)'); atm.addColorStop(1,'rgba(127,214,255,0)');
+      b.fillStyle=atm; b.beginPath(); b.arc(pcx,pcy,pr*1.05,0,TAU); b.fill();
+      // HUD ticks on the front layer
+      f.strokeStyle='rgba(127,214,255,.25)'; f.lineWidth=1;
+      for(let x=0;x<W;x+=W/24){ f.beginPath(); f.moveTo(x,18); f.lineTo(x,x%(W/6)<1?30:24); f.stroke(); }
+      return { pcx, pcy, pr, sat:{a:.15}, lights:Array.from({length:40},()=>({a:-Math.PI/2+rr(-.45,.45), d:rr(.9,.99), p:R()*TAU})), scan:0 };
     },
     mid(c, W, H, t, s){
-      // drifting star layers (parallax)
-      s.layers.forEach(L=>{ for(const st of L){
-        st.x -= st.sp*.25; st.y += st.sp*.1; if(st.x<-2) st.x=W+2; if(st.y>H+2) st.y=-2;
-        c.globalAlpha=.45+.55*Math.abs(Math.sin(t*1.3+st.p)); c.fillStyle='#fff';
-        c.beginPath(); c.arc(st.x,st.y,st.r,0,TAU); c.fill(); } });
-      c.globalAlpha=1;
+      // city lights twinkle on the night side
+      for(const l of s.lights){ const x=s.pcx+Math.cos(l.a)*s.pr*l.d, y=s.pcy+Math.sin(l.a)*s.pr*l.d;
+        c.fillStyle=`rgba(255,214,120,${.3+.5*Math.abs(Math.sin(t+l.p))})`; c.fillRect(x,y,2,2); }
+      // sun glint sweeping the limb
+      const ga=-Math.PI/2+Math.sin(t*.12)*.45, gx=s.pcx+Math.cos(ga)*s.pr, gy=s.pcy+Math.sin(ga)*s.pr;
+      const g=c.createRadialGradient(gx,gy,0,gx,gy,160); g.addColorStop(0,'rgba(255,255,255,.35)'); g.addColorStop(1,'rgba(255,255,255,0)');
+      c.fillStyle=g; c.fillRect(gx-160,gy-160,320,320);
     },
     top(c, W, H, t, s){
-      // falling dust
-      for(const d of s.dust){
-        d.y += d.v; d.p += d.ws; d.x += Math.sin(d.p)*d.sw + d.drift;
-        if(d.y > H + 10 || d.x < -10 || d.x > W + 10) Object.assign(d, newDust(W, H, false));
-        const a = d.a * (.7 + .3*Math.sin(t*2 + d.p));
-        if(d.r > 1.6){ const g=c.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r*2.2); g.addColorStop(0,`rgba(255,255,255,${a})`); g.addColorStop(1,'rgba(255,255,255,0)');
-          c.fillStyle=g; c.beginPath(); c.arc(d.x,d.y,d.r*2.2,0,TAU); c.fill(); }
-        else { c.fillStyle=`rgba(230,230,230,${a})`; c.beginPath(); c.arc(d.x,d.y,d.r,0,TAU); c.fill(); }
-      }
-      if(R() < .005) s.shoot.push({x:rr(W*.3,W*1.1), y:rr(-20,H*.4), l:1});
-      s.shoot = s.shoot.filter(o=>o.l>0);
-      for(const o of s.shoot){ const g=c.createLinearGradient(o.x,o.y,o.x+120,o.y-50); g.addColorStop(0,`rgba(255,255,255,${o.l})`); g.addColorStop(1,'rgba(255,255,255,0)');
-        c.strokeStyle=g; c.lineWidth=1.6; c.beginPath(); c.moveTo(o.x,o.y); c.lineTo(o.x+120,o.y-50); c.stroke(); o.x-=12; o.y+=5; o.l-=.02; }
+      // satellite crossing the sky on a wide orbit
+      s.sat.a+=.0012; if(s.sat.a>1.1) s.sat.a=-.1;
+      const x=-40+s.sat.a*(W+80), y=H*.22-Math.sin(s.sat.a*Math.PI)*H*.08, ang=Math.cos(s.sat.a*Math.PI)*-.25;
+      c.save(); c.translate(x,y); c.rotate(ang);
+      c.fillStyle='#2f6fd6'; c.fillRect(-26,-5,16,10); c.fillRect(10,-5,16,10);
+      c.strokeStyle='#7fd6ff'; c.lineWidth=.6; for(let i=-24;i<-10;i+=4){ c.beginPath(); c.moveTo(i,-5); c.lineTo(i,5); c.stroke(); } for(let i=12;i<26;i+=4){ c.beginPath(); c.moveTo(i,-5); c.lineTo(i,5); c.stroke(); }
+      c.fillStyle='#e8eef5'; c.fillRect(-8,-7,16,14); c.fillStyle=(t*2|0)%2?'#ff4040':'#400'; c.beginPath(); c.arc(0,-9,1.8,0,TAU); c.fill(); c.restore();
+      // scan beam down to the planet
+      c.save(); const bg=c.createLinearGradient(x,y,x,y+H*.5); bg.addColorStop(0,'rgba(127,214,255,.22)'); bg.addColorStop(1,'rgba(127,214,255,0)');
+      c.fillStyle=bg; c.beginPath(); c.moveTo(x,y); c.lineTo(x-60,y+H*.5); c.lineTo(x+60,y+H*.5); c.fill(); c.restore();
+      if(W>=700){ c.font='11px monospace'; c.fillStyle='rgba(127,214,255,.7)'; c.fillText(`SAT-417  ALT ${(408+Math.sin(t*.3)*3).toFixed(1)}km`, 40, H-40); }
     },
   },
+
+  /* ---------------- EVENT HORIZON (black hole + accretion disk) ---------------- */
   galaxy: {
     build(b, f, W, H){
-      b.fillStyle='#02010a'; b.fillRect(0,0,W,H);
-      const cols=['120,80,255','255,90,200','60,200,255','255,200,90'];
-      for(let i=0;i<9;i++){ const cx=R()*W, cy=R()*H, r=rr(180,420), g=b.createRadialGradient(cx,cy,0,cx,cy,r);
-        g.addColorStop(0,`rgba(${cols[i%4]},.14)`); g.addColorStop(1,`rgba(${cols[i%4]},0)`); b.fillStyle=g; b.fillRect(0,0,W,H); }
-      const k=Math.min(W,H)/800, n=900;
-      return { stars: starsArr(W,H,1,W*H/4500|0), k,
-        arms: Array.from({length:n},(_,i)=>({a:(i%3)*TAU/3 + R()*.5, d:R(), hue:rr(170,330)})), shoot: [] };
+      b.fillStyle='#03010a'; b.fillRect(0,0,W,H);
+      const cols=['63,224,208','192,139,255','255,184,107'];
+      for(let i=0;i<6;i++){ const cx=R()*W, cy=R()*H, r=rr(200,420), g=b.createRadialGradient(cx,cy,0,cx,cy,r);
+        g.addColorStop(0,`rgba(${cols[i%3]},.09)`); g.addColorStop(1,`rgba(${cols[i%3]},0)`); b.fillStyle=g; b.fillRect(0,0,W,H); }
+      const k=Math.min(W,H)/800;
+      return { k, stars: starsArr(W,H,1,W*H/3500|0),
+        disk: Array.from({length:1400},()=>({a:R()*TAU, d:rr(1.35,3.3), s:rr(.6,1.8), h:R()})),
+        fall: [] };
     },
     mid(c, W, H, t, s){
-      drawStars(c, s.stars, t, '#ffffff');
-      const cx=W/2, cy=H*.45, k=s.k, rot=t*.08;
-      c.save(); c.globalCompositeOperation='lighter';
-      for(const p of s.arms){ const d=p.d*360*k, a=p.a + p.d*4.2 + rot;
-        const x=cx+Math.cos(a)*d, y=cy+Math.sin(a)*d*.45;
-        c.fillStyle=`hsla(${(p.hue+t*20)%360},100%,70%,${.55*(1-p.d)+.1})`; c.fillRect(x,y,1.8,1.8); }
-      const g=c.createRadialGradient(cx,cy,0,cx,cy,90*k); g.addColorStop(0,'rgba(255,240,255,.5)'); g.addColorStop(1,'rgba(255,240,255,0)');
-      c.fillStyle=g; c.beginPath(); c.ellipse(cx,cy,90*k,45*k,0,0,TAU); c.fill(); c.restore();
+      const wide=W>=900, cx=wide?W*.8:W*.5, cy=wide?H*.3:H*.16, rh=Math.max(wide?60:40,(wide?95:70)*s.k);
+      // lensed stars: pull toward center when near
+      for(const st of s.stars){ const dx=st.x-cx, dy=st.y-cy, d=Math.hypot(dx,dy), pull=Math.max(0,1-d/(rh*4));
+        c.globalAlpha=.3+.7*Math.abs(Math.sin(t*st.s+st.p)); c.fillStyle='#fff';
+        c.fillRect(cx+dx*(1+pull*.6),cy+dy*(1+pull*.6),st.r,st.r); }
+      c.globalAlpha=1; c.save(); c.globalCompositeOperation='lighter';
+      // back half of the disk, then front half
+      const draw=(back)=>{ for(const p of s.disk){ const a=p.a+t*(.9/p.d); const sy=Math.sin(a); if((sy<0)!==back) continue;
+          const x=cx+Math.cos(a)*rh*p.d, y=cy+sy*rh*p.d*.28, heat=1-(p.d-1.35)/2;
+          c.fillStyle=`rgba(${255},${150+heat*100|0},${80+heat*120|0},${.25+heat*.55})`;
+          if(p.h<.3) c.fillStyle=`rgba(192,139,255,${.2+heat*.4})`; else if(p.h<.45) c.fillStyle=`rgba(63,224,208,${.2+heat*.4})`;
+          c.fillRect(x,y,p.s,p.s); } };
+      draw(true);
+      // photon ring
+      const ring=c.createRadialGradient(cx,cy,rh*.9,cx,cy,rh*1.35); ring.addColorStop(0,'rgba(255,200,140,.0)'); ring.addColorStop(.3,'rgba(255,200,140,.55)'); ring.addColorStop(1,'rgba(255,200,140,0)');
+      c.fillStyle=ring; c.beginPath(); c.arc(cx,cy,rh*1.35,0,TAU); c.fill();
+      c.restore();
+      c.fillStyle='#000'; c.beginPath(); c.arc(cx,cy,rh,0,TAU); c.fill();
+      c.save(); c.globalCompositeOperation='lighter'; draw(false); c.restore();
+      s.cx=cx; s.cy=cy; s.rh=rh;
     },
     top(c, W, H, t, s){
-      if(R()<.008) s.shoot.push({x:rr(W*.2,W*1.1), y:rr(-20,H*.4), l:1, h:R()*360});
-      for(const o of s.shoot){ const g=c.createLinearGradient(o.x,o.y,o.x+140,o.y-60);
-        g.addColorStop(0,`hsla(${o.h},100%,80%,${o.l})`); g.addColorStop(1,'hsla(0,0%,100%,0)');
-        c.strokeStyle=g; c.lineWidth=2; c.beginPath(); c.moveTo(o.x,o.y); c.lineTo(o.x+140,o.y-60); c.stroke(); o.x-=13; o.y+=5.5; o.l-=.02; }
-      s.shoot=s.shoot.filter(o=>o.l>0);
+      // debris spiralling in
+      if(s.fall.length<10 && R()<.02){ const a=R()*TAU; s.fall.push({a, d:Math.max(W,H)*.7, h:R()}); }
+      for(const o of s.fall){ o.a+=6/o.d; o.d*=.992; const x=s.cx+Math.cos(o.a)*o.d, y=s.cy+Math.sin(o.a)*o.d*.6;
+        c.fillStyle=o.h<.5?'rgba(63,224,208,.9)':'rgba(192,139,255,.9)'; c.beginPath(); c.arc(x,y,1.8,0,TAU); c.fill();
+        c.strokeStyle=c.fillStyle; c.globalAlpha=.3; c.beginPath(); c.moveTo(x,y); c.lineTo(s.cx+Math.cos(o.a-.15)*o.d*1.02, s.cy+Math.sin(o.a-.15)*o.d*.61); c.stroke(); c.globalAlpha=1; }
+      s.fall=s.fall.filter(o=>o.d>s.rh);
     },
   },
+
+  /* ---------------- OUTBREAK LAB (containment tubes + green fog) ---------------- */
   toxic: {
     build(b, f, W, H){
-      const g=b.createLinearGradient(0,0,0,H); g.addColorStop(0,'#020a02'); g.addColorStop(.6,'#0b2208'); g.addColorStop(1,'#163d0a');
-      b.fillStyle=g; b.fillRect(0,0,W,H);
-      const stripes=(y,h)=>{ f.save(); f.beginPath(); f.rect(0,y,W,h); f.clip(); f.fillStyle='#111'; f.fillRect(0,y,W,h);
-        f.fillStyle='#ffe100'; for(let x=-h;x<W+h;x+=36){ f.beginPath(); f.moveTo(x,y+h); f.lineTo(x+18,y+h); f.lineTo(x+18+h,y); f.lineTo(x+h,y); f.fill(); } f.restore(); };
-      stripes(H-26,26);
-      const k=Math.min(W,H)/800;
-      const barrel=(x,s)=>{ const w=60*s, h=86*s, y=H-26-h; f.fillStyle='#2e3a16'; f.fillRect(x-w/2,y,w,h);
-        f.fillStyle='#1e2610'; f.fillRect(x-w/2,y+h*.22,w,5*s); f.fillRect(x-w/2,y+h*.72,w,5*s);
-        f.fillStyle='#ffe100'; f.beginPath(); f.arc(x,y+h*.48,15*s,0,TAU); f.fill(); f.fillStyle='#111';
-        for(let i=0;i<3;i++){ const a=i*TAU/3-Math.PI/2; f.beginPath(); f.moveTo(x,y+h*.48); f.arc(x,y+h*.48,13*s,a-.5,a+.5); f.fill(); }
-        f.fillStyle='#ffe100'; f.beginPath(); f.arc(x,y+h*.48,3.5*s,0,TAU); f.fill();
-        f.fillStyle='rgba(157,255,46,.85)'; f.beginPath(); f.ellipse(x,y+2,w*.42,6*s,0,0,TAU); f.fill(); };
-      barrel(W*.07,k*1.2); barrel(W*.15,k); barrel(W*.92,k*1.2);
-      return { k, drips: Array.from({length:Math.ceil(W/38)},(_,i)=>({x:i*38+rr(-8,8), len:rr(10,60), v:rr(.05,.25), w:rr(8,16)})), drops: [], bubbles: [] };
+      const g=b.createLinearGradient(0,0,0,H); g.addColorStop(0,'#030806'); g.addColorStop(1,'#0a1a10'); b.fillStyle=g; b.fillRect(0,0,W,H);
+      // tiled lab wall
+      b.strokeStyle='rgba(87,255,138,.05)'; const ts=48;
+      for(let x=0;x<W;x+=ts){ b.beginPath(); b.moveTo(x,0); b.lineTo(x,H); b.stroke(); }
+      for(let y=0;y<H;y+=ts){ b.beginPath(); b.moveTo(0,y); b.lineTo(W,y); b.stroke(); }
+      const k=Math.min(W,H)/800, tubes=[];
+      const xs=W<700?[W*.1,W*.9]:[W*.07,W*.17,W*.83,W*.93];
+      for(const x of xs){ const tw=54*k*1.3, th=H*.5, ty=H-th-30; tubes.push({x,tw,th,ty,lvl:rr(.55,.85)});
+        f.fillStyle='#1a1f1c'; f.fillRect(x-tw/2-6,ty-18,tw+12,18); f.fillRect(x-tw/2-6,ty+th,tw+12,22);              // caps
+        f.strokeStyle='rgba(200,255,220,.35)'; f.lineWidth=2; f.strokeRect(x-tw/2,ty,tw,th);
+        f.fillStyle='rgba(255,255,255,.08)'; f.fillRect(x-tw/2+5,ty+6,5,th-12); }                                   // glass shine
+      // warning stripe under the card area
+      f.fillStyle='rgba(255,64,64,.8)'; f.font=`bold ${Math.max(11,13*k)|0}px monospace`; f.textAlign='center';
+      if(W>=700) f.fillText('⚠ CONTAINMENT BREACH — LEVEL 4 ⚠', W/2, H-24);
+      return { k, tubes, bubbles:[], fog:Array.from({length:10},()=>({x:R()*W,y:rr(H*.6,H),r:rr(140,280),v:rr(-.3,.3),p:R()*TAU})), spores:[] };
     },
     mid(c, W, H, t, s){
-      const g=c.createLinearGradient(0,H*.7,0,H); g.addColorStop(0,'rgba(157,255,46,0)'); g.addColorStop(1,`rgba(157,255,46,${.12+.06*Math.sin(t*2)})`);
-      c.fillStyle=g; c.fillRect(0,H*.7,W,H*.3);
+      for(const tb of s.tubes){ const top=tb.ty+tb.th*(1-tb.lvl)+Math.sin(t*1.5+tb.x)*3;
+        const g=c.createLinearGradient(0,top,0,tb.ty+tb.th); g.addColorStop(0,'rgba(87,255,138,.55)'); g.addColorStop(1,'rgba(20,120,60,.7)');
+        c.fillStyle=g; c.fillRect(tb.x-tb.tw/2+2,top,tb.tw-4,tb.ty+tb.th-top);
+        if(R()<.25) s.bubbles.push({x:tb.x+rr(-tb.tw/2+6,tb.tw/2-6),y:tb.ty+tb.th-4,top,r:rr(1.5,4),v:rr(.6,1.6)}); }
+      for(const bb of s.bubbles){ bb.y-=bb.v; c.strokeStyle='rgba(220,255,230,.7)'; c.lineWidth=1; c.beginPath(); c.arc(bb.x,bb.y,bb.r,0,TAU); c.stroke(); }
+      s.bubbles=s.bubbles.filter(bb=>bb.y>bb.top);
+      for(const m of s.fog){ m.x+=m.v; m.p+=.005; if(m.x<-m.r) m.x=W+m.r; if(m.x>W+m.r) m.x=-m.r;
+        const y=m.y+Math.sin(m.p)*20, g=c.createRadialGradient(m.x,y,0,m.x,y,m.r); g.addColorStop(0,'rgba(87,255,138,.08)'); g.addColorStop(1,'rgba(87,255,138,0)');
+        c.fillStyle=g; c.beginPath(); c.arc(m.x,y,m.r,0,TAU); c.fill(); }
     },
     top(c, W, H, t, s){
-      c.fillStyle='#7ee81f'; c.shadowColor='#9dff2e'; c.shadowBlur=12;
-      c.beginPath(); c.moveTo(0,0); c.lineTo(W,0); c.lineTo(W,10); for(let i=s.drips.length-1;i>=0;i--){ const d=s.drips[i];
-        c.lineTo(d.x+d.w,10); c.quadraticCurveTo(d.x+d.w,10+d.len,d.x+d.w/2,10+d.len+d.w*.5); c.quadraticCurveTo(d.x,10+d.len,d.x,10); } c.lineTo(0,10); c.fill();
-      for(const d of s.drips){ d.len+=d.v; if(d.len>rr(70,110)){ s.drops.push({x:d.x+d.w/2, y:10+d.len, v:1, r:d.w*.35}); d.len=rr(6,20); } }
-      for(const p of s.drops){ p.v+=.25; p.y+=p.v; c.beginPath(); c.ellipse(p.x,p.y,p.r,p.r*1.4,0,0,TAU); c.fill(); }
-      c.shadowBlur=0; s.drops=s.drops.filter(p=>p.y<H+10);
-      if(s.bubbles.length<40 && R()<.3) s.bubbles.push({x:R()*W, y:H-20, v:rr(.4,1.4), r:rr(2,8), p:R()*TAU});
-      for(const b2 of s.bubbles){ b2.y-=b2.v; b2.p+=.05; c.strokeStyle='rgba(180,255,90,.6)'; c.lineWidth=1.3; c.beginPath(); c.arc(b2.x+Math.sin(b2.p)*4,b2.y,b2.r,0,TAU); c.stroke();
-        c.fillStyle='rgba(220,255,160,.5)'; c.beginPath(); c.arc(b2.x+Math.sin(b2.p)*4-b2.r*.35,b2.y-b2.r*.35,b2.r*.25,0,TAU); c.fill(); }
-      s.bubbles=s.bubbles.filter(b2=>b2.y>H*.45);
+      // rotating red alarm light wash
+      const a=t*2.4, ax=W/2+Math.cos(a)*W*.6;
+      const g=c.createRadialGradient(ax,0,0,ax,0,H*.9); g.addColorStop(0,'rgba(255,64,64,.18)'); g.addColorStop(1,'rgba(255,64,64,0)');
+      c.fillStyle=g; c.fillRect(0,0,W,H);
+      // floating spores
+      if(s.spores.length<50 && R()<.3) s.spores.push({x:R()*W,y:H+5,v:rr(.2,.6),p:R()*TAU,r:rr(1,2.6)});
+      for(const p of s.spores){ p.y-=p.v; p.p+=.03; c.fillStyle=`rgba(160,255,190,${.4+.4*Math.sin(t*3+p.p)})`; c.beginPath(); c.arc(p.x+Math.sin(p.p)*8,p.y,p.r,0,TAU); c.fill(); }
+      s.spores=s.spores.filter(p=>p.y>-10);
     },
   },
 });
@@ -982,7 +1012,9 @@ const CURSORS = {
   siege: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><g stroke="#000" stroke-width="4" stroke-linecap="round" fill="none"><circle cx="16" cy="16" r="9"/><path d="M16 2 V8 M16 24 V30 M2 16 H8 M24 16 H30"/></g><g stroke="#eef6ff" stroke-width="2" stroke-linecap="round" fill="none"><circle cx="16" cy="16" r="9"/><path d="M16 2 V8 M16 24 V30 M2 16 H8 M24 16 H30"/></g><circle cx="16" cy="16" r="2" fill="#ff8a1f" stroke="#000" stroke-width=".8"/></svg>`, 16, 16],
   breach: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M12 12 L29 29" stroke="#111" stroke-width="5" stroke-linecap="round"/><path d="M12 12 L29 29" stroke="#8a5a2b" stroke-width="2.8" stroke-linecap="round"/><g transform="rotate(45 9 9)"><rect x="1" y="4.5" width="16" height="9" rx="1.5" fill="#5a5f66" stroke="#111" stroke-width="1.6"/><rect x="2.5" y="6" width="3" height="6" fill="#ff6a1a"/></g></svg>`, 3, 3],
   hockey: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M26 2 L10 26 Q8.5 29 5 29 L2 29 L2 25.5 L7 25.5 L23 1Z" fill="#f2f2f2" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><path d="M24.5 3.5 L21 9" stroke="#2f7bff" stroke-width="3"/><path d="M2 25.5 H8" stroke="#111" stroke-width="2.5"/><ellipse cx="13" cy="29" rx="4" ry="2" fill="#111"/></svg>`, 3, 28],
-  space: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M16 1 C17.2 11.5 20.5 14.8 31 16 C20.5 17.2 17.2 20.5 16 31 C14.8 20.5 11.5 17.2 1 16 C11.5 14.8 14.8 11.5 16 1Z" fill="#fff" stroke="#000" stroke-width="1.2"/></svg>`, 16, 16],
+  space: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><g transform="rotate(-30 16 16)" stroke="#000" stroke-width="1.2"><rect x="2" y="12" width="9" height="8" fill="#2f6fd6"/><rect x="21" y="12" width="9" height="8" fill="#2f6fd6"/><rect x="11" y="10" width="10" height="12" rx="1.5" fill="#e8eef5"/><path d="M16 10 V5" stroke-width="1.6"/><circle cx="16" cy="4" r="2" fill="#7fd6ff"/></g></svg>`, 16, 16],
+  galaxy: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="#000" stroke-width="4" transform="rotate(-20 16 16)"/><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="#ffb86b" stroke-width="2" transform="rotate(-20 16 16)"/><circle cx="16" cy="16" r="6" fill="#000" stroke="#c08bff" stroke-width="1.6"/></svg>`, 16, 16],
+  toxic: [`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><g transform="rotate(-35 16 16)"><path d="M12 3 H20 V6 H19 V24 A3 3 0 0 1 13 24 V6 H12Z" fill="rgba(230,255,235,.9)" stroke="#000" stroke-width="1.4"/><path d="M13 15 H19 V24 A3 3 0 0 1 13 24Z" fill="#57ff8a"/><circle cx="15" cy="20" r="1" fill="#fff"/></g></svg>`, 9, 4],
 };
 function applyCursor(key){
   const o = (CONFIG.themes[key] || {});
