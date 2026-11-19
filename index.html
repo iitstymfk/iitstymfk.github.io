@@ -1619,9 +1619,10 @@ const GH = CONFIG.github;
 const getTok = () => { try{ return localStorage.getItem('ghToken') || ''; }catch(e){ return ''; } };
 const status = (msg) => $('mpStatus').textContent = msg;
 async function gh(path, opts = {}){
-  // GET requests skip GitHub's cache so we always see the newest copy (avoids "does not match" errors)
+  // GET requests get a unique URL so the browser never reuses an old copy (avoids "does not match" errors).
+  // (Don't add cache:'no-store' here: it adds headers GitHub's API rejects -> "Failed to fetch".)
   const url = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}` + (opts.method ? '' : `${path.includes('?') ? '&' : '?'}_=${Date.now()}`);
-  const r = await fetch(url, { cache: 'no-store', ...opts,
+  const r = await fetch(url, { ...opts,
     headers: { Authorization: `Bearer ${getTok()}`, Accept: 'application/vnd.github+json', ...(opts.body ? {'Content-Type':'application/json'} : {}) } });
   if(!r.ok && r.status !== 404){ let m = r.status; try{ m = (await r.json()).message; }catch(e){} throw new Error(m); }
   return r;
