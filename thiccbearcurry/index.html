@@ -340,6 +340,8 @@ body.decoEdit .deco.sel{outline:2px solid var(--accent)}
 .tapBurst{position:fixed;z-index:64;pointer-events:none;font-size:20px;transition:transform .9s cubic-bezier(.2,.8,.3,1),opacity .9s}
 .cover[data-shape=rounded]{border-radius:14px!important}.cover[data-shape=square]{border-radius:3px!important}
 .cover.nospin{animation:none!important}
+.card.clickable{cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.card.clickable:hover{border-color:var(--accent);box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 30%,transparent)}
 </style>
 </head>
 <body data-theme="sakura">
@@ -1757,6 +1759,13 @@ fetch('site.json?v=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json()
 }).catch(()=>{});
 
 
+
+/* ---------- clicking your profile card opens your Discord profile ---------- */
+(function(){
+  const prof = document.querySelectorAll('.cards .card')[0];
+  if(prof && CONFIG.discordUserId){ prof.classList.add('clickable'); prof.title = 'Open my Discord profile';
+    prof.addEventListener('click', () => window.open('https://discord.com/users/' + CONFIG.discordUserId, '_blank', 'noopener')); }
+})();
 /* ---------- animated browser tab title: types "@name" out and back ---------- */
 (function tabTitle(){
   const full = '@' + CONFIG.name; let i = 1, dir = 1;
