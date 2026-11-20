@@ -366,6 +366,8 @@ body.decoEdit .deco.sel{outline:2px solid var(--accent)}
 .tapBubble::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-7px;border:7px solid transparent;border-bottom:0;border-top-color:#fff}
 .tapBubble.on{transform:translate(-50%,-100%) scale(1);opacity:1}
 .tapBurst{position:fixed;z-index:64;pointer-events:none;font-size:20px;transition:transform .9s cubic-bezier(.2,.8,.3,1),opacity .9s}
+.cover[data-shape=rounded]{border-radius:14px!important}.cover[data-shape=square]{border-radius:3px!important}
+.cover.nospin{animation:none!important}
 </style>
 </head>
 <body data-theme="sakura">
@@ -1686,7 +1688,9 @@ function loadFont(css){
 // the bits of a theme that don't need the whole page redrawn
 function applyExtras(key){
   const e = EDITS[key] || {}, ch = $('chara');
-  $('name').textContent = e.nameText || CONFIG.name;
+  const nm = $('name');
+  if(e.nameText){ if(nm._orig == null) nm._orig = nm.innerHTML; nm.textContent = e.nameText; }
+  else if(nm._orig != null){ nm.innerHTML = nm._orig; nm._orig = null; }
   loadFont(T.title);
   if(e.charX != null){
     Object.assign(ch.style, { left: e.charX + 'vw', right: 'auto', bottom: (e.charY || 0) + 'vh', height: (e.charH || 70) + 'vh', width: 'auto', maxWidth: 'none', translate: '-50% 0' });
@@ -1700,6 +1704,7 @@ function applyExtras(key){
   setFX(e.effects || {});
   renderDecos(e.decos); applyLook(e.look);
   if(typeof applyCharMotion === 'function') applyCharMotion(e);
+  refreshCover();
 }
 
 /* ---------- extra effects layer (snow, rain, petals …) ---------- */
@@ -1951,6 +1956,28 @@ function applyCharMotion(ed){
   requestAnimationFrame(charMouse);
 })();
 
+/* ---------- music player picture (per theme) ---------- */
+const EDIT_DIR = CONFIG.editDir || 'chars/edits/';
+function playerCoverHTML(){ const e = EDITS[themeKey] || {}; return e.playerCover ? `<img src="${asset(e.playerCover)}" alt="">` : ''; }
+function refreshCover(){
+  const c = $('pCover'); if(!c) return;
+  const e = EDITS[themeKey] || {};
+  c.dataset.shape = e.playerShape || ''; c.classList.toggle('nospin', e.playerSpin === false);
+  const z = e.playerSize ? e.playerSize + 'px' : ''; c.style.width = c.style.height = z; c.style.flexBasis = z;
+  const s = (typeof songs !== 'undefined' && songs.length) ? songs[idx] : null;
+  if(s && s.cover){ c.classList.remove('themed'); c.innerHTML = `<img src="${asset(s.cover)}" alt="">`; return; }
+  const pc = playerCoverHTML(); if(pc){ c.classList.remove('themed'); c.innerHTML = pc; return; }
+  if(typeof setCover === 'function') setCover(s); else c.innerHTML = '♪';
+}
+async function shrinkImage(file, max, type){
+  if(/gif/.test(file.type)) return file;
+  const bmp = await createImageBitmap(file); let w = bmp.width, h = bmp.height;
+  if(Math.max(w, h) > max){ const k = max / Math.max(w, h); w = Math.round(w*k); h = Math.round(h*k); }
+  const cv2 = document.createElement('canvas'); cv2.width = w; cv2.height = h; cv2.getContext('2d').drawImage(bmp, 0, 0, w, h);
+  return await new Promise(res => cv2.toBlob(b => res(b || file), type || 'image/webp', .88));
+}
+window._edReady = true;
+
 /* ---------- apply a theme ---------- */
 let charTimer, charIdx = 0, signalImg = null;
 // music circle: the song's cover art, or a spinning theme icon when it has none
@@ -1958,6 +1985,7 @@ function setCover(s){
   const cv = $('pCover'); if(!cv) return;
   s = s || songs[idx];
   if(s && s.cover){ cv.classList.remove('themed'); cv.innerHTML = `<img src="${s.cover}" alt="">`; return; }
+  const pc = window._edReady ? playerCoverHTML() : ''; if(pc){ cv.classList.remove('themed'); cv.innerHTML = pc; return; }
   cv.classList.add('themed');
   cv.innerHTML = `<span class="coverOrn">${T ? ornHTML() : '♪'}</span>`;
 }
@@ -2124,7 +2152,7 @@ function renderSongList(){
   const all = [...CONFIG.songs.map(s => ({...s, fixed:true})), ...siteSongs];
   el.innerHTML = all.length ? all.map(s => `<div class="song" data-src="${s.src}">
       <span>♪ ${s.title || s.src}${s.artist ? ' — ' + s.artist : ''}</span>
-      ${s.fixed ? '' : `<button data-act="edit" title="Pick themes">🎨</button><button data-act="del" title="Remove">✕</button>`}
+      ${s.fixed ? '' : `<button data-act="cover" title="Song picture">🖼</button>${s.cover ? '<button data-act="uncover" title="Remove song picture">🚫</button>' : ''}<button data-act="edit" title="Pick themes">🎨</button><button data-act="del" title="Remove">✕</button>`}
       <div class="tags">${tagText(s)}</div></div>`).join('')
     : '<p>No songs yet — add one below.</p>';
 }
@@ -2174,6 +2202,28 @@ if(isOwner){
   $('mpList').onclick = async e => {
     const b = e.target.closest('button[data-act]'); if(!b) return;
     const row = b.closest('.song'), path = row.dataset.src;
+
+    if(b.dataset.act === 'cover'){
+      if(needKey()) return;
+      const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+      inp.onchange = async () => { const f = inp.files[0]; if(!f) return;
+        try{ status('Uploading picture…');
+          const blob = await shrinkImage(f, 500);
+          const ext = blob.type === 'image/gif' ? 'gif' : blob.type === 'image/png' ? 'png' : 'webp';
+          const cpath = `music/covers/${path.split('/').pop().replace(/\.[^.]+$/, '')}-${Date.now().toString(36)}.${ext}`;
+          PREVIEW[cpath] = URL.createObjectURL(blob);
+          await gh(cpath, { method:'PUT', body: JSON.stringify({ message:`Add cover for ${path}`, content: await fileB64(blob), branch: GH.branch }) });
+          const d = await saveSite(d => { (d.songs || []).forEach(s => { if(s.src === path) s.cover = cpath; }); });
+          siteSongs = d.songs; renderSongList(); rebuildPlaylist(); refreshCover(); status('✓ Song picture saved. Live in about a minute.');
+        }catch(err){ status('Upload failed: ' + err.message); } };
+      inp.click(); return;
+    }
+    if(b.dataset.act === 'uncover'){
+      if(needKey()) return;
+      try{ status('Removing picture…'); const d = await saveSite(d => { (d.songs || []).forEach(s => { if(s.src === path) delete s.cover; }); });
+        siteSongs = d.songs; renderSongList(); rebuildPlaylist(); refreshCover(); status('✓ Picture removed.'); }catch(err){ status('Failed: ' + err.message); }
+      return;
+    }
     if(b.dataset.act === 'edit'){
       const open = row.querySelector('.edit'); if(open) return open.remove();
       const cur = (siteSongs.find(s => s.src === path) || {}).themes || [];
@@ -2307,6 +2357,13 @@ if(isOwner){
       ${$('themeLogo') ? `<hr><b>Logo above the name</b>
       <p>${o.logo ? `Using <img class="mini" src="${esc(asset(o.logo))}">` : 'None.'}</p>
       ${up('logo','Upload logo','image/*')}${o.logo ? '<button class="wbtn" data-clear="logo">✕ Remove logo</button>' : ''}` : ''}
+      <hr><b>Music player picture</b>
+      <p>${e.playerCover ? `Using <img class="mini" src="${esc(asset(e.playerCover))}">` : 'Using the theme\'s spinning icon.'} <i>(songs with their own picture still show theirs)</i></p>
+      ${up('playerCover','Upload player picture','image/*')}
+      ${e.playerCover ? '<button class="wbtn" data-clear="playerCover">✕ Back to the theme icon</button>' : ''}
+      ${sel('playerShape','Shape', { '':'⚪ Circle', rounded:'▢ Rounded square', square:'⬛ Square' }, e.playerShape || '', 'light')}
+      ${rng('playerSize','Size',40,110,1,e.playerSize ?? 58)}
+      ${row('Spins while playing', `<input type="checkbox" data-f="playerSpin" data-k="boolOn" data-kind="light" ${e.playerSpin === false ? '' : 'checked'}>`)}
       <hr><b>Background</b>
       <p>${o.background ? `Using <code>${esc(o.background.split('/').pop())}</code>` : 'Using the animated scene.'}</p>
       ${up('background','Picture / GIF / MP4 background','image/*,video/mp4,video/webm')}
@@ -2385,7 +2442,7 @@ if(isOwner){
                : `<b>Reset</b><p>Undo every edit on "${esc(T.label)}" and go back to how it was built.</p><button class="wbtn danger" id="epReset">↺ Reset to original</button>`}
       ${hasMusic ? '' : `<hr><b>GitHub key</b><p>${getTok() ? 'Key saved on this device ✓' : 'Needed once per device to save. Same key as the main page (github.com → Settings → Developer settings → Fine-grained tokens, repo <b>iitstymfk.github.io</b>, Contents: Read and write).'}</p>
       <input type="password" id="epTok" placeholder="${getTok() ? 'key saved ✓' : 'github_pat_...'}"><div class="pair"><button class="wbtn go" id="epTokSave">Save key</button><button class="wbtn" id="epTokForget">Forget key</button></div>`}
-      <hr><p>Edits save to <code>site.json</code> on your GitHub. Pictures you upload go in <code>chars/edits/</code>.</p>`; },
+      <hr><p>Edits save to <code>site.json</code> on your GitHub. Pictures you upload go in <code>${EDIT_DIR}</code>.</p>`; },
   };
   function render(){
     document.querySelectorAll('#editPanel .epTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
@@ -2451,7 +2508,7 @@ if(isOwner){
       if(f === 'bios'){ clearTimeout(bioTimer); bioI = 0; bioJ = 0; bioDel = false; typeTick(); }
       st('Unsaved changes — press 💾 Save to make them live.'); return;
     }
-    changed(['nameText','charH','charX','charY','charFade','ornSize','ornSpeed','ornPlace','charTap','charTapBurst','charTapSym','charSay','charIdle','charMouse'].includes(f) ? 'light' : kind);
+    changed(['playerShape','playerSize','nameText','charH','charX','charY','charFade','ornSize','ornSpeed','ornPlace','charTap','charTapBurst','charTapSym','charSay','charIdle','charMouse'].includes(f) ? 'light' : kind);
     if(f === 'charTapBurst' && e.type === 'change') setTimeout(render, 50);
   }
   $('epBody').addEventListener('input', onInput);
@@ -2462,6 +2519,7 @@ if(isOwner){
   $('epBody').addEventListener('click', async e => {
     const b = e.target.closest('button'); if(!b) return;
     if(b.dataset.orn){ W.orn = b.dataset.orn; delete W.ornament; changed(); setTimeout(render, 220); return; }
+    if(b.dataset.clear === 'playerCover'){ delete W.playerCover; changed('light'); render(); return; }
     if(b.dataset.clear){ W[b.dataset.clear] = ''; if(b.dataset.clear === 'cursor') delete W.cursorHotspot; changed(); setTimeout(render, 220); return; }
     if(b.dataset.delchar != null){ const list = [].concat(opt(CONFIG).character || []); list.splice(+b.dataset.delchar, 1); W.character = list; changed(); setTimeout(render, 220); return; }
     if(b.dataset.fxreset){ delete W.effects[b.dataset.fxreset].color; changed('light'); render(); return; }
@@ -2503,7 +2561,7 @@ if(isOwner){
   });
 
   /* ---------- uploads (go straight to GitHub, shown right away) ---------- */
-  const LIMITS = { deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
+  const LIMITS = { playerCover: 500, deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
   async function shrink(file, kind){
     if(/gif|video/.test(file.type)) return file;
     const bmp = await createImageBitmap(file), max = LIMITS[kind] || 1500;
@@ -2524,7 +2582,7 @@ if(isOwner){
       const blob = await shrink(file, kind);
       const ext = ({ 'image/png':'png', 'image/webp':'webp', 'image/jpeg':'jpg', 'image/gif':'gif', 'video/mp4':'mp4', 'video/webm':'webm' })[blob.type] || file.name.split('.').pop().toLowerCase();
       const base = file.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,30) || kind;
-      const path = `chars/edits/${kind}-${base}-${Date.now().toString(36)}.${ext}`;
+      const path = `${EDIT_DIR}${kind}-${base}-${Date.now().toString(36)}.${ext}`;
       PREVIEW[path] = URL.createObjectURL(blob);
       // show it right away while it uploads
       if(kind === 'character') W.character = [...[].concat(opt(CONFIG).character || []).filter(Boolean), path];
