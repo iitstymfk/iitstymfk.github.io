@@ -49,7 +49,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #profile.tilting{transition:transform .15s ease-out}
 
 .nameRow{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:4px}
-.orn{width:42px;height:42px;flex:0 0 42px;filter:drop-shadow(0 0 8px var(--accent))}
+.orn{width:var(--ornSize,42px);height:var(--ornSize,42px);flex:0 0 var(--ornSize,42px);filter:drop-shadow(0 0 8px var(--accent))}
 .orn svg{width:100%;height:100%;display:block}
 .a-spin{animation:spin 6s linear infinite}.a-spin.r{animation-direction:reverse}
 .a-flip{animation:flip 3s ease-in-out infinite}.a-flip.r{animation-delay:-1.5s}
@@ -195,12 +195,69 @@ body[data-theme=gotham] .card,body[data-theme=gotham] .player{border-radius:6px}
 body.customCursor,body.customCursor *{cursor:var(--cur) !important}
 @media (max-width:560px){
   .cards{grid-template-columns:1fr}
-  .orn{width:30px;height:30px;flex-basis:30px}
+  .orn{width:calc(var(--ornSize,42px)*.72);height:calc(var(--ornSize,42px)*.72);flex-basis:calc(var(--ornSize,42px)*.72)}
   #stage{align-items:flex-start;padding-top:80px}
   #chara{opacity:.3;max-width:75vw;right:-10vw}
   #chara.wide{width:90vw;right:-5vw}
 }
 @media (prefers-reduced-motion:reduce){ *{animation:none!important} }
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);z-index:70;background:rgba(10,8,18,.92);color:#fff;
+  border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px 16px;font-size:12.5px;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+/* ---------- theme editor + effects ---------- */
+#fxCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;display:none}
+#editBtn{right:72px}
+.nameRow[data-orn=left] #ornR,.nameRow[data-orn=right] #ornL,.nameRow[data-orn=none] .orn,
+.nameRow[data-orn=above] #ornR,.nameRow[data-orn=below] #ornR{display:none}
+.nameRow[data-orn=above]{flex-direction:column;gap:2px}.nameRow[data-orn=below]{flex-direction:column-reverse;gap:2px}
+body.noSocOrn .socials .x{display:none}
+body.dragChar #chara{pointer-events:auto;z-index:6;cursor:move!important;outline:2px dashed var(--accent);outline-offset:4px;animation:none}
+#editPanel{position:fixed;top:70px;right:16px;bottom:16px;z-index:22;width:min(360px,94vw);display:none;flex-direction:column;
+  background:rgba(12,8,20,.94);border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#eee;font-size:12.5px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#editPanel.open{display:flex}
+#editPanel .epHead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 6px;font-size:14px}
+#editPanel .epHead button{font-size:16px;opacity:.7}
+#editPanel .epTabs{display:flex;gap:3px;padding:0 10px 8px;flex-wrap:wrap}
+#editPanel .epTabs button{flex:1;padding:6px 4px;border-radius:8px;background:rgba(255,255,255,.06);font-size:11.5px;font-weight:700;white-space:nowrap}
+#editPanel .epTabs button.on{background:var(--accent);color:#111}
+#epBody{flex:1;overflow:auto;padding:4px 14px 10px}
+#epBody b{display:block;margin:8px 0 4px;font-size:13px}#epBody b i,#epBody p i{font-weight:400;color:#aaa}
+#epBody p{color:#aaa;margin:4px 0;line-height:1.45}
+#epBody hr{border:0;border-top:1px solid rgba(255,255,255,.1);margin:12px 0}
+#epBody code{background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px;font-size:11px}
+.ef{display:flex;flex-direction:column;gap:4px;margin:8px 0}.ef>span{color:#ccc;font-size:11.5px}.ef>span i{color:#888;font-style:normal}
+#epBody input[type=text],#epBody textarea,#epBody select{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
+  border-radius:8px;padding:7px 9px;color:#fff;font:inherit;font-size:12.5px}
+#epBody select option{background:#1a1424}
+#epBody textarea{resize:vertical;min-height:70px;cursor:text!important}
+#epBody input[type=range]{width:100%;accent-color:var(--accent)}
+#epBody input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;align-self:flex-start}
+#epBody input[type=color]{width:42px;height:28px;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:none;padding:1px}
+.pair{display:flex;gap:8px;align-items:center}.pair input[type=range]{flex:1}
+#epBody .wbtn,.epFoot button{display:block;width:100%;margin-top:6px;padding:8px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700;text-align:center}
+#epBody .wbtn.go,.epFoot .go{background:var(--accent);color:#111}
+#epBody .wbtn.danger{background:rgba(255,70,70,.2);color:#ffb3b3}
+#epBody .upl{cursor:pointer}
+#epBody .link{color:var(--accent);font-size:11px;text-decoration:underline}
+.thumbs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.thumbs .th{position:relative;width:60px;height:72px;border-radius:8px;background:rgba(255,255,255,.06);display:grid;place-items:center;overflow:hidden}
+.thumbs img{max-width:100%;max-height:100%;object-fit:contain}
+.thumbs button{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.7);font-size:10px}
+img.mini{height:28px;vertical-align:middle;margin:0 4px}
+.ornGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:6px 0}
+.ornGrid button{aspect-ratio:1;border-radius:8px;background:rgba(255,255,255,.06);padding:5px}
+.ornGrid button.on{background:color-mix(in srgb,var(--accent) 45%,transparent);outline:1px solid var(--accent)}
+.ornGrid svg{width:100%;height:100%}
+.fx{border:1px solid rgba(255,255,255,.08);border-radius:9px;margin:6px 0;padding:6px 9px}
+.fx.on{border-color:color-mix(in srgb,var(--accent) 60%,transparent);background:rgba(255,255,255,.03)}
+.fxh{display:flex;align-items:center;gap:8px;font-weight:700;cursor:pointer}
+.epFoot{padding:8px 14px 12px;border-top:1px solid rgba(255,255,255,.1)}
+.epFoot .row{display:flex;gap:6px}.epFoot .row button{flex:1}
+#epStatus{display:block;color:#aaa;font-size:11.5px;min-height:15px}
+@media (max-width:560px){ #editPanel{top:auto;height:62vh;right:3vw;left:3vw;width:auto;bottom:10px} }
+#epBody input[type=password]{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px 9px;color:#fff;font:inherit;margin:4px 0}
+#epBody .pair .wbtn{flex:1}
 </style>
 </head>
 <body data-theme="sakura">
@@ -241,6 +298,7 @@ body.customCursor,body.customCursor *{cursor:var(--cur) !important}
 <video id="bgVideo" autoplay muted loop playsinline></video>
 <img id="bgImage" alt="">
 <div class="vignette"></div>
+<canvas id="fxCanvas"></canvas>
 <img id="chara" alt="">
 
 <div id="splash"><div><span id="splashText">click to enter</span><small id="splashSub">ようこそ</small></div></div>
@@ -250,6 +308,17 @@ body.customCursor,body.customCursor *{cursor:var(--cur) !important}
   <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 000 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0022 10c0-4.4-4.5-8-10-8zM6.5 12a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3-4a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm5 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm3 4a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>
 </button>
 <div id="themeMenu"></div>
+<div id="toast"></div>
+<button id="editBtn" class="cornerBtn" aria-label="Edit theme" title="Edit this theme" style="display:none">
+  <svg viewBox="0 0 24 24"><path d="M3 17.3V21h3.7L17.8 9.9l-3.7-3.7zM20.7 7a1 1 0 000-1.4l-2.3-2.3a1 1 0 00-1.4 0l-1.8 1.8 3.7 3.7z"/></svg>
+</button>
+<div id="editPanel">
+  <div class="epHead"><b>✏️ Editing: <span id="epTheme"></span></b><button id="epClose" aria-label="Close">✕</button></div>
+  <div class="epTabs"><button data-tab="text" class="on">Text</button><button data-tab="look">Look</button><button data-tab="pictures">Pictures</button><button data-tab="icons">Icons</button><button data-tab="effects">Effects</button><button data-tab="theme">Theme</button></div>
+  <div id="epBody"></div>
+  <div class="epFoot"><span id="epStatus"></span><div class="row"><button id="epUndo">↩ Undo changes</button><button id="epSave" class="go">💾 Save for everyone</button></div></div>
+</div>
+
 <div class="foot" id="foot"></div>
 
 <main id="stage">
@@ -315,8 +384,10 @@ const CONFIG = {
   // Which theme loads first: "apothecary", "wizard", "sakura"
   theme: "apothecary",
   // "everyone" = visitors get the 🎨 button to switch themes, "off" = hidden
+  // Open the page with #owner on the end for the ✏️ theme editor (needs the GitHub key once per device)
   themePicker: "everyone",
   secretWord: "owner",
+  github: { owner: "iitstymfk", repo: "iitstymfk.github.io", branch: "main", dir: "thiccbearcurry/" },
 
   // Per-theme pictures (put files in this folder's "chars" folder).
   //  character = transparent PNG(s) beside the card — several take turns
@@ -1118,32 +1189,187 @@ Object.assign(SCENES, {
 
 /* ---------- scene engine ---------- */
 const cv = $('bgCanvas'), ctx = cv.getContext('2d');
-let W, H, back, front, sceneState, dpr = Math.min(devicePixelRatio||1, 2), useCanvas = true;
+let sceneBuilt, W, H, back, front, sceneState, dpr = Math.min(devicePixelRatio||1, 2), useCanvas = true;
 function layer(){ const l=document.createElement('canvas'); l.width=W*dpr; l.height=H*dpr; const g=l.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); return [l,g]; }
 function buildScene(){
   W = innerWidth; H = innerHeight;
   cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
   let bg, fg; [back,bg] = layer(); [front,fg] = layer();
-  sceneState = SCENES[themeKey].build(bg, fg, W, H);
+  sceneBuilt = sceneOf(themeKey); sceneState = SCENES[sceneBuilt].build(bg, fg, W, H);
 }
 function loop(time){
   if(useCanvas && sceneState){
-    const t = time/1000, S = SCENES[themeKey];
+    const t = time/1000, S = SCENES[sceneBuilt];
     ctx.drawImage(back,0,0,W,H); S.mid(ctx,W,H,t,sceneState);
     ctx.drawImage(front,0,0,W,H); S.top(ctx,W,H,t,sceneState);
   }
+  drawFX(time/1000);
   requestAnimationFrame(loop);
 }
 addEventListener('resize', () => { if(useCanvas) buildScene(); });
 
+/* =====================================================================
+   THEME EDITS — made with the ✏️ editor (#owner) and saved in site.json
+   (themeEdits = changes per theme, customThemes = your own copies)
+   ===================================================================== */
+const BASE_T = JSON.parse(JSON.stringify(THEMES));
+const BASE_C = JSON.parse(JSON.stringify(CONFIG.themes));
+let EDITS = {}, CUSTOM = {};
+const PREVIEW = {};                                   // just-uploaded files, shown before GitHub publishes them
+const asset = p => (p && PREVIEW[p]) || p;
+const T_FIELDS = ['label','tab','accent','accent2','text','muted','card','line','icon','title','grad','orn','anim','splash','splashSub','subtitle','bios','sparks'];
+const C_FIELDS = ['character','side','ornament','cursor','cursorHotspot','background','logo'];
+const baseOf = k => (CUSTOM[k] && CUSTOM[k].base) || k;
+function sceneOf(k){ const s = (EDITS[k] || {}).scene || baseOf(k); return SCENES[s] ? s : Object.keys(SCENES)[0]; }
+function rebuildTheme(k){
+  const b = baseOf(k), e = EDITS[k] || {};
+  if(!BASE_T[b]) return false;
+  const t = { ...BASE_T[b] };
+  if(CUSTOM[k]) t.label = CUSTOM[k].label || t.label;
+  for(const f of T_FIELDS) if(f in e && !(Array.isArray(e[f]) && !e[f].length)) t[f] = e[f];
+  THEMES[k] = t;
+  const c = { side: 'right', ...(BASE_C[b] || {}) };
+  for(const f of C_FIELDS) if(f in e) c[f] = e[f];
+  CONFIG.themes[k] = c;
+  if(CUSTOM[k] && typeof CURSORS !== 'undefined' && !CURSORS[k] && CURSORS[b]) CURSORS[k] = CURSORS[b];
+  return true;
+}
+function loadEdits(d){
+  EDITS = d.themeEdits || {}; CUSTOM = d.customThemes || {};
+  for(const k of new Set([...Object.keys(CUSTOM), ...Object.keys(EDITS)])) rebuildTheme(k);
+  buildThemeMenu();
+}
+const _fonts = new Set();
+function loadFont(css){
+  const m = /'([^']+)'/.exec(css || ''); if(!m || _fonts.has(m[1])) return; _fonts.add(m[1]);
+  if(document.querySelector(`link[href*="${m[1].replace(/ /g,'+')}"]`)) return;
+  const l = document.createElement('link'); l.rel = 'stylesheet';
+  l.href = `https://fonts.googleapis.com/css2?family=${m[1].replace(/ /g,'+')}&display=swap`; document.head.appendChild(l);
+}
+// the bits of a theme that don't need the whole page redrawn
+function applyExtras(key){
+  const e = EDITS[key] || {}, ch = $('chara');
+  $('name').textContent = e.nameText || CONFIG.name;
+  loadFont(T.title);
+  if(e.charX != null){
+    Object.assign(ch.style, { left: e.charX + 'vw', right: 'auto', bottom: (e.charY || 0) + 'vh', height: (e.charH || 70) + 'vh', width: 'auto', maxWidth: 'none', translate: '-50% 0' });
+  } else ['left','right','bottom','height','width','maxWidth','translate'].forEach(p => ch.style[p] = '');
+  ch.style.scale = e.charFlip ? '-1 1' : '';
+  ch.style.opacity = e.charFade != null ? e.charFade : '';
+  const nr = document.querySelector('.nameRow'); nr.dataset.orn = e.ornPlace || 'both';
+  document.documentElement.style.setProperty('--ornSize', e.ornSize ? e.ornSize + 'px' : '42px');
+  ['ornL','ornR','sx1','sx2'].forEach(id => $(id).style.animationDuration = e.ornSpeed ? e.ornSpeed + 's' : '');
+  document.body.classList.toggle('noSocOrn', e.ornSocials === false);
+  setFX(e.effects || {});
+}
+
+/* ---------- extra effects layer (snow, rain, petals …) ---------- */
+const FX_LIST = { snow:'❄️ Snow', rain:'🌧️ Rain', petals:'🌸 Petals', leaves:'🍂 Leaves', embers:'🔥 Embers', sparkles:'✨ Sparkles',
+  stars:'⭐ Shooting stars', bubbles:'🫧 Bubbles', hearts:'💗 Hearts', confetti:'🎉 Confetti', fireflies:'🪲 Fireflies', fog:'🌫️ Fog', glow:'💡 Edge glow', floater:'🖼️ Floating picture' };
+const FX_COL = { snow:'#ffffff', rain:'#a9c8ff', petals:'#ffb7d5', leaves:'#e0782c', embers:'#ff8a2a', bubbles:'#ffffff', fireflies:'#fff38a', fog:'#ffffff', stars:'#ffffff' };
+const FX_MAX = { snow:320, rain:420, petals:120, leaves:90, embers:160, sparkles:130, stars:6, bubbles:80, hearts:60, confetti:220, fireflies:70 };
+const fxc = $('fxCanvas'), fctx = fxc.getContext('2d');
+let fxCfg = {}, fxP = {}, fxImg = null, fxOn = false;
+function sizeFX(){ fxc.width = innerWidth * dpr; fxc.height = innerHeight * dpr; fctx.setTransform(dpr,0,0,dpr,0,0); }
+addEventListener('resize', sizeFX); sizeFX();
+function setFX(cfg){
+  fxCfg = cfg || {}; fxP = {};
+  const fl = fxCfg.floater; fxImg = null;
+  if(fl && fl.on && fl.img){ fxImg = new Image(); fxImg.src = asset(fl.img); }
+  fxOn = Object.values(fxCfg).some(v => v && v.on);
+  fxc.style.display = fxOn ? 'block' : 'none';
+  if(!fxOn) fctx.clearRect(0, 0, innerWidth, innerHeight);
+}
+function fxNew(k, W, H, any){
+  const y0 = any ? R()*H : -20, p = { x: R()*W, y: y0, ph: R()*TAU, r: R()*TAU };
+  switch(k){
+    case 'snow': return { ...p, s: rr(1,3.6), v: rr(.5,1.5) };
+    case 'rain': return { ...p, s: rr(10,22), v: rr(9,15) };
+    case 'petals': case 'leaves': return { ...p, s: rr(5,10), v: rr(.6,1.6), vr: rr(-.04,.04) };
+    case 'confetti': return { ...p, s: rr(4,8), v: rr(1.5,3.2), vr: rr(-.15,.15), c: R()*3|0 };
+    case 'embers': case 'bubbles': case 'hearts': return { ...p, y: any ? R()*H : H + 20, s: k==='hearts' ? rr(12,22) : k==='bubbles' ? rr(3,9) : rr(1,3), v: rr(.5,1.6) };
+    case 'sparkles': case 'fireflies': return { ...p, y: R()*H, s: rr(2,5), v: rr(.3,1), life: R() };
+    case 'stars': return { x: rr(0,W*1.2), y: rr(-H*.2,H*.4), l: any ? 0 : 1, s: rr(80,160), v: rr(8,14), wait: any ? rr(0,6) : rr(1,8) };
+  }
+  return p;
+}
+function drawFX(t){
+  if(!fxOn) return;
+  const W = innerWidth, H = innerHeight, c = fctx; c.clearRect(0, 0, W, H);
+  for(const [k, cf] of Object.entries(fxCfg)){
+    if(!cf || !cf.on) continue;
+    const amt = cf.amt ?? 50, spd = cf.spd ?? 1, col = cf.color || FX_COL[k] || T.accent;
+    if(k === 'glow'){
+      const a = (.12 + .1*Math.sin(t*2*spd)) * (amt/50), m = Math.min(W,H)*.22;
+      [[0,0,0,m],[0,H,0,H-m],[0,0,m,0],[W,0,W-m,0]].forEach(([x1,y1,x2,y2]) => { const g = c.createLinearGradient(x1,y1,x2,y2);
+        g.addColorStop(0, hexA(col, a)); g.addColorStop(1, hexA(col, 0)); c.fillStyle = g; c.fillRect(0,0,W,H); });
+      continue;
+    }
+    if(k === 'fog'){
+      const arr = fxP.fog ||= Array.from({length:9}, () => ({ x: R()*W, y: rr(H*.35,H), r: rr(180,340), v: rr(-.3,.3) }));
+      for(const f of arr){ f.x += f.v*spd; if(f.x < -f.r) f.x = W + f.r; if(f.x > W + f.r) f.x = -f.r;
+        const g = c.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r); g.addColorStop(0, hexA(col, .1*amt/50)); g.addColorStop(1, hexA(col,0));
+        c.fillStyle = g; c.fillRect(f.x-f.r, f.y-f.r, f.r*2, f.r*2); }
+      continue;
+    }
+    if(k === 'floater'){
+      if(!fxImg || !fxImg.complete || !fxImg.naturalWidth) continue;
+      const n = Math.max(1, Math.min(3, cf.count || 1));
+      for(let i = 0; i < n; i++){
+        const sz = 40 + amt*2.6, ar = fxImg.naturalHeight/fxImg.naturalWidth, tt = t*spd*.35 + i*2.1;
+        const x = W/2 + Math.sin(tt*1.3 + i) * W*.42, y = H/2 + Math.sin(tt*.9 + i*1.7) * H*.36;
+        c.save(); c.translate(x, y); c.rotate(Math.sin(tt*2)*.25); c.drawImage(fxImg, -sz/2, -sz*ar/2, sz, sz*ar); c.restore();
+      }
+      continue;
+    }
+    const arr = fxP[k] ||= [], want = Math.round(amt/100 * (FX_MAX[k] || 100));
+    while(arr.length < want) arr.push(fxNew(k, W, H, true));
+    if(arr.length > want) arr.length = want;
+    for(let i = 0; i < arr.length; i++){
+      const p = arr[i];
+      switch(k){
+        case 'snow': p.y += p.v*spd; p.x += Math.sin(t + p.ph)*.4; c.fillStyle = hexA(col,.85); c.beginPath(); c.arc(p.x,p.y,p.s,0,TAU); c.fill(); break;
+        case 'rain': p.y += p.v*spd; p.x -= p.v*spd*.18; c.strokeStyle = hexA(col,.45); c.lineWidth = 1.2; c.beginPath(); c.moveTo(p.x,p.y); c.lineTo(p.x+p.s*.18,p.y-p.s); c.stroke(); break;
+        case 'petals': case 'leaves': p.y += p.v*spd; p.x += Math.sin(t*1.3 + p.ph)*.9; p.r += p.vr*spd;
+          c.save(); c.translate(p.x,p.y); c.rotate(p.r); c.fillStyle = hexA(col,.85); c.beginPath();
+          if(k === 'petals') c.ellipse(0,0,p.s,p.s*.55,0,0,TAU); else { c.moveTo(0,-p.s); c.quadraticCurveTo(p.s*.8,0,0,p.s); c.quadraticCurveTo(-p.s*.8,0,0,-p.s); }
+          c.fill(); c.restore(); break;
+        case 'confetti': p.y += p.v*spd; p.x += Math.sin(t*2 + p.ph)*.6; p.r += p.vr*spd;
+          c.save(); c.translate(p.x,p.y); c.rotate(p.r); c.fillStyle = cf.color || [T.accent, T.accent2, '#ffffff'][p.c]; c.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); c.restore(); break;
+        case 'embers': p.y -= p.v*spd*1.4; p.x += Math.sin(t*2 + p.ph)*.5; c.fillStyle = hexA(col, .5 + .5*Math.sin(t*8 + p.ph)); c.beginPath(); c.arc(p.x,p.y,p.s,0,TAU); c.fill(); break;
+        case 'bubbles': p.y -= p.v*spd; p.x += Math.sin(t + p.ph)*.5; c.strokeStyle = hexA(col,.55); c.lineWidth = 1.2; c.beginPath(); c.arc(p.x,p.y,p.s,0,TAU); c.stroke();
+          c.fillStyle = hexA(col,.35); c.beginPath(); c.arc(p.x-p.s*.35,p.y-p.s*.35,p.s*.25,0,TAU); c.fill(); break;
+        case 'hearts': p.y -= p.v*spd*.8; p.x += Math.sin(t + p.ph)*.6; c.globalAlpha = Math.max(0, Math.min(1, p.y/H*1.5)); c.fillStyle = col; c.font = p.s + 'px serif'; c.fillText('♥', p.x, p.y); c.globalAlpha = 1; break;
+        case 'sparkles': { p.life += .006*spd; if(p.life > 1){ Object.assign(p, fxNew(k,W,H,true)); p.life = 0; }
+          const a = Math.sin(p.life*Math.PI), s = p.s*(.6 + a); c.fillStyle = hexA(col, a);
+          c.beginPath(); c.moveTo(p.x, p.y-s*2); c.quadraticCurveTo(p.x, p.y, p.x+s*2, p.y); c.quadraticCurveTo(p.x, p.y, p.x, p.y+s*2); c.quadraticCurveTo(p.x, p.y, p.x-s*2, p.y); c.quadraticCurveTo(p.x, p.y, p.x, p.y-s*2); c.fill(); break; }
+        case 'fireflies': { p.x += Math.cos(t*.7 + p.ph)*.5*spd; p.y += Math.sin(t*.9 + p.ph*1.3)*.4*spd; const a = .3 + .7*Math.abs(Math.sin(t*1.5 + p.ph));
+          const g = c.createRadialGradient(p.x,p.y,0,p.x,p.y,p.s*3); g.addColorStop(0, hexA(col,a)); g.addColorStop(1, hexA(col,0)); c.fillStyle = g; c.fillRect(p.x-p.s*3,p.y-p.s*3,p.s*6,p.s*6); break; }
+        case 'stars': if(p.wait > 0){ p.wait -= 1/60*spd; break; }
+          p.x -= p.v*spd; p.y += p.v*spd*.45; p.l -= .012*spd;
+          { const g = c.createLinearGradient(p.x,p.y,p.x+p.s,p.y-p.s*.45); g.addColorStop(0, hexA(col,Math.max(0,p.l))); g.addColorStop(1, hexA(col,0));
+            c.strokeStyle = g; c.lineWidth = 2; c.beginPath(); c.moveTo(p.x,p.y); c.lineTo(p.x+p.s,p.y-p.s*.45); c.stroke(); }
+          if(p.l <= 0) Object.assign(p, fxNew(k,W,H,false)); break;
+      }
+      if(k !== 'stars' && k !== 'sparkles' && k !== 'fireflies' && (p.y > H + 30 || p.y < -40 || p.x < -40 || p.x > W + 40)) arr[i] = fxNew(k, W, H, false);
+      if(k === 'fireflies' && (p.x < -20 || p.x > W+20 || p.y < -20 || p.y > H+20)) arr[i] = fxNew(k, W, H, true);
+    }
+  }
+}
+function hexA(h, a){
+  if(!h || h[0] !== '#') return h;
+  let x = h.slice(1); if(x.length === 3) x = [...x].map(c => c + c).join('');
+  const n = parseInt(x.slice(0,6), 16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${Math.max(0,Math.min(1,a))})`;
+}
+
 /* ---------- apply a theme ---------- */
 let charTimer, charIdx = 0, signalImg = null, flyerImg = null;
-function ornHTML(){ const o = (CONFIG.themes[themeKey]||{}).ornament; return o ? `<img src="${o}" alt="">` : orn(T.orn); }
+function ornHTML(){ const o = (CONFIG.themes[themeKey]||{}).ornament; return o ? `<img src="${asset(o)}" alt="">` : orn(T.orn); }
 function showChar(src){
   const ch = $('chara'); ch.classList.add('hide');
   setTimeout(() => {
     ch.onload = () => { ch.classList.toggle('wide', ch.naturalWidth > ch.naturalHeight * 1.05); ch.classList.remove('hide'); };
-    ch.src = src;
+    ch.src = asset(src);
   }, ch.src ? 450 : 0);
 }
 function applyTheme(key){
@@ -1153,9 +1379,9 @@ function applyTheme(key){
   st.setProperty('--accent',T.accent); st.setProperty('--accent2',T.accent2); st.setProperty('--text',T.text);
   st.setProperty('--muted',T.muted); st.setProperty('--card',T.card); st.setProperty('--line',T.line);
   st.setProperty('--icon',T.icon); st.setProperty('--title',T.title); st.setProperty('--grad',T.grad);
-  document.body.dataset.theme = key;
+  document.body.dataset.theme = baseOf(key);
   const opt = CONFIG.themes[key] || {};
-  const o = ornHTML(), an = opt.ornamentAnim || (opt.ornament ? 'a-flip' : T.anim);
+  const o = ornHTML(), an = ((EDITS[key]||{}).anim !== undefined) ? T.anim : opt.ornamentAnim || (opt.ornament ? 'a-flip' : T.anim);
   $('ornL').innerHTML = o; $('ornR').innerHTML = o;
   $('ornL').className = 'orn ' + an; $('ornR').className = 'orn r ' + an;
   $('sx1').innerHTML = o; $('sx2').innerHTML = o;
@@ -1173,22 +1399,22 @@ function applyTheme(key){
   signalImg = null;
   if(opt.signal){ signalImg = new Image(); signalImg.src = opt.signal; }
   flyerImg = null;
-  if(opt.flyer){ flyerImg = new Image(); flyerImg.src = opt.flyer; }
+  if(opt.flyer){ flyerImg = new Image(); flyerImg.src = asset(opt.flyer); }
   const lg = $('themeLogo');
-  if(opt.logo){ lg.src = opt.logo; lg.style.display = 'block'; } else lg.style.display = 'none';
+  if(opt.logo){ lg.src = asset(opt.logo); lg.style.display = 'block'; } else lg.style.display = 'none';
   document.body.classList.toggle('customCursor', !!opt.cursor);
-  if(opt.cursor) document.body.style.setProperty('--cur', `url(${opt.cursor}) ${opt.cursorHotspot || '2 2'}, auto`);
-  const fav = $('favicon'); if(fav) fav.href = opt.cursor || opt.ornament || 'data:,';
+  if(opt.cursor) document.body.style.setProperty('--cur', `url(${asset(opt.cursor)}) ${opt.cursorHotspot || '2 2'}, auto`);
+  const fav = $('favicon'); if(fav) fav.href = asset(opt.cursor || opt.ornament) || 'data:,';
 
   const bgFile = opt.background || '', vid = $('bgVideo'), img = $('bgImage');
   vid.style.display = img.style.display = 'none';
   useCanvas = !bgFile;
-  if(bgFile && /\.(mp4|webm)$/i.test(bgFile)){ vid.src = bgFile; vid.style.display = 'block'; }
-  else if(bgFile){ img.src = bgFile; img.style.display = 'block'; }
+  if(bgFile && /\.(mp4|webm)$/i.test(bgFile)){ vid.src = asset(bgFile); vid.style.display = 'block'; }
+  else if(bgFile){ img.src = asset(bgFile); img.style.display = 'block'; }
   cv.style.display = useCanvas ? 'block' : 'none';
   if(useCanvas) buildScene();
 
-  renderUser(); renderServer(); rebuildPlaylist();
+  renderUser(); renderServer(); rebuildPlaylist(); applyExtras(key);
   document.querySelectorAll('#themeMenu button').forEach(b => b.classList.toggle('on', b.dataset.k === key));
   try{ localStorage.setItem('bioThemeTBC', key); }catch(e){}
 }
@@ -1196,17 +1422,81 @@ function applyTheme(key){
 /* ---------- theme picker ---------- */
 const isOwner = CONFIG.themePicker !== 'off' && location.hash === '#' + CONFIG.secretWord;
 const pickerOn = isOwner || CONFIG.themePicker === 'everyone';
-if(pickerOn){
+function buildThemeMenu(){
+  if(!pickerOn) return;
   $('themeMenu').innerHTML = Object.entries(THEMES).map(([k,v]) =>
-    `<button data-k="${k}"><i style="background:linear-gradient(135deg,${v.accent},${v.accent2})"></i>${v.label}</button>`).join('');
+    `<button data-k="${k}" class="${k === themeKey ? 'on' : ''}"><i style="background:linear-gradient(135deg,${v.accent},${v.accent2})"></i>${v.label}${CUSTOM[k] ? ' ✨' : ''}</button>`).join('');
+}
+if(pickerOn){
+  buildThemeMenu();
   $('themeBtn').onclick = e => { e.stopPropagation(); $('themeMenu').classList.toggle('open'); };
-  $('themeMenu').onclick = e => { const b = e.target.closest('button'); if(b){ applyTheme(b.dataset.k); $('themeMenu').classList.remove('open'); } };
+  $('themeMenu').onclick = e => { const b = e.target.closest('button'); if(b){ applyTheme(b.dataset.k); $('themeMenu').classList.remove('open'); if(isOwner) saveThemeForEveryone(b.dataset.k); } };
   addEventListener('click', () => $('themeMenu').classList.remove('open'));
 } else $('themeBtn').style.display = 'none';
 
 let saved = null; try{ saved = localStorage.getItem('bioThemeTBC'); }catch(e){}
-applyTheme(pickerOn && saved ? saved : CONFIG.theme);
+applyTheme(pickerOn && saved && THEMES[saved] ? saved : CONFIG.theme);
 requestAnimationFrame(loop);
+
+/* =====================================================================
+   saving to GitHub (#owner only) — theme default + ✏️ editor edits in site.json
+   ===================================================================== */
+function toast(msg, ms = 3200){ const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), ms); }
+const GH = CONFIG.github;
+const getTok = () => { try{ return localStorage.getItem('ghToken') || ''; }catch(e){ return ''; } };
+async function gh(path, opts = {}){
+  // GET requests get a unique URL so the browser never reuses an old copy. (No cache:'no-store' — GitHub rejects its headers.)
+  const url = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.dir || ''}${path}` + (opts.method ? '' : `${path.includes('?') ? '&' : '?'}_=${Date.now()}`);
+  const r = await fetch(url, { ...opts,
+    headers: { Authorization: `Bearer ${getTok()}`, Accept: 'application/vnd.github+json', ...(opts.body ? {'Content-Type':'application/json'} : {}) } });
+  if(!r.ok && r.status !== 404){ let m = r.status; try{ m = (await r.json()).message; }catch(e){} throw new Error(m); }
+  return r;
+}
+const textB64 = str => btoa(unescape(encodeURIComponent(str)));
+const fileB64 = f => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result.split(',')[1]); fr.onerror = rej; fr.readAsDataURL(f); });
+async function getSite(){
+  const r = await gh(`site.json?ref=${GH.branch}`);
+  if(r.status === 404) return { data: { defaultTheme: '', songs: [] }, sha: null };
+  const j = await r.json();
+  return { data: JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,''))))), sha: j.sha };
+}
+// saves run one at a time, and retry with a fresh copy if GitHub says the file changed
+let _siteQueue = Promise.resolve();
+function saveSite(change){
+  const job = _siteQueue.then(async () => {
+    for(let attempt = 1; ; attempt++){
+      const { data, sha } = await getSite(); change(data);
+      try{
+        await gh('site.json', { method:'PUT', body: JSON.stringify({ message:'Update site.json', content: textB64(JSON.stringify(data, null, 2)), branch: GH.branch, ...(sha ? {sha} : {}) }) });
+        return data;
+      }catch(err){
+        if(attempt >= 4 || !/does not match|409|conflict/i.test(String(err.message))) throw err;
+        await new Promise(r => setTimeout(r, 1200 * attempt));
+      }
+    }
+  });
+  _siteQueue = job.catch(() => {});
+  return job;
+}
+let saveTimer;
+function saveThemeForEveryone(key){
+  const label = THEMES[key].label;
+  if(!getTok()){ toast(`Showing "${label}" here. Add the GitHub key (✏️ → Theme tab) to make it everyone's first theme.`, 5000); return; }
+  toast(`Saving "${label}" for everyone…`);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try{ await saveSite(d => { d.defaultTheme = key; }); toast(`✓ "${label}" is now the theme everyone sees first (live in ~1 min)`); }
+    catch(err){ toast('Couldn\'t save for everyone: ' + err.message, 5000); }
+  }, 1200);
+}
+// load saved edits + the theme everyone should see
+fetch('site.json?v=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json() : null).then(d => {
+  if(!d) return;
+  loadEdits(d); if(window._edSynced) window._edSynced(d);
+  if(d.defaultTheme && THEMES[d.defaultTheme] && (!isOwner || !saved)) applyTheme(d.defaultTheme);
+  else applyTheme(saved && THEMES[saved] ? saved : themeKey);
+}).catch(()=>{});
+
 
 /* ---------- animated browser tab title: types "@name" out and back ---------- */
 (function tabTitle(){
@@ -1221,6 +1511,280 @@ requestAnimationFrame(loop);
 loadPresence(); setInterval(loadPresence, 30000);
 loadServer(); setInterval(loadServer, 120000);
 
+/* =====================================================================
+   ✏️ THEME EDITOR (only in #owner) — edit any theme live, then Save
+   ===================================================================== */
+if(isOwner){
+  const FONTS = [...new Set([...document.querySelectorAll('link[href*="fonts.googleapis"]')].flatMap(l =>
+    [...l.href.matchAll(/family=([^:&]+)/g)].map(m => decodeURIComponent(m[1]).replace(/\+/g,' '))))];
+  const ORNS = [...document.querySelectorAll('defs g[id^="o-"]')].map(g => g.id.slice(2));
+  const ANIMS = { 'a-spin':'Spin', 'a-spinfast':'Fast spin', 'a-sway':'Sway', 'a-flip':'Flip', 'a-pulse':'Pulse', '':'Still' };
+  const PLACES = { both:'Both sides of name', left:'Left of name', right:'Right of name', above:'Above name', below:'Below name', none:'Hidden' };
+  let W = {}, tab = 'text', lastSaved = JSON.parse(JSON.stringify(EDITS)), dragOn = false, uploads = [];
+  const st = msg => $('epStatus').textContent = msg;
+  const hasMusic = !!$('musicPanel');
+  const KEYMSG = hasMusic ? 'Add your GitHub key in 🎵 first (one-time setup).' : 'Add the GitHub key first: Theme tab → GitHub key.';
+  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const toHex = c => { if(!c) return '#ffffff'; if(c[0] === '#') return c.length === 4 ? '#' + [...c.slice(1)].map(x => x + x).join('') : c.slice(0,7);
+    const m = /rgba?\(([^)]+)\)/.exec(c); if(!m) return '#ffffff'; const [r,g,b] = m[1].split(',').map(Number);
+    return '#' + [r,g,b].map(v => (v|0).toString(16).padStart(2,'0')).join(''); };
+  const alphaOf = c => { const m = /rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)/.exec(c || ''); return m ? +m[1] : 1; };
+  const gradCols = g => (String(g || '').match(/#[0-9a-f]{3,8}/gi) || ['#ffffff','#ff7eb6','#ffffff']).slice(0,3);
+
+  function openEditor(){ W = JSON.parse(JSON.stringify(EDITS[themeKey] || {})); $('epTheme').textContent = T.label; render(); $('editPanel').classList.add('open'); }
+  function changed(kind){
+    if(Object.keys(W).length) EDITS[themeKey] = W; else delete EDITS[themeKey];
+    rebuildTheme(themeKey); T = THEMES[themeKey];
+    if(kind === 'light'){ applyExtras(themeKey); }
+    else { clearTimeout(changed.h); changed.h = setTimeout(() => { applyTheme(themeKey); buildThemeMenu(); }, 180); }
+    st('Unsaved changes — press 💾 Save to make them live.');
+  }
+
+  /* ---------- the tabs ---------- */
+  const row = (label, html) => `<label class="ef"><span>${label}</span>${html}</label>`;
+  const txt = (f, label, ph = '') => row(label, `<input type="text" data-f="${f}" value="${esc(W[f] ?? T[f] ?? '')}" placeholder="${esc(ph)}">`);
+  const col = (f, label) => row(label, `<input type="color" data-f="${f}" data-k="hex" value="${toHex(T[f])}">`);
+  const rgba = (f, label) => row(label, `<span class="pair"><input type="color" data-f="${f}" data-k="rgbaC" value="${toHex(T[f])}"><input type="range" min="0" max="1" step=".02" data-f="${f}" data-k="rgbaA" value="${alphaOf(T[f])}" title="see-through"></span>`);
+  const rng = (f, label, min, max, step, val, kind = 'light') => row(label, `<input type="range" data-f="${f}" data-k="num" data-kind="${kind}" min="${min}" max="${max}" step="${step}" value="${val}">`);
+  const sel = (f, label, opts, val, kind = 'full') => row(label, `<select data-f="${f}" data-kind="${kind}">${Object.entries(opts).map(([k,v]) => `<option value="${k}" ${k === val ? 'selected' : ''}>${v}</option>`).join('')}</select>`);
+  const up = (kind, label, accept) => `<label class="wbtn upl">⬆ ${label}<input type="file" data-up="${kind}" accept="${accept}" hidden></label>`;
+  const opt = CONFIG => CONFIG.themes[themeKey] || {};
+
+  const TABS = {
+    text(){ return `
+      ${txt('label','Theme name (🎨 menu)')}
+      ${txt('nameText','Name at the top', CONFIG.name)}
+      ${txt('tab','Tab emoji')}
+      ${txt('splash','Splash screen big text')}
+      ${txt('splashSub','Splash screen small text')}
+      ${txt('subtitle','Small line under your name')}
+      ${row('Typewriter lines <i>(one per line)</i>', `<textarea data-f="bios" data-k="lines" rows="5">${esc((W.bios || T.bios || []).join('\n'))}</textarea>`)}
+      ${row('Click sparkles <i>(2 symbols)</i>', `<input type="text" data-f="sparks" data-k="chars" value="${esc((T.sparks || []).join(''))}" maxlength="4">`)}
+      <button class="wbtn" id="epSplash">👁 Preview splash screen</button>`; },
+    look(){ const g = gradCols(T.grad), fontNow = (/'([^']+)'/.exec(T.title) || [,''])[1];
+      return `
+      <b>Colors</b>
+      ${col('accent','Main color')}${col('accent2','Second color')}${col('text','Text')}${col('muted','Dim text')}${col('icon','Social icons')}
+      ${rgba('card','Card background')}${rgba('line','Card border')}
+      ${row('Name shine (3 colors)', `<span class="pair">${g.map((c,i) => `<input type="color" data-f="grad" data-k="grad${i}" value="${toHex(c)}">`).join('')}</span>`)}
+      <hr><b>Font</b>
+      ${row('Name font', `<select data-f="title" data-k="font">${[...new Set([fontNow, ...FONTS])].filter(Boolean).map(f => `<option ${f === fontNow ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select>`)}
+      ${row('…or any Google Font name', `<input type="text" data-f="title" data-k="fontCustom" placeholder="e.g. Lobster">`)}
+      <hr><b>Background scene</b>
+      ${sel('scene','Animated scene', Object.fromEntries(Object.keys(SCENES).map(k => [k, (BASE_T[k] || {}).label || k])), sceneOf(themeKey))}
+      <p>Mix any theme's animation with this theme's colors and pictures.</p>`; },
+    pictures(){ const o = opt(CONFIG), list = [].concat(o.character || []).filter(Boolean), e = W;
+      return `
+      <b>Characters</b> <i>(several = they take turns)</i>
+      <div class="thumbs">${list.map((p,i) => `<span class="th"><img src="${esc(asset(p))}"><button data-delchar="${i}" title="Remove">✕</button></span>`).join('') || '<p>None yet.</p>'}</div>
+      ${up('character','Add character (PNG/GIF)','image/*')}
+      ${sel('side','Default spot', { right:'Right side', left:'Left side' }, o.side || 'right')}
+      <button class="wbtn ${dragOn ? 'go' : ''}" id="epDrag">✋ ${dragOn ? 'Dragging ON — drag the picture, scroll to resize' : 'Move it by dragging'}</button>
+      ${e.charX != null ? `${rng('charH','Size',20,110,1,e.charH ?? 70)}${rng('charX','Left ↔ right',0,100,.5,e.charX)}${rng('charY','Up ↕ down',-20,80,.5,e.charY ?? 0)}<button class="wbtn" id="epCharReset">↺ Back to default spot</button>` : ''}
+      ${row('Mirror it', `<input type="checkbox" data-f="charFlip" data-k="bool" data-kind="light" ${e.charFlip ? 'checked' : ''}>`)}
+      ${rng('charFade','See-through',.1,1,.05,e.charFade ?? 1)}
+      ${$('themeLogo') ? `<hr><b>Logo above the name</b>
+      <p>${o.logo ? `Using <img class="mini" src="${esc(asset(o.logo))}">` : 'None.'}</p>
+      ${up('logo','Upload logo','image/*')}${o.logo ? '<button class="wbtn" data-clear="logo">✕ Remove logo</button>' : ''}` : ''}
+      <hr><b>Background</b>
+      <p>${o.background ? `Using <code>${esc(o.background.split('/').pop())}</code>` : 'Using the animated scene.'}</p>
+      ${up('background','Picture / GIF / MP4 background','image/*,video/mp4,video/webm')}
+      ${o.background ? '<button class="wbtn" data-clear="background">✕ Back to animated scene</button>' : ''}
+      <hr><b>Mouse pointer</b>
+      <p>${o.cursor ? `Using <img class="mini" src="${esc(asset(o.cursor))}">` : 'Using the theme\'s built-in pointer.'}</p>
+      ${up('cursor','Upload pointer (auto-shrinks to 32px)','image/png,image/webp,image/jpeg,image/gif')}
+      ${sel('cursorHotspot','Click point', { '0 0':'Top-left tip', '16 16':'Center', '0 31':'Bottom-left', '31 0':'Top-right' }, o.cursorHotspot || '0 0')}
+      ${o.cursor ? '<button class="wbtn" data-clear="cursor">✕ Back to built-in pointer</button>' : ''}`; },
+    icons(){ const o = opt(CONFIG), e = W;
+      return `
+      <b>Spinning icons</b>
+      <div class="ornGrid">${ORNS.map(k => `<button data-orn="${k}" class="${!o.ornament && T.orn === k ? 'on' : ''}" title="${k}">${orn(k)}</button>`).join('')}</div>
+      ${up('ornament','Use my own picture','image/*')}
+      ${o.ornament ? `<p>Using <img class="mini" src="${esc(asset(o.ornament))}"> <button class="link" data-clear="ornament">✕ use built-in</button></p>` : ''}
+      ${sel('ornPlace','Where', PLACES, e.ornPlace || 'both', 'light')}
+      ${rng('ornSize','Size',16,120,1,e.ornSize ?? 42)}
+      ${sel('anim','Movement', ANIMS, T.anim || '')}
+      ${rng('ornSpeed','Speed (seconds per turn — lower = faster)',.4,20,.1,e.ornSpeed ?? 6)}
+      ${row('Also by the social icons', `<input type="checkbox" data-f="ornSocials" data-k="boolOn" data-kind="light" ${e.ornSocials === false ? '' : 'checked'}>`)}`; },
+    effects(){ const fx = W.effects || {};
+      return `<p>Layer extra effects on top of this theme.</p>` + Object.entries(FX_LIST).map(([k, label]) => { const c = fx[k] || {};
+        return `<div class="fx ${c.on ? 'on' : ''}"><label class="fxh"><input type="checkbox" data-fx="${k}" data-p="on" ${c.on ? 'checked' : ''}> ${label}</label>
+          ${c.on ? `<div class="fxb">
+            ${k === 'floater' ? `${c.img ? `<img class="mini" src="${esc(asset(c.img))}">` : '<p>Pick a picture:</p>'}${up('floater','Upload picture','image/*')}
+               <label class="ef"><span>How many</span><input type="range" data-fx="${k}" data-p="count" min="1" max="3" step="1" value="${c.count ?? 1}"></label>` : ''}
+            <label class="ef"><span>${k === 'floater' ? 'Size' : k === 'glow' || k === 'fog' ? 'Strength' : 'Amount'}</span><input type="range" data-fx="${k}" data-p="amt" min="5" max="100" step="1" value="${c.amt ?? 50}"></label>
+            <label class="ef"><span>Speed</span><input type="range" data-fx="${k}" data-p="spd" min=".2" max="3" step=".1" value="${c.spd ?? 1}"></label>
+            ${k === 'floater' ? '' : `<label class="ef"><span>Color</span><span class="pair"><input type="color" data-fx="${k}" data-p="color" value="${toHex(c.color || FX_COL[k] || T.accent)}">${c.color ? `<button class="link" data-fxreset="${k}">auto</button>` : ''}</span></label>`}
+          </div>` : ''}</div>`; }).join(''); },
+    theme(){ const custom = !!CUSTOM[themeKey];
+      return `
+      <b>Make a new theme</b>
+      <p>Copies <b>${esc(T.label)}</b> (with your changes) into a new theme you can change however you want.</p>
+      <input type="text" id="epNewName" placeholder="New theme name">
+      <button class="wbtn go" id="epCopy">＋ Copy as new theme</button>
+      <hr>
+      ${custom ? `<b>Delete</b><p>Removes "${esc(T.label)}" from your site.</p><button class="wbtn danger" id="epDel">🗑 Delete this theme</button>`
+               : `<b>Reset</b><p>Undo every edit on "${esc(T.label)}" and go back to how it was built.</p><button class="wbtn danger" id="epReset">↺ Reset to original</button>`}
+      ${hasMusic ? '' : `<hr><b>GitHub key</b><p>${getTok() ? 'Key saved on this device ✓' : 'Needed once per device to save. Same key as the main page (github.com → Settings → Developer settings → Fine-grained tokens, repo <b>iitstymfk.github.io</b>, Contents: Read and write).'}</p>
+      <input type="password" id="epTok" placeholder="${getTok() ? 'key saved ✓' : 'github_pat_...'}"><div class="pair"><button class="wbtn go" id="epTokSave">Save key</button><button class="wbtn" id="epTokForget">Forget key</button></div>`}
+      <hr><p>Edits save to <code>site.json</code> on your GitHub. Pictures you upload go in <code>chars/edits/</code>.</p>`; },
+  };
+  function render(){
+    document.querySelectorAll('#editPanel .epTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+    $('epTheme').textContent = T.label; $('epBody').innerHTML = TABS[tab]();
+  }
+
+  /* ---------- reading the inputs ---------- */
+  function onInput(e){
+    const el = e.target;
+    if(el.dataset.fx){ const k = el.dataset.fx, p = el.dataset.p; W.effects = W.effects || {}; const c = W.effects[k] = W.effects[k] || {};
+      c[p] = el.type === 'checkbox' ? el.checked : el.type === 'color' ? el.value : +el.value;
+      if(p === 'on'){ if(!el.checked && !c.img) delete W.effects[k]; changed('light'); if(e.type === 'change') render(); return; }
+      changed('light'); return; }
+    const f = el.dataset.f; if(!f) return;
+    const k = el.dataset.k, kind = el.dataset.kind || 'full';
+    let v = el.value;
+    if(k === 'num') v = +v;
+    else if(k === 'bool') v = el.checked;
+    else if(k === 'boolOn'){ if(el.checked){ delete W[f]; changed(kind); return; } v = false; }
+    else if(k === 'lines') v = v.split('\n').map(s => s.trim()).filter(Boolean);
+    else if(k === 'chars'){ const a = [...v]; v = [a[0] || '✦', a[1] || a[0] || '·']; }
+    else if(k === 'rgbaC' || k === 'rgbaA'){ const cur = T[f]; const hx = k === 'rgbaC' ? v : toHex(cur), a = k === 'rgbaA' ? +v : alphaOf(cur); v = hexA(hx, a); }
+    else if(/^grad\d$/.test(k)){ const g = gradCols(T.grad); g[+k.slice(4)] = v; v = `linear-gradient(90deg,${g[0]},${g[1]},${g[2]},${g[0]})`; }
+    else if(k === 'font' || k === 'fontCustom'){ if(!v.trim()) return; v = `'${v.trim()}',sans-serif`; }
+    if(f === 'side' && W.charX != null){ delete W.charX; delete W.charY; delete W.charH; }
+    W[f] = v;
+    if(f === 'anim' && W.ornSpeed == null) delete W.ornSpeed;
+    if(e.type === 'input' && (el.type === 'text' || el.tagName === 'TEXTAREA') && kind === 'full' && !['label','tab'].includes(f)){
+      // text: update instantly without redrawing the scene
+      if(f === 'nameText'){ applyExtras(themeKey); }
+      rebuildTheme(themeKey); T = THEMES[themeKey]; EDITS[themeKey] = W;
+      if(f === 'splash') $('splashText').textContent = v; if(f === 'splashSub') $('splashSub').textContent = v; if(f === 'subtitle') $('jp').textContent = v;
+      if(f === 'bios'){ clearTimeout(bioTimer); bioI = 0; bioJ = 0; bioDel = false; typeTick(); }
+      st('Unsaved changes — press 💾 Save to make them live.'); return;
+    }
+    changed(['nameText','charH','charX','charY','charFade','ornSize','ornSpeed','ornPlace'].includes(f) ? 'light' : kind);
+  }
+  $('epBody').addEventListener('input', onInput);
+  $('epBody').addEventListener('change', e => { if(e.target.dataset.up) return onUpload(e); if(e.target.type === 'checkbox' || e.target.tagName === 'SELECT') onInput(e);
+    if(e.target.dataset.f === 'side' || e.target.dataset.f === 'scene' || e.target.dataset.f === 'anim') setTimeout(render, 220); });
+
+  /* ---------- buttons inside the panel ---------- */
+  $('epBody').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if(!b) return;
+    if(b.dataset.orn){ W.orn = b.dataset.orn; delete W.ornament; changed(); setTimeout(render, 220); return; }
+    if(b.dataset.clear){ W[b.dataset.clear] = ''; if(b.dataset.clear === 'cursor') delete W.cursorHotspot; changed(); setTimeout(render, 220); return; }
+    if(b.dataset.delchar != null){ const list = [].concat(opt(CONFIG).character || []); list.splice(+b.dataset.delchar, 1); W.character = list; changed(); setTimeout(render, 220); return; }
+    if(b.dataset.fxreset){ delete W.effects[b.dataset.fxreset].color; changed('light'); render(); return; }
+    if(b.id === 'epTokSave'){ const v = $('epTok').value.trim(); if(!v) return; try{ localStorage.setItem('ghToken', v); }catch(err){} render(); st('Key saved on this device.'); return; }
+    if(b.id === 'epTokForget'){ try{ localStorage.removeItem('ghToken'); }catch(err){} render(); st('Key removed from this device.'); return; }
+    if(b.id === 'epSplash'){ $('splash').classList.remove('gone'); $('editPanel').classList.remove('open'); toast('Click the splash to close it — then ✏️ to keep editing'); return; }
+    if(b.id === 'epDrag'){ dragOn = !dragOn; document.body.classList.toggle('dragChar', dragOn);
+      if(dragOn && W.charX == null) grabCharSpot(); render(); return; }
+    if(b.id === 'epCharReset'){ delete W.charX; delete W.charY; delete W.charH; dragOn = false; document.body.classList.remove('dragChar'); changed('light'); render(); return; }
+    if(b.id === 'epCopy'){
+      const name = $('epNewName').value.trim(); if(!name) return st('Type a name for the new theme first.');
+      let key = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,24) || 'my-theme', n = 2;
+      while(THEMES[key]) key = key.replace(/-\d+$/,'') + '-' + n++;
+      CUSTOM[key] = { base: baseOf(themeKey), label: name };
+      EDITS[key] = { ...JSON.parse(JSON.stringify(W)), label: name };
+      if(!EDITS[key].scene && sceneOf(themeKey) !== baseOf(themeKey)) EDITS[key].scene = sceneOf(themeKey);
+      rebuildTheme(key); buildThemeMenu(); applyTheme(key); W = EDITS[key]; tab = 'text'; render();
+      st(`Made "${name}". Press 💾 Save to keep it.`); return;
+    }
+    if(b.id === 'epReset'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to reset'; return; }
+      W = {}; changed(); setTimeout(render, 220); st('Reset — press 💾 Save to make it live.'); return; }
+    if(b.id === 'epDel'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to delete for good'; return; }
+      if(!getTok()) return st(KEYMSG);
+      const key = themeKey, base = baseOf(key);
+      try{ st('Deleting…');
+        await saveSite(d => { if(d.customThemes) delete d.customThemes[key]; if(d.themeEdits) delete d.themeEdits[key]; if(d.defaultTheme === key) d.defaultTheme = base;
+          (d.songs || []).forEach(s => { if(s.themes) s.themes = s.themes.filter(t => t !== key); }); });
+        delete CUSTOM[key]; delete EDITS[key]; delete lastSaved[key]; delete THEMES[key]; delete CONFIG.themes[key]; if(typeof CURSORS !== 'undefined') delete CURSORS[key];
+        buildThemeMenu(); applyTheme(base); openEditor(); st('✓ Deleted.');
+      }catch(err){ st('Delete failed: ' + err.message); }
+      return; }
+  });
+
+  /* ---------- uploads (go straight to GitHub, shown right away) ---------- */
+  const LIMITS = { logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
+  async function shrink(file, kind){
+    if(/gif|video/.test(file.type)) return file;
+    const bmp = await createImageBitmap(file), max = LIMITS[kind] || 1500;
+    let w = bmp.width, h = bmp.height;
+    if(kind === 'cursor'){ const s = 32 / Math.max(w, h); w = Math.max(1, Math.round(w*s)); h = Math.max(1, Math.round(h*s)); }
+    else if(Math.max(w, h) > max){ const s = max / Math.max(w, h); w = Math.round(w*s); h = Math.round(h*s); }
+    const cvs = document.createElement('canvas'); cvs.width = kind === 'cursor' ? 32 : w; cvs.height = kind === 'cursor' ? 32 : h;
+    cvs.getContext('2d').drawImage(bmp, kind === 'cursor' ? (32-w)/2 : 0, kind === 'cursor' ? (32-h)/2 : 0, w, h);
+    const type = kind === 'cursor' ? 'image/png' : kind === 'background' ? 'image/jpeg' : 'image/webp';
+    return await new Promise(res => cvs.toBlob(b => res(b || file), type, .88));
+  }
+  async function onUpload(e){
+    const el = e.target, kind = el.dataset.up, file = el.files[0]; if(!file) return;
+    if(!getTok()) return st(KEYMSG);
+    if(file.size > 45e6) return st('That file is over 45 MB — try a smaller one (MP4 is much smaller than GIF).');
+    const job = (async () => {
+      st('Getting it ready…');
+      const blob = await shrink(file, kind);
+      const ext = ({ 'image/png':'png', 'image/webp':'webp', 'image/jpeg':'jpg', 'image/gif':'gif', 'video/mp4':'mp4', 'video/webm':'webm' })[blob.type] || file.name.split('.').pop().toLowerCase();
+      const base = file.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,30) || kind;
+      const path = `chars/edits/${kind}-${base}-${Date.now().toString(36)}.${ext}`;
+      PREVIEW[path] = URL.createObjectURL(blob);
+      // show it right away while it uploads
+      if(kind === 'character') W.character = [...[].concat(opt(CONFIG).character || []).filter(Boolean), path];
+      else if(kind === 'floater'){ W.effects = W.effects || {}; W.effects.floater = { ...(W.effects.floater || {}), on: true, img: path }; }
+      else W[kind] = path;
+      if(kind === 'cursor' && !W.cursorHotspot) W.cursorHotspot = '0 0';
+      changed(); setTimeout(render, 220);
+      st('Uploading to GitHub…');
+      await gh(path, { method:'PUT', body: JSON.stringify({ message:`Add ${kind} picture`, content: await fileB64(blob), branch: GH.branch }) });
+      st('✓ Uploaded. Press 💾 Save to make it live.');
+    })().catch(err => st('Upload failed: ' + err.message));
+    uploads.push(job); el.value = '';
+  }
+
+  /* ---------- drag the character around ---------- */
+  function grabCharSpot(){ const r = $('chara').getBoundingClientRect();
+    W.charX = +((r.left + r.width/2) / innerWidth * 100).toFixed(1); W.charY = +((innerHeight - r.bottom) / innerHeight * 100).toFixed(1);
+    W.charH = +(r.height / innerHeight * 100).toFixed(1); changed('light'); }
+  let drag = null;
+  $('chara').addEventListener('pointerdown', e => { if(!dragOn) return; e.preventDefault(); e.stopPropagation(); $('chara').setPointerCapture(e.pointerId);
+    drag = { x: e.clientX, y: e.clientY, cx: W.charX, cy: W.charY }; });
+  $('chara').addEventListener('pointermove', e => { if(!drag) return;
+    W.charX = +(drag.cx + (e.clientX - drag.x) / innerWidth * 100).toFixed(1); W.charY = +(drag.cy - (e.clientY - drag.y) / innerHeight * 100).toFixed(1); changed('light'); });
+  $('chara').addEventListener('pointerup', () => { if(drag){ drag = null; if(tab === 'pictures') render(); } });
+  $('chara').addEventListener('wheel', e => { if(!dragOn) return; e.preventDefault(); W.charH = Math.max(15, Math.min(120, (W.charH || 70) - Math.sign(e.deltaY) * 3)); changed('light'); }, { passive: false });
+
+  /* ---------- open / close / save / undo ---------- */
+  $('editBtn').style.display = 'grid';
+  $('editBtn').onclick = e => { e.stopPropagation(); $('themeMenu').classList.remove('open'); if(hasMusic) $('musicPanel').classList.remove('open');
+    if($('editPanel').classList.toggle('open')) openEditor(); };
+  $('editPanel').addEventListener('click', e => e.stopPropagation());
+  $('editPanel').addEventListener('pointerdown', e => e.stopPropagation());
+  $('epClose').onclick = () => { $('editPanel').classList.remove('open'); dragOn = false; document.body.classList.remove('dragChar'); };
+  document.querySelector('#editPanel .epTabs').onclick = e => { const b = e.target.closest('button'); if(!b) return; tab = b.dataset.tab; render(); };
+  $('epUndo').onclick = () => { const k = themeKey;
+    if(lastSaved[k]) EDITS[k] = JSON.parse(JSON.stringify(lastSaved[k])); else delete EDITS[k];
+    W = JSON.parse(JSON.stringify(EDITS[k] || {})); rebuildTheme(k); applyTheme(k); buildThemeMenu(); render(); st('Back to the last saved version.'); };
+  $('epSave').onclick = async () => {
+    if(!getTok()) return st(KEYMSG);
+    const k = themeKey, data = Object.keys(W).length ? JSON.parse(JSON.stringify(W)) : null;
+    try{
+      $('epSave').disabled = true;
+      if(uploads.length){ st('Finishing uploads…'); await Promise.all(uploads); uploads = []; }
+      st('Saving…');
+      await saveSite(d => { d.themeEdits = d.themeEdits || {}; if(data) d.themeEdits[k] = data; else delete d.themeEdits[k];
+        d.customThemes = { ...(d.customThemes || {}), ...CUSTOM }; });
+      if(data) lastSaved[k] = data; else delete lastSaved[k];
+      st(`✓ Saved "${T.label}". Live for everyone in about a minute.`);
+    }catch(err){ st('Save failed: ' + err.message); }
+    finally{ $('epSave').disabled = false; }
+  };
+  addEventListener('beforeunload', e => { if(JSON.stringify(EDITS[themeKey] || {}) !== JSON.stringify(lastSaved[themeKey] || {})){ e.preventDefault(); e.returnValue = ''; } });
+  window._edSynced = d => { lastSaved = JSON.parse(JSON.stringify(d.themeEdits || {})); if($('editPanel').classList.contains('open')) openEditor(); };
+  // switching themes from 🎨 while the editor is open edits the new one
+  $('themeMenu').addEventListener('click', () => { if($('editPanel').classList.contains('open')) setTimeout(openEditor, 50); });
+}
 </script>
 </body>
 </html>

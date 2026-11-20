@@ -284,6 +284,8 @@ img.mini{height:28px;vertical-align:middle;margin:0 4px}
 .epFoot .row{display:flex;gap:6px}.epFoot .row button{flex:1}
 #epStatus{display:block;color:#aaa;font-size:11.5px;min-height:15px}
 @media (max-width:560px){ #editPanel{top:auto;height:62vh;right:3vw;left:3vw;width:auto;bottom:10px} }
+#epBody input[type=password]{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px 9px;color:#fff;font:inherit;margin:4px 0}
+#epBody .pair .wbtn{flex:1}
 </style>
 </head>
 <body data-theme="sakura">
@@ -1573,7 +1575,7 @@ let EDITS = {}, CUSTOM = {};
 const PREVIEW = {};                                   // just-uploaded files, shown before GitHub publishes them
 const asset = p => (p && PREVIEW[p]) || p;
 const T_FIELDS = ['label','tab','accent','accent2','text','muted','card','line','icon','title','grad','orn','anim','splash','splashSub','subtitle','bios','sparks'];
-const C_FIELDS = ['character','side','ornament','cursor','cursorHotspot','background'];
+const C_FIELDS = ['character','side','ornament','cursor','cursorHotspot','background','logo'];
 const baseOf = k => (CUSTOM[k] && CUSTOM[k].base) || k;
 function sceneOf(k){ const s = (EDITS[k] || {}).scene || baseOf(k); return SCENES[s] ? s : Object.keys(SCENES)[0]; }
 function rebuildTheme(k){
@@ -1586,7 +1588,7 @@ function rebuildTheme(k){
   const c = { side: 'right', ...(BASE_C[b] || {}) };
   for(const f of C_FIELDS) if(f in e) c[f] = e[f];
   CONFIG.themes[k] = c;
-  if(CUSTOM[k] && !CURSORS[k] && CURSORS[b]) CURSORS[k] = CURSORS[b];
+  if(CUSTOM[k] && typeof CURSORS !== 'undefined' && !CURSORS[k] && CURSORS[b]) CURSORS[k] = CURSORS[b];
   return true;
 }
 function loadEdits(d){
@@ -1984,6 +1986,8 @@ if(isOwner){
   const PLACES = { both:'Both sides of name', left:'Left of name', right:'Right of name', above:'Above name', below:'Below name', none:'Hidden' };
   let W = {}, tab = 'text', lastSaved = JSON.parse(JSON.stringify(EDITS)), dragOn = false, uploads = [];
   const st = msg => $('epStatus').textContent = msg;
+  const hasMusic = !!$('musicPanel');
+  const KEYMSG = hasMusic ? 'Add your GitHub key in 🎵 first (one-time setup).' : 'Add the GitHub key first: Theme tab → GitHub key.';
   const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
   const toHex = c => { if(!c) return '#ffffff'; if(c[0] === '#') return c.length === 4 ? '#' + [...c.slice(1)].map(x => x + x).join('') : c.slice(0,7);
     const m = /rgba?\(([^)]+)\)/.exec(c); if(!m) return '#ffffff'; const [r,g,b] = m[1].split(',').map(Number);
@@ -2043,6 +2047,9 @@ if(isOwner){
       ${e.charX != null ? `${rng('charH','Size',20,110,1,e.charH ?? 70)}${rng('charX','Left ↔ right',0,100,.5,e.charX)}${rng('charY','Up ↕ down',-20,80,.5,e.charY ?? 0)}<button class="wbtn" id="epCharReset">↺ Back to default spot</button>` : ''}
       ${row('Mirror it', `<input type="checkbox" data-f="charFlip" data-k="bool" data-kind="light" ${e.charFlip ? 'checked' : ''}>`)}
       ${rng('charFade','See-through',.1,1,.05,e.charFade ?? 1)}
+      ${$('themeLogo') ? `<hr><b>Logo above the name</b>
+      <p>${o.logo ? `Using <img class="mini" src="${esc(asset(o.logo))}">` : 'None.'}</p>
+      ${up('logo','Upload logo','image/*')}${o.logo ? '<button class="wbtn" data-clear="logo">✕ Remove logo</button>' : ''}` : ''}
       <hr><b>Background</b>
       <p>${o.background ? `Using <code>${esc(o.background.split('/').pop())}</code>` : 'Using the animated scene.'}</p>
       ${up('background','Picture / GIF / MP4 background','image/*,video/mp4,video/webm')}
@@ -2082,6 +2089,8 @@ if(isOwner){
       <hr>
       ${custom ? `<b>Delete</b><p>Removes "${esc(T.label)}" from your site.</p><button class="wbtn danger" id="epDel">🗑 Delete this theme</button>`
                : `<b>Reset</b><p>Undo every edit on "${esc(T.label)}" and go back to how it was built.</p><button class="wbtn danger" id="epReset">↺ Reset to original</button>`}
+      ${hasMusic ? '' : `<hr><b>GitHub key</b><p>${getTok() ? 'Key saved on this device ✓' : 'Needed once per device to save. Same key as the main page (github.com → Settings → Developer settings → Fine-grained tokens, repo <b>iitstymfk.github.io</b>, Contents: Read and write).'}</p>
+      <input type="password" id="epTok" placeholder="${getTok() ? 'key saved ✓' : 'github_pat_...'}"><div class="pair"><button class="wbtn go" id="epTokSave">Save key</button><button class="wbtn" id="epTokForget">Forget key</button></div>`}
       <hr><p>Edits save to <code>site.json</code> on your GitHub. Pictures you upload go in <code>chars/edits/</code>.</p>`; },
   };
   function render(){
@@ -2131,6 +2140,8 @@ if(isOwner){
     if(b.dataset.clear){ W[b.dataset.clear] = ''; if(b.dataset.clear === 'cursor') delete W.cursorHotspot; changed(); setTimeout(render, 220); return; }
     if(b.dataset.delchar != null){ const list = [].concat(opt(CONFIG).character || []); list.splice(+b.dataset.delchar, 1); W.character = list; changed(); setTimeout(render, 220); return; }
     if(b.dataset.fxreset){ delete W.effects[b.dataset.fxreset].color; changed('light'); render(); return; }
+    if(b.id === 'epTokSave'){ const v = $('epTok').value.trim(); if(!v) return; try{ localStorage.setItem('ghToken', v); }catch(err){} render(); st('Key saved on this device.'); return; }
+    if(b.id === 'epTokForget'){ try{ localStorage.removeItem('ghToken'); }catch(err){} render(); st('Key removed from this device.'); return; }
     if(b.id === 'epSplash'){ $('splash').classList.remove('gone'); $('editPanel').classList.remove('open'); toast('Click the splash to close it — then ✏️ to keep editing'); return; }
     if(b.id === 'epDrag'){ dragOn = !dragOn; document.body.classList.toggle('dragChar', dragOn);
       if(dragOn && W.charX == null) grabCharSpot(); render(); return; }
@@ -2148,19 +2159,19 @@ if(isOwner){
     if(b.id === 'epReset'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to reset'; return; }
       W = {}; changed(); setTimeout(render, 220); st('Reset — press 💾 Save to make it live.'); return; }
     if(b.id === 'epDel'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to delete for good'; return; }
-      if(!getTok()) return st('Add your GitHub key in 🎵 first.');
+      if(!getTok()) return st(KEYMSG);
       const key = themeKey, base = baseOf(key);
       try{ st('Deleting…');
         await saveSite(d => { if(d.customThemes) delete d.customThemes[key]; if(d.themeEdits) delete d.themeEdits[key]; if(d.defaultTheme === key) d.defaultTheme = base;
           (d.songs || []).forEach(s => { if(s.themes) s.themes = s.themes.filter(t => t !== key); }); });
-        delete CUSTOM[key]; delete EDITS[key]; delete lastSaved[key]; delete THEMES[key]; delete CONFIG.themes[key]; delete CURSORS[key];
+        delete CUSTOM[key]; delete EDITS[key]; delete lastSaved[key]; delete THEMES[key]; delete CONFIG.themes[key]; if(typeof CURSORS !== 'undefined') delete CURSORS[key];
         buildThemeMenu(); applyTheme(base); openEditor(); st('✓ Deleted.');
       }catch(err){ st('Delete failed: ' + err.message); }
       return; }
   });
 
   /* ---------- uploads (go straight to GitHub, shown right away) ---------- */
-  const LIMITS = { character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
+  const LIMITS = { logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
   async function shrink(file, kind){
     if(/gif|video/.test(file.type)) return file;
     const bmp = await createImageBitmap(file), max = LIMITS[kind] || 1500;
@@ -2174,7 +2185,7 @@ if(isOwner){
   }
   async function onUpload(e){
     const el = e.target, kind = el.dataset.up, file = el.files[0]; if(!file) return;
-    if(!getTok()) return st('Add your GitHub key in 🎵 first (one-time setup).');
+    if(!getTok()) return st(KEYMSG);
     if(file.size > 45e6) return st('That file is over 45 MB — try a smaller one (MP4 is much smaller than GIF).');
     const job = (async () => {
       st('Getting it ready…');
@@ -2210,7 +2221,7 @@ if(isOwner){
 
   /* ---------- open / close / save / undo ---------- */
   $('editBtn').style.display = 'grid';
-  $('editBtn').onclick = e => { e.stopPropagation(); $('themeMenu').classList.remove('open'); $('musicPanel').classList.remove('open');
+  $('editBtn').onclick = e => { e.stopPropagation(); $('themeMenu').classList.remove('open'); if(hasMusic) $('musicPanel').classList.remove('open');
     if($('editPanel').classList.toggle('open')) openEditor(); };
   $('editPanel').addEventListener('click', e => e.stopPropagation());
   $('editPanel').addEventListener('pointerdown', e => e.stopPropagation());
@@ -2220,7 +2231,7 @@ if(isOwner){
     if(lastSaved[k]) EDITS[k] = JSON.parse(JSON.stringify(lastSaved[k])); else delete EDITS[k];
     W = JSON.parse(JSON.stringify(EDITS[k] || {})); rebuildTheme(k); applyTheme(k); buildThemeMenu(); render(); st('Back to the last saved version.'); };
   $('epSave').onclick = async () => {
-    if(!getTok()) return st('Add your GitHub key in 🎵 first (one-time setup).');
+    if(!getTok()) return st(KEYMSG);
     const k = themeKey, data = Object.keys(W).length ? JSON.parse(JSON.stringify(W)) : null;
     try{
       $('epSave').disabled = true;
