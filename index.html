@@ -286,6 +286,27 @@ img.mini{height:28px;vertical-align:middle;margin:0 4px}
 @media (max-width:560px){ #editPanel{top:auto;height:62vh;right:3vw;left:3vw;width:auto;bottom:10px} }
 #epBody input[type=password]{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:7px 9px;color:#fff;font:inherit;margin:4px 0}
 #epBody .pair .wbtn{flex:1}
+.decoLayer{position:fixed;inset:0;pointer-events:none;z-index:3}#decoFront{z-index:6}
+.deco{position:absolute}.deco .dIn{width:100%;height:100%;display:grid;place-items:center}
+.deco svg,.deco img{width:100%;height:100%;object-fit:contain;display:block}
+.deco .demoji{line-height:1;white-space:nowrap}
+.a-float{animation:dfloat 4s ease-in-out infinite}.a-float.r{animation-delay:-2s}
+.a-bounce{animation:dbounce 1.4s cubic-bezier(.3,0,.3,1) infinite}
+.a-orbit{animation:dorbit 8s linear infinite}
+.a-wobble{animation:dwobble 2s ease-in-out infinite}
+.a-glowpulse{animation:dglow 2s ease-in-out infinite}
+@keyframes dfloat{50%{transform:translateY(-18px)}}
+@keyframes dbounce{0%,100%{transform:translateY(0)}45%{transform:translateY(-30%)}55%{transform:translateY(-30%)}}
+@keyframes dorbit{from{transform:rotate(0) translateX(35%) rotate(0)}to{transform:rotate(360deg) translateX(35%) rotate(-360deg)}}
+@keyframes dwobble{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@keyframes dglow{50%{opacity:.35;transform:scale(.9)}}
+body.decoEdit .decoLayer{z-index:7}body.decoEdit .deco{pointer-events:auto;cursor:move!important;outline:1px dashed rgba(255,255,255,.35);outline-offset:3px}
+body.decoEdit .deco.sel{outline:2px solid var(--accent)}
+.decoList{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.decoList button{width:46px;height:46px;border-radius:8px;background:rgba(255,255,255,.06);padding:6px;display:grid;place-items:center;font-size:22px}
+.decoList button.on{outline:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 30%,transparent)}
+.decoList svg,.decoList img{width:100%;height:100%;object-fit:contain}
+.ornGrid.add button{padding:6px}
 </style>
 </head>
 <body data-theme="sakura">
@@ -342,7 +363,7 @@ img.mini{height:28px;vertical-align:middle;margin:0 4px}
 </button>
 <div id="editPanel">
   <div class="epHead"><b>✏️ Editing: <span id="epTheme"></span></b><button id="epClose" aria-label="Close">✕</button></div>
-  <div class="epTabs"><button data-tab="text" class="on">Text</button><button data-tab="look">Look</button><button data-tab="pictures">Pictures</button><button data-tab="icons">Icons</button><button data-tab="effects">Effects</button><button data-tab="theme">Theme</button></div>
+  <div class="epTabs"><button data-tab="text" class="on">Text</button><button data-tab="look">Look</button><button data-tab="pictures">Pictures</button><button data-tab="icons">Icons</button><button data-tab="decor">Decor</button><button data-tab="effects">Effects</button><button data-tab="theme">Theme</button></div>
   <div id="epBody"></div>
   <div class="epFoot"><span id="epStatus"></span><div class="row"><button id="epUndo">↩ Undo changes</button><button id="epSave" class="go">💾 Save for everyone</button></div></div>
 </div>
@@ -1618,6 +1639,7 @@ function applyExtras(key){
   ['ornL','ornR','sx1','sx2'].forEach(id => $(id).style.animationDuration = e.ornSpeed ? e.ornSpeed + 's' : '');
   document.body.classList.toggle('noSocOrn', e.ornSocials === false);
   setFX(e.effects || {});
+  renderDecos(e.decos); applyLook(e.look);
 }
 
 /* ---------- extra effects layer (snow, rain, petals …) ---------- */
@@ -1717,6 +1739,46 @@ function hexA(h, a){
   if(!h || h[0] !== '#') return h;
   let x = h.slice(1); if(x.length === 3) x = [...x].map(c => c + c).join('');
   const n = parseInt(x.slice(0,6), 16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${Math.max(0,Math.min(1,a))})`;
+}
+
+/* ---------- decorations (any number of spinning/moving things, placed anywhere) + extra style ---------- */
+const decoBack = document.createElement('div'), decoFront = document.createElement('div');
+decoBack.id = 'decoBack'; decoFront.id = 'decoFront'; decoBack.className = decoFront.className = 'decoLayer';
+document.body.append(decoBack, decoFront);
+const edStyle = document.createElement('style'); edStyle.id = 'edStyle'; document.head.appendChild(edStyle);
+function decoInner(d){
+  if(d.kind === 'img') return `<img src="${asset(d.v)}" alt="" draggable="false">`;
+  if(d.kind === 'emoji') return `<span class="demoji">${String(d.v || '✦').replace(/</g,'&lt;')}</span>`;
+  return orn(d.v || 'star');
+}
+function renderDecos(list){
+  decoBack.innerHTML = ''; decoFront.innerHTML = '';
+  (list || []).forEach((d, i) => {
+    const el = document.createElement('div'); el.className = 'deco'; el.dataset.i = i;
+    el.style.cssText = `left:${d.x ?? 50}%;top:${d.y ?? 50}%;width:${d.size || 60}px;height:${d.size || 60}px;opacity:${d.op ?? 1};` +
+      `transform:translate(-50%,-50%) rotate(${d.rot || 0}deg) scaleX(${d.flip ? -1 : 1});` +
+      (d.glow ? `filter:drop-shadow(0 0 ${Math.round((d.size || 60)/5)}px ${d.glowCol || 'var(--accent)'});` : '') +
+      (d.kind === 'emoji' ? `font-size:${Math.round((d.size || 60)*.8)}px;color:${d.color || 'var(--text)'};` : '');
+    el.innerHTML = `<div class="dIn ${d.anim ?? 'a-spin'}${d.rev ? ' r' : ''}" style="animation-duration:${d.speed || 6}s">${decoInner(d)}</div>`;
+    (d.front ? decoFront : decoBack).appendChild(el);
+  });
+}
+function applyLook(L){
+  L = L || {}; let css = '';
+  if(L.radius != null) css += `.card,.player{border-radius:${L.radius}px!important}`;
+  if(L.blur != null) css += `.card,.player{backdrop-filter:blur(${L.blur}px);-webkit-backdrop-filter:blur(${L.blur}px)}`;
+  if(L.nameScale && L.nameScale != 1) css += `#name{zoom:${L.nameScale}}`;
+  if(L.spacing != null) css += `#name{letter-spacing:${L.spacing}px!important}`;
+  if(L.upper) css += `#name{text-transform:uppercase!important}`;
+  if(L.outline) css += `#name{-webkit-text-stroke:${L.outline}px ${L.outlineCol || '#000'}}`;
+  if(L.nameGlow) css += `#name{filter:drop-shadow(0 0 ${L.nameGlow}px ${L.nameGlowCol || 'var(--accent)'})!important}`;
+  if(L.bodyFont) css += `#profile .bio,#profile .jp,#profile .card,#profile .player,.socials{font-family:${L.bodyFont}!important}`;
+  if(L.vignette != null) css += `.vignette{opacity:${L.vignette}}`;
+  if(L.bright != null && L.bright != 1) css += `#bgCanvas,#bgVideo,#bgImage{filter:brightness(${L.bright})}`;
+  if(L.charGlow != null) css += `#chara{filter:${L.charGlow ? `drop-shadow(0 0 ${L.charGlow}px ${L.charGlowCol || 'color-mix(in srgb,var(--accent) 55%,transparent)'})` : 'none'}!important}`;
+  if(L.cardShadow) css += `.card,.player{box-shadow:0 0 ${L.cardShadow}px color-mix(in srgb,var(--accent) 45%,transparent)}`;
+  edStyle.textContent = css;
+  if(L.bodyFont) loadFont(L.bodyFont);
 }
 
 /* ---------- apply a theme ---------- */
@@ -1984,7 +2046,7 @@ if(isOwner){
   const ORNS = [...document.querySelectorAll('defs g[id^="o-"]')].map(g => g.id.slice(2));
   const ANIMS = { 'a-spin':'Spin', 'a-spinfast':'Fast spin', 'a-sway':'Sway', 'a-flip':'Flip', 'a-pulse':'Pulse', '':'Still' };
   const PLACES = { both:'Both sides of name', left:'Left of name', right:'Right of name', above:'Above name', below:'Below name', none:'Hidden' };
-  let W = {}, tab = 'text', lastSaved = JSON.parse(JSON.stringify(EDITS)), dragOn = false, uploads = [];
+  let selDeco = -1, W = {}, tab = 'text', lastSaved = JSON.parse(JSON.stringify(EDITS)), dragOn = false, uploads = [];
   const st = msg => $('epStatus').textContent = msg;
   const hasMusic = !!$('musicPanel');
   const KEYMSG = hasMusic ? 'Add your GitHub key in 🎵 first (one-time setup).' : 'Add the GitHub key first: Theme tab → GitHub key.';
@@ -1995,7 +2057,7 @@ if(isOwner){
   const alphaOf = c => { const m = /rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)/.exec(c || ''); return m ? +m[1] : 1; };
   const gradCols = g => (String(g || '').match(/#[0-9a-f]{3,8}/gi) || ['#ffffff','#ff7eb6','#ffffff']).slice(0,3);
 
-  function openEditor(){ W = JSON.parse(JSON.stringify(EDITS[themeKey] || {})); $('epTheme').textContent = T.label; render(); $('editPanel').classList.add('open'); }
+  function openEditor(){ selDeco = -1; W = JSON.parse(JSON.stringify(EDITS[themeKey] || {})); $('epTheme').textContent = T.label; render(); $('editPanel').classList.add('open'); }
   function changed(kind){
     if(Object.keys(W).length) EDITS[themeKey] = W; else delete EDITS[themeKey];
     rebuildTheme(themeKey); T = THEMES[themeKey];
@@ -2025,7 +2087,7 @@ if(isOwner){
       ${row('Typewriter lines <i>(one per line)</i>', `<textarea data-f="bios" data-k="lines" rows="5">${esc((W.bios || T.bios || []).join('\n'))}</textarea>`)}
       ${row('Click sparkles <i>(2 symbols)</i>', `<input type="text" data-f="sparks" data-k="chars" value="${esc((T.sparks || []).join(''))}" maxlength="4">`)}
       <button class="wbtn" id="epSplash">👁 Preview splash screen</button>`; },
-    look(){ const g = gradCols(T.grad), fontNow = (/'([^']+)'/.exec(T.title) || [,''])[1];
+    look(){ const g = gradCols(T.grad), fontNow = (/'([^']+)'/.exec(T.title) || [,''])[1], L = W.look || {};
       return `
       <b>Colors</b>
       ${col('accent','Main color')}${col('accent2','Second color')}${col('text','Text')}${col('muted','Dim text')}${col('icon','Social icons')}
@@ -2034,6 +2096,22 @@ if(isOwner){
       <hr><b>Font</b>
       ${row('Name font', `<select data-f="title" data-k="font">${[...new Set([fontNow, ...FONTS])].filter(Boolean).map(f => `<option ${f === fontNow ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select>`)}
       ${row('…or any Google Font name', `<input type="text" data-f="title" data-k="fontCustom" placeholder="e.g. Lobster">`)}
+      ${row('Smaller text font <i>(bio, cards)</i>', `<select data-f="look.bodyFont" data-k="font"><option value="">Default</option>${FONTS.map(f => `<option value="${esc(f)}" ${(L.bodyFont || '').includes(f) ? 'selected' : ''}>${esc(f)}</option>`).join('')}</select>`)}
+      <hr><b>Name style</b>
+      ${rng('look.nameScale','Size',.5,1.8,.05,L.nameScale ?? 1)}
+      ${rng('look.spacing','Letter spacing',-2,16,.5,L.spacing ?? 1)}
+      ${row('ALL CAPS', `<input type="checkbox" data-f="look.upper" data-k="bool" ${L.upper ? 'checked' : ''}>`)}
+      ${row('Outline', `<span class="pair"><input type="range" data-f="look.outline" data-k="num" min="0" max="4" step=".25" value="${L.outline ?? 0}"><input type="color" data-f="look.outlineCol" value="${toHex(L.outlineCol || '#000000')}"></span>`)}
+      ${row('Glow', `<span class="pair"><input type="range" data-f="look.nameGlow" data-k="num" min="0" max="40" step="1" value="${L.nameGlow ?? 0}"><input type="color" data-f="look.nameGlowCol" value="${toHex(L.nameGlowCol || T.accent)}"></span>`)}
+      <hr><b>Cards</b>
+      ${rng('look.radius','Corner roundness',0,40,1,L.radius ?? 16)}
+      ${rng('look.blur','Blur behind cards',0,30,1,L.blur ?? 14)}
+      ${rng('look.cardShadow','Glow around cards',0,50,1,L.cardShadow ?? 0)}
+      <hr><b>Background</b>
+      ${rng('look.bright','Brightness',.3,1.6,.05,L.bright ?? 1)}
+      ${rng('look.vignette','Dark edges',0,1,.05,L.vignette ?? 1)}
+      ${row('Character glow', `<span class="pair"><input type="range" data-f="look.charGlow" data-k="num" min="0" max="60" step="1" value="${L.charGlow ?? 18}"><input type="color" data-f="look.charGlowCol" value="${toHex(L.charGlowCol || T.accent)}"></span>`)}
+      <button class="wbtn" id="epLookReset">↺ Reset these style settings</button>
       <hr><b>Background scene</b>
       ${sel('scene','Animated scene', Object.fromEntries(Object.keys(SCENES).map(k => [k, (BASE_T[k] || {}).label || k])), sceneOf(themeKey))}
       <p>Mix any theme's animation with this theme's colors and pictures.</p>`; },
@@ -2070,6 +2148,31 @@ if(isOwner){
       ${sel('anim','Movement', ANIMS, T.anim || '')}
       ${rng('ornSpeed','Speed (seconds per turn — lower = faster)',.4,20,.1,e.ornSpeed ?? 6)}
       ${row('Also by the social icons', `<input type="checkbox" data-f="ornSocials" data-k="boolOn" data-kind="light" ${e.ornSocials === false ? '' : 'checked'}>`)}`; },
+    decor(){ const L = W.decos || [], d = L[selDeco];
+      const D = (p, label, min, max, step, val) => `<label class="ef"><span>${label}</span><input type="range" data-d="${p}" min="${min}" max="${max}" step="${step}" value="${val}"></label>`;
+      const DA = { 'a-spin':'Spin', 'a-spinfast':'Fast spin', 'a-sway':'Sway', 'a-flip':'Flip', 'a-pulse':'Pulse', 'a-float':'Float up & down', 'a-bounce':'Bounce', 'a-orbit':'Circle around', 'a-wobble':'Wobble', 'a-glowpulse':'Fade in & out', '':'Still' };
+      return `<p>Add as many as you want and put them anywhere. While this tab is open you can <b style="display:inline">drag them on the page</b> and scroll on one to resize it.</p>
+      <b>On this theme (${L.length})</b>
+      <div class="decoList">${L.map((x,i) => `<button data-dsel="${i}" class="${i === selDeco ? 'on' : ''}">${decoInner(x)}</button>`).join('') || '<p>None yet. Add one below.</p>'}</div>
+      ${d ? `<div class="fx on"><b>Selected</b>
+        ${D('size','Size',12,500,1,d.size || 60)}
+        ${D('rot','Tilt',-180,180,1,d.rot || 0)}
+        <label class="ef"><span>Movement</span><select data-d="anim">${Object.entries(DA).map(([k,v]) => `<option value="${k}" ${(d.anim ?? 'a-spin') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+        ${D('speed','Speed (seconds per loop, lower = faster)',.3,20,.1,d.speed || 6)}
+        ${D('op','See-through',.1,1,.05,d.op ?? 1)}
+        ${D('x','Left ↔ right',0,100,.5,d.x ?? 50)}${D('y','Up ↕ down',0,100,.5,d.y ?? 50)}
+        <label class="ef"><span>Glow</span><span class="pair"><input type="checkbox" data-d="glow" ${d.glow ? 'checked' : ''}><input type="color" data-d="glowCol" value="${toHex(d.glowCol || T.accent)}"></span></label>
+        ${d.kind === 'emoji' ? `<label class="ef"><span>Text / emoji</span><input type="text" data-d="v" value="${esc(d.v)}" maxlength="12"></label><label class="ef"><span>Text color</span><input type="color" data-d="color" value="${toHex(d.color || T.text)}"></label>` : ''}
+        <label class="ef"><span>In front of the cards</span><input type="checkbox" data-d="front" ${d.front ? 'checked' : ''}></label>
+        <label class="ef"><span>Mirror</span><input type="checkbox" data-d="flip" ${d.flip ? 'checked' : ''}></label>
+        <label class="ef"><span>Reverse direction</span><input type="checkbox" data-d="rev" ${d.rev ? 'checked' : ''}></label>
+        <div class="pair"><button class="wbtn" id="dDup">⧉ Duplicate</button><button class="wbtn danger" id="dDel">🗑 Remove</button></div></div>` : ''}
+      <hr><b>Add a built-in icon</b>
+      <div class="ornGrid add">${ORNS.map(k => `<button data-dadd="${k}" title="${k}">${orn(k)}</button>`).join('')}</div>
+      <b>Add an emoji or text</b>
+      <div class="pair"><input type="text" id="dEmoji" placeholder="⭐ ♥ 🔥 or any text" maxlength="12"><button class="wbtn" id="dAddEmoji" style="width:auto;margin:0">Add</button></div>
+      ${up('deco','Add my own picture / GIF','image/*')}
+      ${L.length ? '<button class="wbtn danger" id="dClear">Remove all decorations</button>' : ''}`; },
     effects(){ const fx = W.effects || {};
       return `<p>Layer extra effects on top of this theme.</p>` + Object.entries(FX_LIST).map(([k, label]) => { const c = fx[k] || {};
         return `<div class="fx ${c.on ? 'on' : ''}"><label class="fxh"><input type="checkbox" data-fx="${k}" data-p="on" ${c.on ? 'checked' : ''}> ${label}</label>
@@ -2096,7 +2199,31 @@ if(isOwner){
   function render(){
     document.querySelectorAll('#editPanel .epTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
     $('epTheme').textContent = T.label; $('epBody').innerHTML = TABS[tab]();
+    document.body.classList.toggle('decoEdit', tab === 'decor' && $('editPanel').classList.contains('open')); markSel();
   }
+  function markSel(){ document.querySelectorAll('.deco').forEach(el => el.classList.toggle('sel', +el.dataset.i === selDeco)); }
+  function addDeco(d, quiet){
+    W.decos = W.decos || [];
+    W.decos.push({ x: rr(30,70), y: rr(15,40), size: 60, anim: 'a-spin', speed: 6, op: 1, glow: true, ...d });
+    selDeco = W.decos.length - 1; changed('light'); render();
+    if(!quiet) st('Added — drag it where you want it.');
+  }
+  // drag decorations on the page
+  let dd = null;
+  addEventListener('pointerdown', e => {
+    if(!document.body.classList.contains('decoEdit')) return;
+    const el = e.target.closest('.deco'); if(!el) return;
+    e.preventDefault(); e.stopPropagation();
+    selDeco = +el.dataset.i; const d = W.decos[selDeco];
+    dd = { x: e.clientX, y: e.clientY, dx: d.x ?? 50, dy: d.y ?? 50 }; render();
+  }, true);
+  addEventListener('pointermove', e => { if(!dd) return; const d = W.decos[selDeco]; if(!d) return;
+    d.x = +Math.max(0, Math.min(100, dd.dx + (e.clientX - dd.x) / innerWidth * 100)).toFixed(1);
+    d.y = +Math.max(0, Math.min(100, dd.dy + (e.clientY - dd.y) / innerHeight * 100)).toFixed(1);
+    changed('light'); markSel(); }, true);
+  addEventListener('pointerup', () => { if(dd){ dd = null; render(); } }, true);
+  addEventListener('wheel', e => { if(!document.body.classList.contains('decoEdit')) return; const el = e.target.closest('.deco'); if(!el) return;
+    e.preventDefault(); selDeco = +el.dataset.i; const d = W.decos[selDeco]; d.size = Math.max(12, Math.min(500, (d.size || 60) - Math.sign(e.deltaY) * 6)); changed('light'); markSel(); }, { passive: false, capture: true });
 
   /* ---------- reading the inputs ---------- */
   function onInput(e){
@@ -2105,6 +2232,9 @@ if(isOwner){
       c[p] = el.type === 'checkbox' ? el.checked : el.type === 'color' ? el.value : +el.value;
       if(p === 'on'){ if(!el.checked && !c.img) delete W.effects[k]; changed('light'); if(e.type === 'change') render(); return; }
       changed('light'); return; }
+    if(el.dataset.d){ const d = (W.decos || [])[selDeco]; if(!d) return; const p = el.dataset.d;
+      d[p] = el.type === 'checkbox' ? el.checked : (el.type === 'range' ? +el.value : el.value);
+      changed('light'); if(e.type === 'change' && el.tagName === 'SELECT') render(); return; }
     const f = el.dataset.f; if(!f) return;
     const k = el.dataset.k, kind = el.dataset.kind || 'full';
     let v = el.value;
@@ -2115,7 +2245,10 @@ if(isOwner){
     else if(k === 'chars'){ const a = [...v]; v = [a[0] || '✦', a[1] || a[0] || '·']; }
     else if(k === 'rgbaC' || k === 'rgbaA'){ const cur = T[f]; const hx = k === 'rgbaC' ? v : toHex(cur), a = k === 'rgbaA' ? +v : alphaOf(cur); v = hexA(hx, a); }
     else if(/^grad\d$/.test(k)){ const g = gradCols(T.grad); g[+k.slice(4)] = v; v = `linear-gradient(90deg,${g[0]},${g[1]},${g[2]},${g[0]})`; }
-    else if(k === 'font' || k === 'fontCustom'){ if(!v.trim()) return; v = `'${v.trim()}',sans-serif`; }
+    else if(k === 'font' || k === 'fontCustom'){ if(!v.trim()){ if(f.includes('.')) v = ''; else return; } else v = `'${v.trim()}',sans-serif`; }
+    if(f.includes('.')){ const [a, b2] = f.split('.'); const o = W[a] = W[a] || {};
+      if(v === '' || v === false) delete o[b2]; else o[b2] = v;
+      if(!Object.keys(o).length) delete W[a]; changed('light'); return; }
     if(f === 'side' && W.charX != null){ delete W.charX; delete W.charY; delete W.charH; }
     W[f] = v;
     if(f === 'anim' && W.ornSpeed == null) delete W.ornSpeed;
@@ -2140,6 +2273,13 @@ if(isOwner){
     if(b.dataset.clear){ W[b.dataset.clear] = ''; if(b.dataset.clear === 'cursor') delete W.cursorHotspot; changed(); setTimeout(render, 220); return; }
     if(b.dataset.delchar != null){ const list = [].concat(opt(CONFIG).character || []); list.splice(+b.dataset.delchar, 1); W.character = list; changed(); setTimeout(render, 220); return; }
     if(b.dataset.fxreset){ delete W.effects[b.dataset.fxreset].color; changed('light'); render(); return; }
+    if(b.dataset.dsel != null){ selDeco = +b.dataset.dsel; render(); markSel(); return; }
+    if(b.dataset.dadd){ addDeco({ kind: 'orn', v: b.dataset.dadd }); return; }
+    if(b.id === 'dAddEmoji'){ const v = $('dEmoji').value.trim(); if(v) addDeco({ kind: 'emoji', v, anim: 'a-float', speed: 4 }); return; }
+    if(b.id === 'dDup'){ const d = W.decos[selDeco]; addDeco({ ...d, x: Math.min(95, (d.x ?? 50) + 6), y: Math.min(95, (d.y ?? 50) + 6) }); return; }
+    if(b.id === 'dDel'){ W.decos.splice(selDeco, 1); if(!W.decos.length) delete W.decos; selDeco = -1; changed('light'); render(); return; }
+    if(b.id === 'dClear'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to remove all'; return; } delete W.decos; selDeco = -1; changed('light'); render(); return; }
+    if(b.id === 'epLookReset'){ delete W.look; changed('light'); render(); return; }
     if(b.id === 'epTokSave'){ const v = $('epTok').value.trim(); if(!v) return; try{ localStorage.setItem('ghToken', v); }catch(err){} render(); st('Key saved on this device.'); return; }
     if(b.id === 'epTokForget'){ try{ localStorage.removeItem('ghToken'); }catch(err){} render(); st('Key removed from this device.'); return; }
     if(b.id === 'epSplash'){ $('splash').classList.remove('gone'); $('editPanel').classList.remove('open'); toast('Click the splash to close it — then ✏️ to keep editing'); return; }
@@ -2171,7 +2311,7 @@ if(isOwner){
   });
 
   /* ---------- uploads (go straight to GitHub, shown right away) ---------- */
-  const LIMITS = { logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
+  const LIMITS = { deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
   async function shrink(file, kind){
     if(/gif|video/.test(file.type)) return file;
     const bmp = await createImageBitmap(file), max = LIMITS[kind] || 1500;
@@ -2196,10 +2336,11 @@ if(isOwner){
       PREVIEW[path] = URL.createObjectURL(blob);
       // show it right away while it uploads
       if(kind === 'character') W.character = [...[].concat(opt(CONFIG).character || []).filter(Boolean), path];
+      else if(kind === 'deco'){ addDeco({ kind: 'img', v: path, anim: 'a-float', speed: 4, glow: false }, true); }
       else if(kind === 'floater'){ W.effects = W.effects || {}; W.effects.floater = { ...(W.effects.floater || {}), on: true, img: path }; }
       else W[kind] = path;
       if(kind === 'cursor' && !W.cursorHotspot) W.cursorHotspot = '0 0';
-      changed(); setTimeout(render, 220);
+      if(kind !== 'deco'){ changed(); setTimeout(render, 220); }
       st('Uploading to GitHub…');
       await gh(path, { method:'PUT', body: JSON.stringify({ message:`Add ${kind} picture`, content: await fileB64(blob), branch: GH.branch }) });
       st('✓ Uploaded. Press 💾 Save to make it live.');
@@ -2222,10 +2363,10 @@ if(isOwner){
   /* ---------- open / close / save / undo ---------- */
   $('editBtn').style.display = 'grid';
   $('editBtn').onclick = e => { e.stopPropagation(); $('themeMenu').classList.remove('open'); if(hasMusic) $('musicPanel').classList.remove('open');
-    if($('editPanel').classList.toggle('open')) openEditor(); };
+    if($('editPanel').classList.toggle('open')) openEditor(); else document.body.classList.remove('dragChar', 'decoEdit'); };
   $('editPanel').addEventListener('click', e => e.stopPropagation());
   $('editPanel').addEventListener('pointerdown', e => e.stopPropagation());
-  $('epClose').onclick = () => { $('editPanel').classList.remove('open'); dragOn = false; document.body.classList.remove('dragChar'); };
+  $('epClose').onclick = () => { $('editPanel').classList.remove('open'); dragOn = false; document.body.classList.remove('dragChar', 'decoEdit'); };
   document.querySelector('#editPanel .epTabs').onclick = e => { const b = e.target.closest('button'); if(!b) return; tab = b.dataset.tab; render(); };
   $('epUndo').onclick = () => { const k = themeKey;
     if(lastSaved[k]) EDITS[k] = JSON.parse(JSON.stringify(lastSaved[k])); else delete EDITS[k];
