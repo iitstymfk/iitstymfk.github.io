@@ -279,6 +279,51 @@ body.decoEdit .deco.sel{outline:2px solid var(--accent)}
 .decoList button.on{outline:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 30%,transparent)}
 .decoList svg,.decoList img{width:100%;height:100%;object-fit:contain}
 .ornGrid.add button{padding:6px}
+/* more decoration movements */
+.a-shake{animation:dshake .5s linear infinite}
+.a-heartbeat{animation:dheart 1.2s ease-in-out infinite}
+.a-swing{animation:dswing 2s ease-in-out infinite;transform-origin:50% -20%}
+.a-zoom{animation:dzoom 3s ease-in-out infinite}
+.a-jello{animation:djello 1.6s ease-in-out infinite}
+.a-tada{animation:dtada 2s ease-in-out infinite}
+.a-twinkle{animation:dtwinkle 2.4s ease-in-out infinite}
+.a-roll{animation:droll 6s ease-in-out infinite}
+.a-zigzag{animation:dzigzag 3s ease-in-out infinite}
+.a-blink{animation:dblink 1.5s steps(1) infinite}
+.a-drift{animation:ddrift 14s linear infinite}
+.a-fall{animation:dfall 8s linear infinite}
+.a-rise{animation:drise 8s linear infinite}
+@keyframes dshake{0%,100%{transform:translate(0,0)}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,-3px)}80%{transform:translate(3px,3px)}}
+@keyframes dheart{0%,40%,100%{transform:scale(1)}10%,30%{transform:scale(1.25)}20%{transform:scale(1.05)}}
+@keyframes dswing{0%,100%{transform:rotate(-25deg)}50%{transform:rotate(25deg)}}
+@keyframes dzoom{50%{transform:scale(1.6)}}
+@keyframes djello{0%,100%{transform:scale(1,1)}30%{transform:scale(1.25,.75)}40%{transform:scale(.75,1.25)}50%{transform:scale(1.15,.85)}65%{transform:scale(.95,1.05)}75%{transform:scale(1.05,.95)}}
+@keyframes dtada{0%,60%,100%{transform:scale(1) rotate(0)}10%,20%{transform:scale(.9) rotate(-4deg)}30%,50%{transform:scale(1.15) rotate(5deg)}40%{transform:scale(1.15) rotate(-5deg)}}
+@keyframes dtwinkle{0%,100%{transform:scale(.5) rotate(0);opacity:.2}50%{transform:scale(1.1) rotate(45deg);opacity:1}}
+@keyframes droll{0%,100%{transform:translateX(-120%) rotate(-360deg)}50%{transform:translateX(120%) rotate(360deg)}}
+@keyframes dzigzag{0%,100%{transform:translate(0,0)}25%{transform:translate(40%,-30%)}50%{transform:translate(80%,0)}75%{transform:translate(40%,30%)}}
+@keyframes dblink{50%{opacity:0}}
+@keyframes ddrift{from{transform:translateX(-70vw)}to{transform:translateX(70vw)}}
+@keyframes dfall{from{transform:translateY(-110vh) rotate(0)}to{transform:translateY(110vh) rotate(360deg)}}
+@keyframes drise{from{transform:translateY(110vh)}to{transform:translateY(-110vh)}}
+/* extra effects layered on top */
+.x-rainbow{animation:xrain 3s linear infinite}
+.x-flicker{animation:xflick 3s steps(1) infinite}
+.x-pulseglow{animation:xglow 1.8s ease-in-out infinite}
+.x-shimmer{animation:xshim 2.2s ease-in-out infinite}
+.x-ghost{animation:xghost 3s ease-in-out infinite}
+.x-blur{animation:xblur 3s ease-in-out infinite}
+.x-gray{filter:grayscale(1)}
+.x-invert{filter:invert(1) hue-rotate(180deg)}
+@keyframes xrain{to{filter:hue-rotate(360deg) saturate(1.6)}}
+@keyframes xflick{0%,18%,22%,25%,53%,57%,100%{opacity:1}20%,24%,55%{opacity:.15}}
+@keyframes xglow{50%{filter:drop-shadow(0 0 14px var(--accent)) drop-shadow(0 0 28px var(--accent)) brightness(1.3)}}
+@keyframes xshim{50%{filter:brightness(1.8) contrast(1.1)}}
+@keyframes xghost{50%{opacity:.25;filter:blur(1px)}}
+@keyframes xblur{50%{filter:blur(4px)}}
+.deco .dFx{width:100%;height:100%}
+.deco{transition:translate .25s ease-out,scale .3s,opacity .3s}
+.deco.popped{scale:0;opacity:0}
 </style>
 </head>
 <body data-theme="sakura">
@@ -1402,7 +1447,8 @@ function renderDecos(list){
       `transform:translate(-50%,-50%) rotate(${d.rot || 0}deg) scaleX(${d.flip ? -1 : 1});` +
       (d.glow ? `filter:drop-shadow(0 0 ${Math.round((d.size || 60)/5)}px ${d.glowCol || 'var(--accent)'});` : '') +
       (d.kind === 'emoji' ? `font-size:${Math.round((d.size || 60)*.8)}px;color:${d.color || 'var(--text)'};` : '');
-    el.innerHTML = `<div class="dIn ${d.anim ?? 'a-spin'}${d.rev ? ' r' : ''}" style="animation-duration:${d.speed || 6}s">${decoInner(d)}</div>`;
+    el.innerHTML = `<div class="dFx ${d.fx2 ? 'x-' + d.fx2 : ''}" style="${d.fx2 ? `animation-duration:${d.fx2spd || 3}s` : ''}"><div class="dIn ${d.anim ?? 'a-spin'}${d.rev ? ' r' : ''}" style="animation-duration:${d.speed || 6}s;${d.rev ? 'animation-direction:reverse' : ''}">${decoInner(d)}</div></div>`;
+    el._d = d; el._ox = 0; el._oy = 0;
     (d.front ? decoFront : decoBack).appendChild(el);
   });
 }
@@ -1423,6 +1469,35 @@ function applyLook(L){
   edStyle.textContent = css;
   if(L.bodyFont) loadFont(L.bodyFont);
 }
+
+/* decorations that react to the mouse / finger: follow, run away, pop, look, depth */
+let mX = -9999, mY = -9999;
+addEventListener('pointermove', e => { mX = e.clientX; mY = e.clientY; }, { passive: true });
+addEventListener('touchmove', e => { const t = e.touches[0]; if(t){ mX = t.clientX; mY = t.clientY; } }, { passive: true });
+addEventListener('pointerdown', e => {
+  if(document.body.classList.contains('decoEdit')) return;
+  document.querySelectorAll('.deco').forEach(el => { const d = el._d; if(!d || d.react !== 'pop' || el.classList.contains('popped')) return;
+    const r = el.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
+    if(Math.hypot(e.clientX - cx, e.clientY - cy) < Math.max(30, r.width*.6)){
+      el.classList.add('popped'); if(typeof spark === 'function') for(let i = 0; i < 14; i++) spark(cx, cy, true);
+      setTimeout(() => el.classList.remove('popped'), 1600); } });
+});
+function decoReact(){
+  const editing = document.body.classList.contains('decoEdit');
+  document.querySelectorAll('.deco').forEach(el => {
+    const d = el._d; if(!d || !d.react || editing){ if(el._ox || el._oy){ el._ox = el._oy = 0; el.style.translate = ''; el.style.rotate = ''; } return; }
+    const W2 = innerWidth, H2 = innerHeight, hx = (d.x ?? 50)/100*W2, hy = (d.y ?? 50)/100*H2;
+    let tx = 0, ty = 0;
+    if(d.react === 'follow' && mX > -999){ tx = (mX - hx) * .9; ty = (mY - hy) * .9; const k = .06; el._ox += (tx - el._ox)*k; el._oy += (ty - el._oy)*k; }
+    else if(d.react === 'flee'){ const cx = hx + el._ox, cy = hy + el._oy, dx = cx - mX, dy = cy - mY, dist = Math.hypot(dx, dy), R0 = 140;
+      if(dist < R0 && dist > 0){ el._ox += dx/dist*(R0 - dist)*.25; el._oy += dy/dist*(R0 - dist)*.25; } else { el._ox *= .96; el._oy *= .96; } }
+    else if(d.react === 'depth' && mX > -999){ const f = (d.size || 60)/60*.03; el._ox += ((W2/2 - mX)*f - el._ox)*.08; el._oy += ((H2/2 - mY)*f - el._oy)*.08; }
+    else if(d.react === 'look' && mX > -999){ el.style.rotate = (Math.atan2(mY - hy, mX - hx)*180/Math.PI + 90) + 'deg'; return; }
+    el.style.translate = `${el._ox.toFixed(1)}px ${el._oy.toFixed(1)}px`;
+  });
+  requestAnimationFrame(decoReact);
+}
+requestAnimationFrame(decoReact);
 
 /* ---------- apply a theme ---------- */
 let charTimer, charIdx = 0, signalImg = null, flyerImg = null;
@@ -1686,7 +1761,13 @@ if(isOwner){
       ${row('Also by the social icons', `<input type="checkbox" data-f="ornSocials" data-k="boolOn" data-kind="light" ${e.ornSocials === false ? '' : 'checked'}>`)}`; },
     decor(){ const L = W.decos || [], d = L[selDeco];
       const D = (p, label, min, max, step, val) => `<label class="ef"><span>${label}</span><input type="range" data-d="${p}" min="${min}" max="${max}" step="${step}" value="${val}"></label>`;
-      const DA = { 'a-spin':'Spin', 'a-spinfast':'Fast spin', 'a-sway':'Sway', 'a-flip':'Flip', 'a-pulse':'Pulse', 'a-float':'Float up & down', 'a-bounce':'Bounce', 'a-orbit':'Circle around', 'a-wobble':'Wobble', 'a-glowpulse':'Fade in & out', '':'Still' };
+      const DA = { 'a-spin':'🔄 Spin', 'a-spinfast':'🌀 Fast spin', 'a-flip':'🪙 Flip (coin)', 'a-sway':'🍃 Sway', 'a-swing':'🔔 Swing (pendulum)', 'a-wobble':'〰️ Wobble',
+        'a-float':'🎈 Float up & down', 'a-bounce':'🏀 Bounce', 'a-zigzag':'⚡ Zig-zag', 'a-orbit':'🪐 Circle around', 'a-roll':'🎳 Roll side to side',
+        'a-pulse':'💢 Pulse', 'a-heartbeat':'💓 Heartbeat', 'a-zoom':'🔍 Zoom in & out', 'a-jello':'🍮 Jello', 'a-tada':'🎉 Tada', 'a-shake':'📳 Shake',
+        'a-twinkle':'✨ Twinkle', 'a-glowpulse':'🌫️ Fade in & out', 'a-blink':'💡 Blink',
+        'a-drift':'➡️ Drift across the screen', 'a-fall':'⬇️ Fall from the top', 'a-rise':'⬆️ Rise from the bottom', '':'⏸ Still' };
+      const DX = { '':'None', rainbow:'🌈 Rainbow colors', flicker:'💡 Neon flicker', pulseglow:'✨ Glow pulse', shimmer:'💎 Shimmer', ghost:'👻 Ghost (fades)', blur:'🌫️ Dreamy blur', gray:'⬛ Black & white', invert:'🔁 Inverted colors' };
+      const DR = { '':'Nothing', follow:'🧲 Follows the mouse/finger', flee:'🏃 Runs away from the mouse', pop:'🎈 Pops when clicked (comes back)', look:'👀 Turns to face the mouse', depth:'🪟 3D depth (shifts with mouse)' };
       return `<p>Add as many as you want and put them anywhere. While this tab is open you can <b style="display:inline">drag them on the page</b> and scroll on one to resize it.</p>
       <b>On this theme (${L.length})</b>
       <div class="decoList">${L.map((x,i) => `<button data-dsel="${i}" class="${i === selDeco ? 'on' : ''}">${decoInner(x)}</button>`).join('') || '<p>None yet. Add one below.</p>'}</div>
@@ -1695,6 +1776,9 @@ if(isOwner){
         ${D('rot','Tilt',-180,180,1,d.rot || 0)}
         <label class="ef"><span>Movement</span><select data-d="anim">${Object.entries(DA).map(([k,v]) => `<option value="${k}" ${(d.anim ?? 'a-spin') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
         ${D('speed','Speed (seconds per loop, lower = faster)',.3,20,.1,d.speed || 6)}
+        <label class="ef"><span>Extra effect on top</span><select data-d="fx2">${Object.entries(DX).map(([k,v]) => `<option value="${k}" ${(d.fx2 || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+        ${d.fx2 && !['gray','invert'].includes(d.fx2) ? D('fx2spd','Extra effect speed (seconds)',.3,10,.1,d.fx2spd || 3) : ''}
+        <label class="ef"><span>Reacts to visitors</span><select data-d="react">${Object.entries(DR).map(([k,v]) => `<option value="${k}" ${(d.react || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
         ${D('op','See-through',.1,1,.05,d.op ?? 1)}
         ${D('x','Left ↔ right',0,100,.5,d.x ?? 50)}${D('y','Up ↕ down',0,100,.5,d.y ?? 50)}
         <label class="ef"><span>Glow</span><span class="pair"><input type="checkbox" data-d="glow" ${d.glow ? 'checked' : ''}><input type="color" data-d="glowCol" value="${toHex(d.glowCol || T.accent)}"></span></label>
