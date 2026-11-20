@@ -324,6 +324,20 @@ body.decoEdit .deco.sel{outline:2px solid var(--accent)}
 .deco .dFx{width:100%;height:100%}
 .deco{transition:translate .25s ease-out,scale .3s,opacity .3s}
 .deco.popped{scale:0;opacity:0}
+/* character idle styles + tap bubble */
+#chara{transform-origin:50% 100%}
+#chara.idle-none{animation:none!important}
+#chara.idle-breathe{animation:cbreathe 4s ease-in-out infinite!important}
+#chara.idle-sway{animation:csway 5s ease-in-out infinite!important}
+#chara.idle-bob{animation:cbob 1.6s ease-in-out infinite!important}
+@keyframes cbreathe{50%{transform:scale(1.025,1.035)}}
+@keyframes csway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+@keyframes cbob{50%{transform:translateY(-10px)}}
+.tapBubble{position:fixed;z-index:65;pointer-events:none;background:#fff;color:#111;font:700 14px/1.3 system-ui,sans-serif;padding:8px 12px;border-radius:14px;
+  max-width:240px;transform:translate(-50%,-100%) scale(.6);opacity:0;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.tapBubble::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-7px;border:7px solid transparent;border-bottom:0;border-top-color:#fff}
+.tapBubble.on{transform:translate(-50%,-100%) scale(1);opacity:1}
+.tapBurst{position:fixed;z-index:64;pointer-events:none;font-size:20px;transition:transform .9s cubic-bezier(.2,.8,.3,1),opacity .9s}
 </style>
 </head>
 <body data-theme="sakura">
@@ -1328,6 +1342,7 @@ function applyExtras(key){
   document.body.classList.toggle('noSocOrn', e.ornSocials === false);
   setFX(e.effects || {});
   renderDecos(e.decos); applyLook(e.look);
+  if(typeof applyCharMotion === 'function') applyCharMotion(e);
 }
 
 /* ---------- extra effects layer (snow, rain, petals …) ---------- */
@@ -1499,6 +1514,86 @@ function decoReact(){
 }
 requestAnimationFrame(decoReact);
 
+/* ---------- tap reactions for the character + decoration pictures ---------- */
+const TAP_FX = {
+  nod:    ['none', 'perspective(800px) rotateX(28deg)', 'none'],
+  back:   ['none', 'perspective(800px) rotateX(-22deg)', 'none'],
+  jump:   ['none', 'translateY(-14%)', 'translateY(2%)', 'none'],
+  spin:   ['rotate(0)', 'rotate(360deg)'],
+  flip:   ['perspective(800px) rotateY(0)', 'perspective(800px) rotateY(360deg)'],
+  shake:  ['none', 'translateX(-5%)', 'translateX(5%)', 'translateX(-4%)', 'translateX(3%)', 'none'],
+  squish: ['none', 'scale(1.18,.82)', 'scale(.92,1.08)', 'none'],
+  wiggle: ['none', 'rotate(-9deg)', 'rotate(8deg)', 'rotate(-5deg)', 'rotate(3deg)', 'none'],
+  grow:   ['none', 'scale(1.18)', 'none'],
+};
+function tapAnim(el, kind, add){
+  const f = TAP_FX[kind]; if(!f || !el.animate) return;
+  el.animate(f.map(t => ({ transform: t })), { duration: kind === 'spin' || kind === 'flip' ? 800 : 650, easing: 'cubic-bezier(.3,.9,.4,1)', composite: add ? 'add' : 'replace' });
+}
+const BURST_SYM = { sparkles: ['✦','✧','·'], hearts: ['♥','💖','💕'], stars: ['⭐','✨','🌟'] };
+function tapBurst(x, y, kind, custom){
+  const syms = kind === 'custom' ? [...(custom || '✦')] : (BURST_SYM[kind] || BURST_SYM.sparkles);
+  for(let i = 0; i < 12; i++){
+    const s = document.createElement('span'); s.className = 'tapBurst'; s.textContent = syms[i % syms.length];
+    s.style.left = x + 'px'; s.style.top = y + 'px'; s.style.color = 'var(--accent)'; document.body.appendChild(s);
+    const a = Math.random()*TAU, d = 50 + Math.random()*70;
+    requestAnimationFrame(() => { s.style.transform = `translate(${Math.cos(a)*d}px,${Math.sin(a)*d - 30}px) scale(${.6 + Math.random()*.8}) rotate(${Math.random()*180}deg)`; s.style.opacity = '0'; });
+    setTimeout(() => s.remove(), 950);
+  }
+}
+let _bubble, _bubbleT;
+function tapSay(x, y, lines, idxHolder){
+  const L = (lines || []).filter(Boolean); if(!L.length) return;
+  idxHolder.i = ((idxHolder.i ?? -1) + 1) % L.length;
+  if(!_bubble){ _bubble = document.createElement('div'); _bubble.className = 'tapBubble'; document.body.appendChild(_bubble); }
+  _bubble.textContent = L[idxHolder.i]; _bubble.style.left = Math.max(130, Math.min(innerWidth - 130, x)) + 'px'; _bubble.style.top = Math.max(60, y) + 'px';
+  _bubble.classList.remove('on'); void _bubble.offsetWidth; _bubble.classList.add('on');
+  clearTimeout(_bubbleT); _bubbleT = setTimeout(() => _bubble.classList.remove('on'), 2600);
+}
+const _sayIdx = {};
+function tappable(e){
+  const sp = document.getElementById('splash');
+  return !e.target.closest('#editPanel,#musicPanel,#themeMenu,.cornerBtn,.card,.player,a,button,input,select,textarea') && (!sp || sp.classList.contains('gone'));
+}
+addEventListener('pointerdown', e => {
+  if(!tappable(e) || document.body.classList.contains('decoEdit') || document.body.classList.contains('dragChar')) return;
+  const ed = EDITS[themeKey] || {}, ch = $('chara');
+  // character
+  if(ch.style.display !== 'none' && (ed.charTap || ed.charTapBurst || (ed.charSay || []).length)){
+    const r = ch.getBoundingClientRect(), padX = r.width*.12;
+    if(e.clientX > r.left + padX && e.clientX < r.right - padX && e.clientY > r.top + r.height*.05 && e.clientY < r.bottom){
+      if(ed.charTap) tapAnim(ch, ed.charTap, true);
+      if(ed.charTapBurst) tapBurst(e.clientX, e.clientY, ed.charTapBurst, ed.charTapSym);
+      tapSay(r.left + r.width/2, r.top + r.height*.08, ed.charSay, _sayIdx[themeKey] = _sayIdx[themeKey] || {});
+    }
+  }
+  // decorations
+  document.querySelectorAll('.deco').forEach(el => { const d = el._d; if(!d || (!d.tap && !d.tapBurst) || el.classList.contains('popped')) return;
+    const r = el.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
+    if(Math.hypot(e.clientX - cx, e.clientY - cy) < Math.max(30, r.width*.6)){
+      if(d.tap) tapAnim(el.querySelector('.dFx'), d.tap);
+      if(d.tapBurst) tapBurst(cx, cy, d.tapBurst, d.tapSym); } });
+});
+/* character idle movement + mouse following */
+function applyCharMotion(ed){
+  const ch = $('chara'); ['idle-none','idle-breathe','idle-sway','idle-bob'].forEach(c => ch.classList.remove(c));
+  if(ed.charIdle && ed.charIdle !== 'float') ch.classList.add('idle-' + ed.charIdle);
+  ch.style.rotate = '';
+}
+(function charMouse(){
+  const ed = EDITS[themeKey] || {}, ch = $('chara');
+  if(ch && ed.charMouse && mX > -999 && !document.body.classList.contains('dragChar')){
+    const r = ch.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
+    const dx = Math.max(-1, Math.min(1, (mX - cx) / (innerWidth/2))), dy = Math.max(-1, Math.min(1, (mY - cy) / (innerHeight/2)));
+    ch._mx = (ch._mx || 0) + (dx - (ch._mx || 0))*.08; ch._my = (ch._my || 0) + (dy - (ch._my || 0))*.08;
+    const base = ed.charX != null ? '-50%' : '0px';
+    if(ed.charMouse === 'tilt'){ ch.style.rotate = `${(-ch._my).toFixed(3)} ${ch._mx.toFixed(3)} 0 ${(Math.hypot(ch._mx, ch._my)*14).toFixed(2)}deg`; ch.style.translate = ed.charX != null ? '-50% 0' : ''; }
+    else if(ed.charMouse === 'lean'){ ch.style.rotate = (ch._mx*7).toFixed(2) + 'deg'; ch.style.translate = ed.charX != null ? '-50% 0' : ''; }
+    else if(ed.charMouse === 'depth'){ ch.style.rotate = ''; ch.style.translate = `calc(${base} + ${(-ch._mx*22).toFixed(1)}px) ${(-ch._my*12).toFixed(1)}px`; }
+  }
+  requestAnimationFrame(charMouse);
+})();
+
 /* ---------- apply a theme ---------- */
 let charTimer, charIdx = 0, signalImg = null, flyerImg = null;
 function ornHTML(){ const o = (CONFIG.themes[themeKey]||{}).ornament; return o ? `<img src="${asset(o)}" alt="">` : orn(T.orn); }
@@ -1656,6 +1751,8 @@ if(isOwner){
     [...l.href.matchAll(/family=([^:&]+)/g)].map(m => decodeURIComponent(m[1]).replace(/\+/g,' '))))];
   const ORNS = [...document.querySelectorAll('defs g[id^="o-"]')].map(g => g.id.slice(2));
   const ANIMS = { 'a-spin':'Spin', 'a-spinfast':'Fast spin', 'a-sway':'Sway', 'a-flip':'Flip', 'a-pulse':'Pulse', '':'Still' };
+  const TAPS = { '':'Nothing', nod:'🙇 Tilt down (bow)', back:'😮 Lean back', jump:'🦘 Jump', spin:'🔄 Spin', flip:'🪙 Flip', shake:'📳 Shake', squish:'🍮 Squish', wiggle:'〰️ Wiggle', grow:'🔍 Grow' };
+  const BURSTS = { '':'None', sparkles:'✦ Sparkles', hearts:'💖 Hearts', stars:'⭐ Stars', custom:'Your own emoji ↓' };
   const PLACES = { both:'Both sides of name', left:'Left of name', right:'Right of name', above:'Above name', below:'Below name', none:'Hidden' };
   let selDeco = -1, W = {}, tab = 'text', lastSaved = JSON.parse(JSON.stringify(EDITS)), dragOn = false, uploads = [];
   const st = msg => $('epStatus').textContent = msg;
@@ -1736,6 +1833,13 @@ if(isOwner){
       ${e.charX != null ? `${rng('charH','Size',20,110,1,e.charH ?? 70)}${rng('charX','Left ↔ right',0,100,.5,e.charX)}${rng('charY','Up ↕ down',-20,80,.5,e.charY ?? 0)}<button class="wbtn" id="epCharReset">↺ Back to default spot</button>` : ''}
       ${row('Mirror it', `<input type="checkbox" data-f="charFlip" data-k="bool" data-kind="light" ${e.charFlip ? 'checked' : ''}>`)}
       ${rng('charFade','See-through',.1,1,.05,e.charFade ?? 1)}
+      <hr><b>Character reactions</b>
+      ${sel('charTap','When tapped', TAPS, e.charTap || '', 'light')}
+      ${sel('charTapBurst','Burst on tap', BURSTS, e.charTapBurst || '', 'light')}
+      ${e.charTapBurst === 'custom' ? txt('charTapSym','Burst emoji (1–3)','💜🔥') : ''}
+      ${row('Speech bubble on tap <i>(one line per tap, in order)</i>', `<textarea data-f="charSay" data-k="lines" data-kind="light" rows="3" placeholder="hi!&#10;stop poking me 😤">${esc((e.charSay || []).join('\n'))}</textarea>`)}
+      ${sel('charIdle','Moves on its own', { float:'🎈 Float (default)', breathe:'😮‍💨 Breathe', sway:'🍃 Sway', bob:'🎵 Bob to the beat', none:'⏸ Still' }, e.charIdle || 'float', 'light')}
+      ${sel('charMouse','Follows the mouse', { '':'No', tilt:'🧊 3D tilt toward it', lean:'↔️ Lean toward it', depth:'🪟 Depth shift' }, e.charMouse || '', 'light')}
       ${$('themeLogo') ? `<hr><b>Logo above the name</b>
       <p>${o.logo ? `Using <img class="mini" src="${esc(asset(o.logo))}">` : 'None.'}</p>
       ${up('logo','Upload logo','image/*')}${o.logo ? '<button class="wbtn" data-clear="logo">✕ Remove logo</button>' : ''}` : ''}
@@ -1778,6 +1882,9 @@ if(isOwner){
         ${D('speed','Speed (seconds per loop, lower = faster)',.3,20,.1,d.speed || 6)}
         <label class="ef"><span>Extra effect on top</span><select data-d="fx2">${Object.entries(DX).map(([k,v]) => `<option value="${k}" ${(d.fx2 || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
         ${d.fx2 && !['gray','invert'].includes(d.fx2) ? D('fx2spd','Extra effect speed (seconds)',.3,10,.1,d.fx2spd || 3) : ''}
+        <label class="ef"><span>When tapped</span><select data-d="tap">${Object.entries(TAPS).map(([k,v]) => `<option value="${k}" ${(d.tap || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+        <label class="ef"><span>Burst on tap</span><select data-d="tapBurst">${Object.entries(BURSTS).map(([k,v]) => `<option value="${k}" ${(d.tapBurst || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+        ${d.tapBurst === 'custom' ? `<label class="ef"><span>Burst emoji (1–3)</span><input type="text" data-d="tapSym" value="${esc(d.tapSym || '')}" maxlength="8"></label>` : ''}
         <label class="ef"><span>Reacts to visitors</span><select data-d="react">${Object.entries(DR).map(([k,v]) => `<option value="${k}" ${(d.react || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
         ${D('op','See-through',.1,1,.05,d.op ?? 1)}
         ${D('x','Left ↔ right',0,100,.5,d.x ?? 50)}${D('y','Up ↕ down',0,100,.5,d.y ?? 50)}
@@ -1880,7 +1987,8 @@ if(isOwner){
       if(f === 'bios'){ clearTimeout(bioTimer); bioI = 0; bioJ = 0; bioDel = false; typeTick(); }
       st('Unsaved changes — press 💾 Save to make them live.'); return;
     }
-    changed(['nameText','charH','charX','charY','charFade','ornSize','ornSpeed','ornPlace'].includes(f) ? 'light' : kind);
+    changed(['nameText','charH','charX','charY','charFade','ornSize','ornSpeed','ornPlace','charTap','charTapBurst','charTapSym','charSay','charIdle','charMouse'].includes(f) ? 'light' : kind);
+    if(f === 'charTapBurst' && e.type === 'change') setTimeout(render, 50);
   }
   $('epBody').addEventListener('input', onInput);
   $('epBody').addEventListener('change', e => { if(e.target.dataset.up) return onUpload(e); if(e.target.type === 'checkbox' || e.target.tagName === 'SELECT') onInput(e);
