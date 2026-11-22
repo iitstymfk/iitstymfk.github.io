@@ -98,59 +98,6 @@
     "counter": {
       "on": true,
       "label": "views"
-    },
-    "apps": [
-      {
-        "title": "Breakfast Club",
-        "url": "https://iitstymfk.github.io/iitsty-breakfast-club/",
-        "img": "chars/apps/breakfast-club.jpg",
-        "fit": "cover"
-      },
-      {
-        "title": "Arcade",
-        "url": "https://iitstymfk.github.io/iitsty-breakfast-club/arcade.html",
-        "emoji": "👾",
-        "c1": "#8e44ad",
-        "c2": "#9b59b6"
-      },
-      {
-        "title": "Reel Legends",
-        "url": "https://iitstymfk.github.io/iitsty-breakfast-club/reel-legends.html",
-        "img": "chars/apps/reel-legends.webp"
-      },
-      {
-        "title": "Reel Spooky",
-        "url": "https://iitstymfk.github.io/iitsty-breakfast-club/reel-spooky.html",
-        "img": "chars/apps/reel-spooky.webp"
-      },
-      {
-        "title": "Dungeon Dwellers",
-        "url": "https://iitstymfk.github.io/iitsty-breakfast-club/dungeon-dwellers.html",
-        "emoji": "⚔️",
-        "c1": "#6a1b9a",
-        "c2": "#ab47bc"
-      },
-      {
-        "title": "Pocket Farm",
-        "url": "https://iitstymfk.github.io/iitsty-breakfast-club/PocketFarm.html",
-        "emoji": "🚜",
-        "c1": "#2e7d32",
-        "c2": "#8bc34a"
-      },
-      {
-        "title": "Color Art",
-        "url": "https://iitstymfk.github.io/iitsty-breakfast-club/color-art.html",
-        "emoji": "🎨",
-        "c1": "#00838f",
-        "c2": "#00bcd4"
-      },
-      {
-        "title": "Mystery Club",
-        "url": "https://iitstymfk.github.io/iitsty-breakfast-club/mystery.html",
-        "emoji": "🕵️",
-        "c1": "#263238",
-        "c2": "#5c6bc0"
-      }
-    ]
+    }
   }
 }

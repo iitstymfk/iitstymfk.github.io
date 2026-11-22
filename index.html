@@ -479,17 +479,6 @@ body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-st
 #aboutCards .about{display:block;padding:10px 12px;font-size:12.5px}
 #aboutCards .abTop{display:flex;gap:6px;align-items:center;font-size:13px}
 #aboutCards .abEm{font-size:16px}
-#appGrid{display:block;padding:12px 12px 8px;margin:0 0 16px}
-#appGrid .apHead{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--accent)}
-#appGrid .apRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:10px 6px}
-#appGrid .app{display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;color:inherit;min-width:0}
-#appGrid .apIc{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:26px;overflow:hidden;background:rgba(255,255,255,.06);
-  border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);box-shadow:0 4px 14px rgba(0,0,0,.35);transition:transform .2s,box-shadow .2s}
-#appGrid.ap-circle .apIc{border-radius:50%}#appGrid.ap-square .apIc{border-radius:6px}#appGrid.ap-bare .apIc{background:none!important;border:0;box-shadow:none}
-#appGrid .apIc img{width:100%;height:100%;object-fit:contain;padding:3px;box-sizing:border-box}
-#appGrid .apIc img.cv{object-fit:cover;padding:0}
-#appGrid .app:hover .apIc{transform:translateY(-3px) scale(1.06);box-shadow:0 0 18px color-mix(in srgb,var(--accent) 55%,transparent)}
-#appGrid .apT{font-size:10.5px;text-align:center;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.9}
 #aboutCards .abTxt{color:var(--muted);margin-top:4px;line-height:1.4}
 /* ---------- name animations ---------- */
 #name.nf-rainbow{animation:nfRain 4s linear infinite}
@@ -532,6 +521,7 @@ body.ytbg #bgCanvas,body.ytbg #bgVideo,body.ytbg #bgImage{display:none!important
 .lkGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:6px 0;max-height:260px;overflow:auto}
 .lkGrid button{background:rgba(255,255,255,.06);border-radius:8px;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;color:#ccc;overflow:hidden}
 .lkGrid img,.lkGrid svg{width:22px;height:22px;filter:invert(1)}.lkGrid svg{filter:none;fill:#fff}
+.lkGrid img.lkImg{filter:none;object-fit:contain}
 .lkGrid span{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .thumbs .peBtn{right:auto!important;left:2px}
 #peBox{position:fixed;inset:0;z-index:85;display:none;place-items:center;background:rgba(0,0,0,.6)}
@@ -541,8 +531,6 @@ body.ytbg #bgCanvas,body.ytbg #bgVideo,body.ytbg #bgImage{display:none!important
 #peBox details{border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 9px;margin:6px 0}#peBox summary{cursor:pointer;font-weight:700}
 #peBox input[type=range]{width:100%;accent-color:var(--accent)}#peBox .peHint{color:#aaa;text-align:center;margin:2px 0}
 #peBox .wbtn{display:block;width:100%;margin-top:6px;padding:8px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}#peBox .wbtn.go{background:var(--accent);color:#111}
-#epBody .apPrev{flex:0 0 40px;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:20px;overflow:hidden;background:rgba(255,255,255,.06)}
-#epBody .apPrev img{width:100%;height:100%;object-fit:contain}
 </style>
 </head>
 <body data-theme="sakura">
@@ -2865,16 +2853,7 @@ function plusApply(key){
   nameFx((e.look || {}).nameAnim || '');
   themeSound(key);
 }
-/* ---------- app icons (your own HTML apps/games) ---------- */
-function renderApps(){
-  let box = $('appGrid'); const list = (SITE.apps || []).filter(a => a.url);
-  if(!list.length || SITE.appsOn === false){ if(box) box.remove(); return; }
-  if(!box){ box = document.createElement('div'); box.id = 'appGrid'; box.className = 'card'; (($('aboutCards')) || $('socials')).after(box); }
-  box.className = 'card ap-' + (SITE.appsShape || 'round');
-  box.innerHTML = (SITE.appsTitle !== '' ? `<div class="apHead">${escA(SITE.appsTitle || '🎮 My apps & games')}</div>` : '') + '<div class="apRow">' +
-    list.map(a => `<a class="app" href="${escA(a.url)}" target="_blank" rel="noopener" title="${escA(a.title || '')}"><span class="apIc" style="${a.img ? '' : `background:linear-gradient(135deg,${escA(a.c1 || '#8e44ad')},${escA(a.c2 || '#9b59b6')})`}">${a.img ? `<img src="${escA(asset(a.img))}" alt="" loading="lazy" class="${a.fit === 'cover' ? 'cv' : ''}">` : escA(a.emoji || '🎮')}</span><span class="apT">${escA(a.title || '')}</span></a>`).join('') + '</div>';
-}
-function plusSite(){ renderLinks(); renderAbout(); renderApps(); applyEntry(); }
+function plusSite(){ renderLinks(); renderAbout(); applyEntry(); }
 var _plusReady = true;
 
 /* =====================================================================
@@ -3318,7 +3297,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
   });
 
   /* ---------- uploads (go straight to GitHub, shown right away) ---------- */
-  const LIMITS = { lkicon: 160, appimg: 256, og: 1200, playerCover: 500, deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
+  const LIMITS = { lkicon: 160, og: 1200, playerCover: 500, deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
   async function shrink(file, kind){
     if(!/^image\//.test(file.type) || /gif/.test(file.type)) return file;
     const bmp = await createImageBitmap(file), max = LIMITS[kind] || 1500;
@@ -3374,9 +3353,10 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
   /* =================== PLUS: Links tab, sounds/entry (Site tab), trail/visualizer (Effects), name animation (Look), photo editor =================== */
   if(window._plusReady){
     const SI_BASE = 'https://cdn.jsdelivr.net/npm/simple-icons@16';
-    let siIndex = null, pickFor = null, siResults = [], aboutSel = -1, apPick = null;
+    let siIndex = null, pickFor = null, siResults = [], aboutSel = -1;
     const linksW = () => SW.links || (SW.links = JSON.parse(JSON.stringify(currentLinks())));
     const BUILTIN = Object.keys(ICONS);
+    const MY_APPS = (CONFIG.counterPage || 'iitstymfk') === 'iitstymfk' ? [{"title": "Breakfast Club", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/", "icon": {"t": "si", "d": "M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5C22,3.89 21.1,3 20,3Z"}}, {"title": "Arcade", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/arcade.html", "icon": {"t": "si", "d": "M7,6H17A6,6 0 0,1 23,12A6,6 0 0,1 17,18C15.22,18 13.63,17.23 12.53,16H11.47C10.37,17.23 8.78,18 7,18A6,6 0 0,1 1,12A6,6 0 0,1 7,6M6,9V11H4V13H6V15H8V13H10V11H8V9H6M15.5,12A1.5,1.5 0 0,0 14,13.5A1.5,1.5 0 0,0 15.5,15A1.5,1.5 0 0,0 17,13.5A1.5,1.5 0 0,0 15.5,12M18.5,9A1.5,1.5 0 0,0 17,10.5A1.5,1.5 0 0,0 18.5,12A1.5,1.5 0 0,0 20,10.5A1.5,1.5 0 0,0 18.5,9Z"}}, {"title": "Reel Legends", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/reel-legends.html", "icon": {"t": "si", "d": "M12,20L12.76,17C9.5,16.79 6.59,15.4 5.75,13.58C5.66,14.06 5.53,14.5 5.33,14.83C4.67,16 3.33,16 2,16C3.1,16 3.5,14.43 3.5,12.5C3.5,10.57 3.1,9 2,9C3.33,9 4.67,9 5.33,10.17C5.53,10.5 5.66,10.94 5.75,11.42C6.4,10 8.32,8.85 10.66,8.32L9,5C11,5 13,5 14.33,5.67C15.46,6.23 16.11,7.27 16.69,8.38C19.61,9.08 22,10.66 22,12.5C22,14.38 19.5,16 16.5,16.66C15.67,17.76 14.86,18.78 14.17,19.33C13.33,20 12.67,20 12,20M17,11A1,1 0 0,0 16,12A1,1 0 0,0 17,13A1,1 0 0,0 18,12A1,1 0 0,0 17,11Z"}}, {"title": "Reel Legends", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/reel-legends.html", "icon": {"t": "img", "src": "chars/apps/reel-legends.webp", "tint": false}}, {"title": "Reel Spooky", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/reel-spooky.html", "icon": {"t": "si", "d": "M12,2A9,9 0 0,0 3,11V22L6,19L9,22L12,19L15,22L18,19L21,22V11A9,9 0 0,0 12,2M9,8A2,2 0 0,1 11,10A2,2 0 0,1 9,12A2,2 0 0,1 7,10A2,2 0 0,1 9,8M15,8A2,2 0 0,1 17,10A2,2 0 0,1 15,12A2,2 0 0,1 13,10A2,2 0 0,1 15,8Z"}}, {"title": "Reel Spooky", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/reel-spooky.html", "icon": {"t": "img", "src": "chars/apps/reel-spooky.webp", "tint": false}}, {"title": "Dungeon Dwellers", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/dungeon-dwellers.html", "icon": {"t": "si", "d": "M6.92,5H5L14,14L15,13.06M19.96,19.12L19.12,19.96C18.73,20.35 18.1,20.35 17.71,19.96L14.59,16.84L11.91,19.5L10.5,18.09L11.92,16.67L3,7.75V3H7.75L16.67,11.92L18.09,10.5L19.5,11.91L16.83,14.58L19.95,17.7C20.35,18.1 20.35,18.73 19.96,19.12Z"}}, {"title": "Pocket Farm", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/PocketFarm.html", "icon": {"t": "si", "d": "M2,22V20C2,20 7,18 12,18C17,18 22,20 22,20V22H2M11.3,9.1C10.1,5.2 4,6.1 4,6.1C4,6.1 4.2,13.9 9.9,12.7C9.5,9.8 8,9 8,9C10.8,9 11,12.4 11,12.4V17C11.3,17 11.7,17 12,17C12.3,17 12.7,17 13,17V12.8C13,12.8 13,8.9 16,7.9C16,7.9 14,10.9 14,12.9C21,13.6 21,4 21,4C21,4 12.1,3 11.3,9.1Z"}}, {"title": "Color Art", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/color-art.html", "icon": {"t": "si", "d": "M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A1.5,1.5 0 0,0 13.5,19.5C13.5,19.11 13.35,18.76 13.11,18.5C12.88,18.23 12.73,17.88 12.73,17.5A1.5,1.5 0 0,1 14.23,16H16A5,5 0 0,0 21,11C21,6.58 16.97,3 12,3Z"}}, {"title": "Mystery Club", "url": "https://iitstymfk.github.io/iitsty-breakfast-club/mystery.html", "icon": {"t": "si", "d": "M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"}}] : [];
     async function siSearch(q){
       q = q.trim().toLowerCase(); if(!q){ siResults = []; return; }
       if(!siIndex){ st('Loading icon library…'); siIndex = await (await fetch(`${SI_BASE}/data/simple-icons.json`)).json(); st(''); }
@@ -3414,25 +3394,13 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       ${A.map((c, i) => `<div class="fx on"><div class="pair"><input type="text" data-ab="${i}" data-abp="emoji" value="${esc(c.emoji || '')}" placeholder="🎮" maxlength="4" style="width:52px"><input type="text" data-ab="${i}" data-abp="title" value="${esc(c.title || '')}" placeholder="Title" maxlength="40"></div>
         <textarea data-ab="${i}" data-abp="text" rows="2" placeholder="Text (new line = new line)" maxlength="300">${esc(c.text || '')}</textarea>
         <div class="pair"><button class="wbtn" data-abmv="${i}:-1">↑</button><button class="wbtn" data-abmv="${i}:1">↓</button><button class="wbtn danger" data-abdel="${i}">✕ Remove</button></div></div>`).join('')}
-      <button class="wbtn" id="abAdd">＋ Add a card</button>
-      <hr><b>🎮 App icons</b>
-      <p>Icons for your own apps/games (like a phone home screen), under your links. Tap 🖼 to give one a picture; without a picture it shows the emoji on a color.</p>
-      <label class="ef"><span>Show them</span><input type="checkbox" data-s="appsOn" ${SW.appsOn === false ? '' : 'checked'}></label>
-      <label class="ef"><span>Heading (empty = none)</span><input type="text" data-apx="appsTitle" value="${esc(SW.appsTitle ?? '🎮 My apps & games')}" maxlength="40"></label>
-      <label class="ef"><span>Icon shape</span><select data-s="appsShape">${Object.entries({ round:'Rounded (like phone apps)', circle:'Circles', square:'Square', bare:'Just the picture' }).map(([k,v]) => `<option value="${k}" ${(SW.appsShape || 'round') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
-      ${(SW.apps || []).map((a, i) => `<div class="fx on"><div class="pair"><span class="apPrev" style="${a.img ? '' : `background:linear-gradient(135deg,${esc(a.c1 || '#8e44ad')},${esc(a.c2 || '#9b59b6')})`}">${a.img ? `<img src="${esc(asset(a.img))}">` : esc(a.emoji || '🎮')}</span>
-          <input type="text" data-ap="${i}" data-app="title" value="${esc(a.title || '')}" placeholder="Name" maxlength="30"></div>
-        <input type="text" data-ap="${i}" data-app="url" value="${esc(a.url || '')}" placeholder="https://…">
-        ${a.img ? `<label class="ef"><span>Fill the whole icon (crop)</span><input type="checkbox" data-ap="${i}" data-app="fit" ${a.fit === 'cover' ? 'checked' : ''}></label>`
-          : `<div class="pair"><input type="text" data-ap="${i}" data-app="emoji" value="${esc(a.emoji || '')}" placeholder="🎮" maxlength="4" style="width:52px"><input type="color" data-ap="${i}" data-app="c1" value="${toHex(a.c1 || '#8e44ad')}"><input type="color" data-ap="${i}" data-app="c2" value="${toHex(a.c2 || '#9b59b6')}"></div>`}
-        <div class="pair"><button class="wbtn" data-apimg="${i}">🖼 Picture</button>${a.img ? `<button class="wbtn" data-apnoimg="${i}">✕ Picture</button>` : ''}<button class="wbtn" data-apmv="${i}:-1">↑</button><button class="wbtn" data-apmv="${i}:1">↓</button><button class="wbtn danger" data-apdel="${i}">✕</button></div>
-        ${apPick === i ? up('appimg','Choose a picture for ' + esc(a.title || 'this app'),'image/*') : ''}</div>`).join('')}
-      <button class="wbtn" id="apAdd">＋ Add an app icon</button>`;
+      <button class="wbtn" id="abAdd">＋ Add a card</button>`;
     };
     function pickerHTML(){
       return `<div class="lkPick"><b>Choose an icon</b>
         <div class="pair"><input type="text" id="lkSearch" placeholder="Search 3,400+ brands (jellyfin, kick, roblox…)"><button class="wbtn" id="lkGo" style="width:auto;margin:0">Search</button></div>
         <div class="lkGrid">${siResults.map(x => `<button data-si="${x.slug}" data-hex="${x.hex}" data-title="${esc(x.title)}" title="${esc(x.title)}"><img src="${SI_BASE}/icons/${x.slug}.svg" alt="" loading="lazy"><span>${esc(x.title)}</span></button>`).join('')}</div>
+        ${MY_APPS.length ? `<p>🎮 My apps & games (Breakfast Club):</p><div class="lkGrid">${MY_APPS.map((a, i) => `<button data-myapp="${i}" title="${esc(a.title)}">${linkIcon({ icon: a.icon })}<span>${esc(a.title)}${a.icon.t === 'img' ? ' (art)' : ''}</span></button>`).join('')}</div>` : ''}
         <p>Built-in:</p><div class="lkGrid">${BUILTIN.map(k => `<button data-bi="${k}" title="${k}">${svg(ICONS[k])}<span>${k}</span></button>`).join('')}</div>
         ${up('lkicon','Use my own picture as the icon','image/*')}
         <button class="wbtn" id="lkPickClose">Close</button></div>`;
@@ -3490,10 +3458,6 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
         if(p === 'colorMode'){ l.color = el.value === 'custom' ? (l.color && l.color[0] === '#' ? l.color : '#ffffff') : el.value; if(!l.color) delete l.color; lkSet(); render(); return; }
         if(p === 'tint'){ l.icon.tint = el.checked; lkSet(); render(); return; }
         l[p] = el.value; if(p === 'label' && !el.value) delete l.label; lkSet(); return; }
-      if(el.dataset.ap != null){ const a = SW.apps[+el.dataset.ap], p = el.dataset.app;
-        if(p === 'fit'){ a.fit = el.checked ? 'cover' : ''; if(!a.fit) delete a.fit; } else a[p] = el.value;
-        siteChanged(); if(['emoji','c1','c2','fit'].includes(p)) setTimeout(render, 0); return; }
-      if(el.dataset.apx){ SW.appsTitle = el.value; siteChanged(); return; }
       if(el.dataset.ab != null){ const c = (SW.about || [])[+el.dataset.ab]; c[el.dataset.abp] = el.value; siteChanged(); return; }
     });
     // number-ish site values + link colour mode
@@ -3512,16 +3476,12 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       if(b.id === 'lkPickClose'){ pickFor = null; render(); return; }
       if(b.dataset.si){ const l = L[pickFor]; try{ st('Getting icon…'); const d = await siPath(b.dataset.si);
           l.icon = { t: 'si', slug: b.dataset.si, hex: b.dataset.hex, d }; if(!l.title) l.title = b.dataset.title; pickFor = null; st(''); lkSet(); render(); }catch(err){ st('Couldn\'t get that icon: ' + err.message); } return; }
+      if(b.dataset.myapp != null){ const l = L[pickFor], a = MY_APPS[+b.dataset.myapp]; l.icon = JSON.parse(JSON.stringify(a.icon)); if(!l.title) l.title = a.title; if(!l.url) l.url = a.url; pickFor = null; lkSet(); render(); return; }
       if(b.dataset.bi){ const l = L[pickFor]; l.icon = { t: 'b', k: b.dataset.bi }; if(!l.title) l.title = b.dataset.bi; pickFor = null; lkSet(); render(); return; }
       if(b.id === 'lkReset'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to reset your links'; return; } delete SW.links; delete SW.linkStyle; pickFor = null; siteChanged(); render(); return; }
       if(b.id === 'abAdd'){ (SW.about = SW.about || []).push({ emoji: '🎮', title: 'Currently playing', text: '' }); siteChanged(); render(); return; }
       if(b.dataset.abdel != null){ SW.about.splice(+b.dataset.abdel, 1); siteChanged(); render(); return; }
       if(b.dataset.abmv){ const A = SW.about, [i, d] = b.dataset.abmv.split(':').map(Number), j = i + d; if(j < 0 || j >= A.length) return; [A[i], A[j]] = [A[j], A[i]]; siteChanged(); render(); return; }
-      if(b.id === 'apAdd'){ (SW.apps = SW.apps || []).push({ title: '', url: '', emoji: '🎮', c1: '#8e44ad', c2: '#9b59b6' }); siteChanged(); render(); return; }
-      if(b.dataset.apimg != null){ apPick = apPick === +b.dataset.apimg ? null : +b.dataset.apimg; render(); return; }
-      if(b.dataset.apnoimg != null){ delete SW.apps[+b.dataset.apnoimg].img; siteChanged(); render(); return; }
-      if(b.dataset.apdel != null){ SW.apps.splice(+b.dataset.apdel, 1); apPick = null; siteChanged(); render(); return; }
-      if(b.dataset.apmv){ const A = SW.apps, [i, d] = b.dataset.apmv.split(':').map(Number), j = i + d; if(j < 0 || j >= A.length) return; [A[i], A[j]] = [A[j], A[i]]; apPick = null; siteChanged(); render(); return; }
       if(b.dataset.sndprev){ const S = SW.sounds || {}; const was = SITE.sounds; SITE.sounds = { ...S, on: true }; playSnd(b.dataset.sndprev === 'click' ? (S.click || 'pop') : (S.theme || 'whoosh')); SITE.sounds = was; return; }
       if(b.id === 'entPrev'){ const p = $('profile'); applyEntry(); p.classList.remove('show'); void p.offsetWidth; setTimeout(() => p.classList.add('show'), 60); return; }
       if(b.dataset.pe){ const [kind, i] = b.dataset.pe.split(':'); openPE(kind, kind === 'deco' ? selDeco : +i); return; }
@@ -3536,7 +3496,6 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
     // uploads for link icons + sounds (hooked into the existing uploader)
     window._plusUpload = (kind, path) => {
       if(kind === 'lkicon'){ const L = linksW(), i = pickFor >= 0 ? pickFor : L.length - 1; if(L[i]){ L[i].icon = { t: 'img', src: path, tint: true }; } pickFor = null; lkSet(); setTimeout(render, 50); return true; }
-      if(kind === 'appimg'){ const a = (SW.apps || [])[apPick]; if(a){ a.img = path; } apPick = null; siteChanged(); setTimeout(render, 50); return true; }
       if(kind === 'sndClick' || kind === 'sndTheme'){ SW.sounds = SW.sounds || {}; SW.sounds[kind === 'sndClick' ? 'click' : 'theme'] = path; siteChanged(); setTimeout(render, 50); return true; }
       return false;
     };
