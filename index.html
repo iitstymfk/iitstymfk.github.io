@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>@iitstymfk</title>
+<!-- LINK PREVIEW START (edit in ✏️ → Site) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="iitstymfk.github.io">
+<meta property="og:title" content="iitstymfk">
+<meta property="og:description" content="🎮 gamer · Xbox iitstymfk#9231 · PSN Its-_-TyMFK — tap to see my page">
+<meta property="og:url" content="https://iitstymfk.github.io/">
+<meta property="og:image" content="https://iitstymfk.github.io/og-preview.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#ff7eb6">
+<meta name="description" content="🎮 gamer · Xbox iitstymfk#9231 · PSN Its-_-TyMFK — tap to see my page">
+<!-- LINK PREVIEW END -->
 <link rel="icon" id="favicon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,8 +379,36 @@ body.decoEdit .deco.sel{outline:2px solid var(--accent)}
 .tapBurst{position:fixed;z-index:64;pointer-events:none;font-size:20px;transition:transform .9s cubic-bezier(.2,.8,.3,1),opacity .9s}
 .cover[data-shape=rounded]{border-radius:14px!important}.cover[data-shape=square]{border-radius:3px!important}
 .cover.nospin{animation:none!important}
-.card.clickable{cursor:pointer;transition:border-color .2s,box-shadow .2s}
-.card.clickable:hover{border-color:var(--accent);box-shadow:0 6px 22px color-mix(in srgb,var(--accent) 30%,transparent)}
+/* ---------- site features ---------- */
+body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-state:paused!important}
+#viewCount{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:4px 10px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#viewCount b{color:var(--text);font-weight:700}
+#viewCount.vc-corner-left,#viewCount.vc-corner-right{position:fixed;bottom:14px;z-index:9}
+#viewCount.vc-corner-left{left:14px}#viewCount.vc-corner-right{right:14px}
+#viewCount.vc-under-bio{margin:6px auto 0;display:flex;width:max-content}
+#uBadges{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}
+#uBadges i{font-style:normal;font-size:13px}#uBadges em{font-style:normal;font-size:10px;font-weight:800;border:1px solid var(--line);border-radius:5px;padding:0 4px;display:inline-flex;gap:3px;align-items:center}
+#uBadges em img{width:12px;height:12px}
+.csEmoji{width:15px;height:15px;vertical-align:-3px;margin-right:4px;display:inline-block}
+#spotBox{display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit;margin:0 auto 14px;max-width:640px;cursor:pointer}
+#spotBox .spArt{width:64px;height:64px;border-radius:8px;object-fit:cover;flex:0 0 64px}
+#spotBox .spInfo{flex:1;min-width:0}
+#spotBox .spTop{font-size:10.5px;color:#1db954;font-weight:700;display:flex;gap:5px;align-items:center;text-transform:uppercase;letter-spacing:.5px}
+#spotBox .spSong{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+#spotBox .spArtist{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#spotBox .spBar{height:4px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:7px;overflow:hidden}#spotBox .spBar i{display:block;height:100%;background:#1db954;width:0}
+#spotBox .spTimes{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px}
+#spotBox.compact{padding:8px 12px}#spotBox.compact .spArt{width:38px;height:38px;flex-basis:38px}#spotBox.compact .spBar,#spotBox.compact .spTimes{display:none}
+#spotBox:hover{border-color:#1db954}
+.hol{border:1px solid rgba(255,255,255,.08);border-radius:9px;padding:6px 9px;margin:6px 0}
+.hol.on{border-color:color-mix(in srgb,var(--accent) 60%,transparent)}
+.hol .pair input[type=text]{width:70px}
+.ver{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:11.5px}
+.ver button{width:auto!important;margin:0!important;padding:4px 8px!important}
+.ogPrev{border-left:4px solid var(--accent);background:#2b2d31;border-radius:6px;padding:10px 12px;margin:8px 0;color:#dbdee1;font-family:system-ui,sans-serif}
+.ogPrev .s{font-size:11px;color:#b5bac1}.ogPrev .t{font-weight:700;color:#00a8fc;font-size:14px;margin:3px 0}.ogPrev .d{font-size:12.5px}
+.ogPrev img{max-width:100%;border-radius:6px;margin-top:8px;display:block}.ogPrev.small{display:grid;grid-template-columns:1fr 70px;gap:8px}.ogPrev.small img{width:70px;height:70px;object-fit:cover;margin:0;grid-row:1/4;grid-column:2}
 </style>
 </head>
 <body data-theme="sakura">
@@ -694,6 +733,7 @@ function renderUser(){
   $('uDot').className = 'dot ' + u.status;
   $('uStatus').textContent = u.custom || (u.status === 'offline' ? (u.note || 'offline') : STATUS_TEXT[u.status]);
   $('uActivity').textContent = u.activity ? '▸ playing ' + u.activity : '';
+  if(window.SITEF) siteUserExtras(u);
 }
 function renderServer(){
   const s = server;
@@ -714,7 +754,7 @@ async function loadPresence(){
     user = { name: d.global_name || d.username,
       avatar: d.avatar ? `https://cdn.discordapp.com/avatars/${d.id}/${d.avatar}.${d.avatar.startsWith('a_')?'gif':'png'}?size=128` : '',
       status: data.discord_status, custom: (data.activities.find(a=>a.type===4)||{}).state,
-      activity: (data.activities.find(a=>a.type===0)||{}).name, note: CONFIG.fallbackUser.note };
+      activity: (data.activities.find(a=>a.type===0)||{}).name, note: CONFIG.fallbackUser.note, raw: data };
     renderUser();
   }catch(e){}
 }
@@ -1603,6 +1643,7 @@ function buildScene(){
   sceneBuilt = sceneOf(themeKey); sceneState = SCENES[sceneBuilt].build(bg, fg, W, H);
 }
 function loop(time){
+  if(window.SITEF && skipFrame(time)){ requestAnimationFrame(loop); return; }
   if(useCanvas && sceneState){
     const t = time/1000, S = SCENES[sceneBuilt];
     ctx.drawImage(back,0,0,W,H); S.mid(ctx,W,H,t,sceneState);
@@ -1703,7 +1744,7 @@ function applyExtras(key){
   document.documentElement.style.setProperty('--ornSize', e.ornSize ? e.ornSize + 'px' : '42px');
   ['ornL','ornR','sx1','sx2'].forEach(id => $(id).style.animationDuration = e.ornSpeed ? e.ornSpeed + 's' : '');
   document.body.classList.toggle('noSocOrn', e.ornSocials === false);
-  setFX(e.effects || {});
+  setFX({ ...(e.effects || {}), ...(window.holidayFX || {}) });
   renderDecos(e.decos); applyLook(e.look);
   if(typeof applyCharMotion === 'function') applyCharMotion(e);
   refreshCover();
@@ -1768,7 +1809,7 @@ function drawFX(t){
       }
       continue;
     }
-    const arr = fxP[k] ||= [], want = Math.round(amt/100 * (FX_MAX[k] || 100));
+    const arr = fxP[k] ||= [], want = Math.round(amt/100 * (FX_MAX[k] || 100) * (window._lite ? .5 : 1));
     while(arr.length < want) arr.push(fxNew(k, W, H, true));
     if(arr.length > want) arr.length = want;
     for(let i = 0; i < arr.length; i++){
@@ -2106,7 +2147,9 @@ fetch('site.json?v=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json()
   if(isOwner && !saved && savedRaw && THEMES[savedRaw]) saved = savedRaw;
   rebuildPlaylist(); renderSongList();
   // normal visitors always get the theme you saved for everyone; only #owner keeps its own last pick
-  if(d.defaultTheme && THEMES[d.defaultTheme] && (!isOwner || !saved)) applyTheme(d.defaultTheme);
+  const holT = window.SITEF ? loadSite(d) : null;
+  if(holT) applyTheme(holT);
+  else if(d.defaultTheme && THEMES[d.defaultTheme] && (!isOwner || !saved)) applyTheme(d.defaultTheme);
   else applyTheme(saved && THEMES[saved] ? saved : themeKey);   // re-apply so your edits show
 }).catch(()=>{});
 
@@ -2266,6 +2309,142 @@ if(isOwner){
     catch(e){ status('Save failed: ' + e.message); }
   };
 }
+
+/* =====================================================================
+   SITE FEATURES — view counter, holiday themes, Discord extras (status
+   emoji, badges, Spotify), battery saver. Settings live in site.json → "site"
+   and are changed in ✏️ → Site.
+   ===================================================================== */
+var SITEF = true, SITE = {}, holidayFX = {}, activeHol = null;
+const SB_URL = 'https://nbqifpnkdwjzvapyztqh.supabase.co', SB_KEY = 'sb_publishable_dPkzVxWoTvXLkaIYwy9xQw_X6G49pGS';
+const COUNTER_PAGE = CONFIG.counterPage || 'iitstymfk';
+const isPhone = matchMedia('(pointer:coarse)').matches || innerWidth < 600;
+const siteOpt = (path, def) => { let o = SITE; for(const k of path.split('.')){ o = o && o[k]; } return o === undefined ? def : o; };
+var _lite = false;
+
+/* ---------- battery saver: music + animations stop when you leave ---------- */
+let _wasPlaying = false;
+function bgPause(){
+  if(!audio.paused){ _wasPlaying = true; audio.pause(); }
+  document.body.classList.add('bgPaused');
+}
+function bgResume(){
+  document.body.classList.remove('bgPaused');
+  if(_wasPlaying){ _wasPlaying = false; audio.play().catch(() => {}); }
+}
+document.addEventListener('visibilitychange', () => document.hidden ? bgPause() : bgResume());
+addEventListener('pagehide', bgPause);
+addEventListener('pageshow', e => { if(e.persisted) bgResume(); });
+let _lastFrame = 0;
+function skipFrame(time){
+  if(document.hidden) return true;
+  if(_lite){ if(time - _lastFrame < 32) return true; _lastFrame = time; }    // ~30fps on phones
+  return false;
+}
+
+/* ---------- view counter (counts each visitor once every 6 hours) ---------- */
+async function sbRpc(fn, args){
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, { method: 'POST',
+    headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(args) });
+  if(!r.ok) throw new Error(r.status); return r.json();
+}
+let _views = null;
+async function loadViews(){
+  try{
+    const key = 'viewed_' + COUNTER_PAGE; let last = 0; try{ last = +localStorage.getItem(key) || 0; }catch(e){}
+    const fresh = Date.now() - last > 6*3600e3 && !isOwner;
+    _views = await sbRpc(fresh ? 'hit_page' : 'get_page_views', { p: COUNTER_PAGE });
+    if(fresh) try{ localStorage.setItem(key, Date.now()); }catch(e){}
+  }catch(e){ _views = null; }
+  renderViews();
+}
+function renderViews(){
+  let el = $('viewCount');
+  const c = SITE.counter || {};
+  if(!c.on || _views == null){ if(el) el.remove(); return; }
+  if(!el){ el = document.createElement('div'); el.id = 'viewCount'; }
+  el.className = 'vc-' + (c.place || 'corner-left');
+  el.innerHTML = `<span>${c.icon ?? '👁'}</span><b>${Number(_views).toLocaleString()}</b>${c.label ? `<span>${String(c.label).replace(/</g,'&lt;')}</span>` : ''}`;
+  if(c.place === 'under-bio'){ const bio = document.querySelector('#profile .bio') || $('jp'); if(bio && el.previousElementSibling !== bio) bio.after(el); }
+  else if(el.parentNode !== document.body) document.body.appendChild(el);
+}
+
+/* ---------- holiday / date themes ---------- */
+const HOL_PRESETS = [
+  { id:'xmas', name:'🎄 Christmas', from:'12-01', to:'12-26', fx:'snow' },
+  { id:'newyear', name:'🎆 New Year', from:'12-31', to:'01-01', fx:'confetti' },
+  { id:'valentine', name:'💘 Valentine\'s', from:'02-10', to:'02-14', fx:'hearts' },
+  { id:'stpat', name:'🍀 St. Patrick\'s', from:'03-15', to:'03-17', fx:'sparkles' },
+  { id:'spring', name:'🌸 Spring', from:'03-20', to:'04-20', fx:'petals' },
+  { id:'july4', name:'🎇 4th of July', from:'07-03', to:'07-05', fx:'confetti' },
+  { id:'fall', name:'🍂 Fall', from:'09-22', to:'10-14', fx:'leaves' },
+  { id:'halloween', name:'🎃 Halloween', from:'10-15', to:'10-31', fx:'fog' },
+  { id:'thanks', name:'🦃 Thanksgiving week', from:'11-22', to:'11-28', fx:'leaves' },
+  { id:'bday', name:'🎂 My birthday', from:'', to:'', fx:'confetti' },
+];
+function inRange(md, from, to){ if(!from) return false; to = to || from; return from <= to ? (md >= from && md <= to) : (md >= from || md <= to); }
+function findHoliday(date){
+  const d = date || new Date(), md = String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  return (SITE.holidays || []).find(h => h.on && inRange(md, h.from, h.to)) || null;
+}
+function setHolidayFX(h){ holidayFX = h && h.fx ? { [h.fx]: { on: true, amt: h.amt ?? 50 } } : {}; }
+
+/* ---------- apply settings from site.json ---------- */
+// returns the holiday theme key if one should show right now (visitors only)
+function loadSite(d){
+  SITE = (d && d.site) || {};
+  _lite = siteOpt('battery.lite', true) && isPhone;
+  document.body.classList.toggle('lite', _lite);
+  activeHol = isOwner && !window._previewHol ? null : findHoliday();
+  setHolidayFX(activeHol);
+  renderViews(); renderUser();
+  return activeHol && activeHol.theme && THEMES[activeHol.theme] ? activeHol.theme : null;
+}
+loadViews();
+
+/* ---------- Discord extras: status emoji, badges, Spotify ---------- */
+const BADGES = [[1,'🛡️','Discord Staff'],[2,'🤝','Partnered Server Owner'],[4,'🎪','HypeSquad Events'],[8,'🐛','Bug Hunter'],[64,'🟣','HypeSquad Bravery'],
+  [128,'🟠','HypeSquad Brilliance'],[256,'🟢','HypeSquad Balance'],[512,'🏷️','Early Supporter'],[16384,'🐞','Bug Hunter Gold'],[131072,'⚙️','Early Verified Bot Developer'],
+  [262144,'🎓','Moderator Programs Alumni'],[4194304,'🛠️','Active Developer']];
+let _spotTimer = null;
+function siteUserExtras(u){
+  const raw = u.raw; if(!raw) return;
+  const D = SITE.discord || {};
+  // custom status with its emoji
+  const cs = (raw.activities || []).find(a => a.type === 4);
+  if(D.status !== false && cs && (cs.state || cs.emoji)){
+    const em = cs.emoji ? (cs.emoji.id ? `<img class="csEmoji" src="https://cdn.discordapp.com/emojis/${cs.emoji.id}.${cs.emoji.animated ? 'gif' : 'webp'}?size=32" alt="">` : `<span class="csEmoji">${cs.emoji.name}</span>`) : '';
+    $('uStatus').innerHTML = em + (cs.state || '').replace(/</g,'&lt;');
+  }
+  // badges (+ server tag)
+  let b = $('uBadges'); if(!b){ b = document.createElement('span'); b.id = 'uBadges'; $('uName').after(b); }
+  if(D.badges === false){ b.innerHTML = ''; }
+  else{
+    const f = (raw.discord_user || {}).public_flags || 0, g = (raw.discord_user || {}).primary_guild;
+    b.innerHTML = BADGES.filter(([bit]) => f & bit).map(([,i,t]) => `<i title="${t}">${i}</i>`).join('') +
+      (g && g.tag && g.identity_enabled !== false ? `<em title="Server tag">${g.badge && g.identity_guild_id ? `<img src="https://cdn.discordapp.com/guild-tag-badges/${g.identity_guild_id}/${g.badge}.png?size=16" alt="">` : ''}${g.tag}</em>` : '');
+  }
+  // Spotify
+  let sp = $('spotBox');
+  const on = D.spotify !== false && raw.listening_to_spotify && raw.spotify;
+  if(!on){ if(sp) sp.remove(); clearInterval(_spotTimer); return; }
+  const s = raw.spotify;
+  if(!sp){ sp = document.createElement('a'); sp.id = 'spotBox'; sp.target = '_blank'; sp.rel = 'noopener';
+    const cards = document.querySelector('.cards'); cards.after(sp); }
+  sp.className = 'card spot ' + (D.spotStyle === 'compact' ? 'compact' : '');
+  sp.href = s.track_id ? `https://open.spotify.com/track/${s.track_id}` : 'https://open.spotify.com';
+  const esc2 = t => String(t || '').replace(/</g,'&lt;');
+  sp.innerHTML = `<img class="spArt" src="${s.album_art_url}" alt=""><div class="spInfo"><div class="spTop"><svg viewBox="0 0 24 24" width="12" height="12"><path fill="#1db954" d="M12 0a12 12 0 100 24 12 12 0 000-24zm5.5 17.3a.75.75 0 01-1 .25c-2.8-1.7-6.4-2.1-10.6-1.2a.75.75 0 11-.3-1.5c4.6-1 8.6-.6 11.7 1.4.4.2.5.7.2 1.05zm1.5-3.3a.9.9 0 01-1.3.3c-3.2-2-8.1-2.5-11.9-1.4a.9.9 0 11-.5-1.8c4.3-1.3 9.7-.7 13.4 1.6.4.3.6.9.3 1.3zm.1-3.4C15.3 8.4 8.9 8.2 5.2 9.3a1.1 1.1 0 11-.6-2.1c4.2-1.3 11.3-1 15.7 1.6a1.1 1.1 0 01-1.1 1.8z"/></svg> Listening to Spotify</div>
+    <div class="spSong">${esc2(s.song)}</div><div class="spArtist">${esc2(s.artist)}</div>
+    <div class="spBar"><i></i></div><div class="spTimes"><span class="spA"></span><span class="spB"></span></div></div>`;
+  const fmt = ms => { ms = Math.max(0, ms); const m = ms/60000|0, sec = String((ms/1000|0) % 60).padStart(2,'0'); return m + ':' + sec; };
+  clearInterval(_spotTimer);
+  const tick = () => { const st = s.timestamps && s.timestamps.start, en = s.timestamps && s.timestamps.end; if(!st || !en) return;
+    const now = Date.now(), p = Math.min(1, (now - st) / (en - st)); const i = sp.querySelector('.spBar i'); if(!i) return;
+    i.style.width = (p*100).toFixed(1) + '%'; sp.querySelector('.spA').textContent = fmt(now - st); sp.querySelector('.spB').textContent = fmt(en - st); };
+  tick(); _spotTimer = setInterval(tick, 1000);
+}
+
 /* =====================================================================
    ✏️ THEME EDITOR (only in #owner) — edit any theme live, then Save
    ===================================================================== */
@@ -2277,7 +2456,7 @@ if(isOwner){
   const TAPS = { '':'Nothing', nod:'🙇 Tilt down (bow)', back:'😮 Lean back', jump:'🦘 Jump', spin:'🔄 Spin', flip:'🪙 Flip', shake:'📳 Shake', squish:'🍮 Squish', wiggle:'〰️ Wiggle', grow:'🔍 Grow' };
   const BURSTS = { '':'None', sparkles:'✦ Sparkles', hearts:'💖 Hearts', stars:'⭐ Stars', custom:'Your own emoji ↓' };
   const PLACES = { both:'Both sides of name', left:'Left of name', right:'Right of name', above:'Above name', below:'Below name', none:'Hidden' };
-  let selDeco = -1, W = {}, tab = 'text', lastSaved = JSON.parse(JSON.stringify(EDITS)), dragOn = false, uploads = [];
+  let SW = window.SITEF ? JSON.parse(JSON.stringify(SITE)) : {}, siteDirty = false, OGW = null, hist = null, selDeco = -1, W = {}, tab = 'text', lastSaved = JSON.parse(JSON.stringify(EDITS)), dragOn = false, uploads = [];
   const st = msg => $('epStatus').textContent = msg;
   const hasMusic = !!$('musicPanel');
   const KEYMSG = hasMusic ? 'Add your GitHub key in 🎵 first (one-time setup).' : 'Add the GitHub key first: Theme tab → GitHub key.';
@@ -2440,6 +2619,51 @@ if(isOwner){
             <label class="ef"><span>Speed</span><input type="range" data-fx="${k}" data-p="spd" min=".2" max="3" step=".1" value="${c.spd ?? 1}"></label>
             ${k === 'floater' ? '' : `<label class="ef"><span>Color</span><span class="pair"><input type="color" data-fx="${k}" data-p="color" value="${toHex(c.color || FX_COL[k] || T.accent)}">${c.color ? `<button class="link" data-fxreset="${k}">auto</button>` : ''}</span></label>`}
           </div>` : ''}</div>`; }).join(''); },
+    site(){
+      const og = OGW || (OGW = readOG()), C = SW.counter || {}, D = SW.discord || {}, B = SW.battery || {};
+      const chk = (path, label, def) => { let o = SW; for(const k of path.split('.')) o = o && o[k]; const v = o === undefined ? def : o;
+        return `<label class="ef"><span>${label}</span><input type="checkbox" data-s="${path}" ${v ? 'checked' : ''}></label>`; };
+      const HOLS = mergedHols();
+      const themeOpts = sel => `<option value="">Keep the current theme</option>` + Object.entries(THEMES).map(([k,v]) => `<option value="${k}" ${sel === k ? 'selected' : ''}>${esc(v.label)}</option>`).join('');
+      const fxOpts = sel => `<option value="">No effect</option>` + Object.entries(FX_LIST).filter(([k]) => !['floater','glow'].includes(k)).map(([k,v]) => `<option value="${k}" ${sel === k ? 'selected' : ''}>${v}</option>`).join('');
+      return `
+      <p>Settings for the whole page (not just this theme). Press 💾 Save for everyone when done.</p>
+      <b>🔗 Link preview</b>
+      <p>What shows when someone pastes your link in Discord, iMessage, etc.</p>
+      <div class="ogPrev ${og.big ? '' : 'small'}" style="border-color:${esc(og.color)}"><div class="s">${esc(og.site)}</div><div class="t">${esc(og.title)}</div><div class="d">${esc(og.desc)}</div>${og.image ? `<img src="${esc(asset(og.image))}" alt="">` : ''}</div>
+      <label class="ef"><span>Title</span><input type="text" data-og="title" value="${esc(og.title)}" maxlength="70"></label>
+      <label class="ef"><span>Description</span><textarea data-og="desc" rows="2" maxlength="200">${esc(og.desc)}</textarea></label>
+      <label class="ef"><span>Small top line</span><input type="text" data-og="site" value="${esc(og.site)}" maxlength="40"></label>
+      <label class="ef"><span>Side color</span><input type="color" data-og="color" value="${toHex(og.color)}"></label>
+      <label class="ef"><span>Big picture (off = small thumbnail)</span><input type="checkbox" data-og="big" ${og.big ? 'checked' : ''}></label>
+      ${up('og','Upload preview picture (best 1200×630)','image/*')}
+      <button class="wbtn go" id="ogSave">🔗 Update link preview</button>
+      <p><i>Discord remembers old previews for a while. If it doesn't change, paste the link with ?v=2 on the end.</i></p>
+      <hr><b>👁 View counter</b>
+      ${chk('counter.on','Show the view counter',false)}
+      ${C.on ? `<p>Right now: <b style="display:inline">${_views == null ? '…' : Number(_views).toLocaleString()}</b> views (each visitor counts once every 6 hours; your #owner visits don't count).</p>
+      <label class="ef"><span>Icon</span><input type="text" data-s="counter.icon" value="${esc(C.icon ?? '👁')}" maxlength="4"></label>
+      <label class="ef"><span>Word after the number</span><input type="text" data-s="counter.label" value="${esc(C.label ?? '')}" placeholder="views" maxlength="20"></label>
+      <label class="ef"><span>Where</span><select data-s="counter.place">${Object.entries({ 'corner-left':'Bottom-left corner', 'corner-right':'Bottom-right corner', 'under-bio':'Under the typewriter line' }).map(([k,v]) => `<option value="${k}" ${(C.place || 'corner-left') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>` : ''}
+      <hr><b>💬 Discord extras</b>
+      ${chk('discord.status','Custom status with its emoji',true)}
+      ${chk('discord.badges','Badges + server tag next to the name',true)}
+      ${chk('discord.spotify','Show what I\'m playing on Spotify',true)}
+      ${D.spotify !== false ? `<label class="ef"><span>Spotify box style</span><select data-s="discord.spotStyle"><option value="">Full (art + progress bar)</option><option value="compact" ${D.spotStyle === 'compact' ? 'selected' : ''}>Compact</option></select></label>` : ''}
+      <hr><b>🎄 Holiday themes</b>
+      <p>Turn one on and between those dates visitors get that theme and/or effect, then it goes back on its own. Dates are month-day (12-25).</p>
+      ${HOLS.map((h,i) => `<div class="hol ${h.on ? 'on' : ''}"><label class="fxh"><input type="checkbox" data-h="${i}" data-hp="on" ${h.on ? 'checked' : ''}> ${esc(h.name)}</label>
+        ${h.on ? `<div class="pair" style="margin-top:6px"><input type="text" data-h="${i}" data-hp="from" value="${esc(h.from)}" placeholder="MM-DD" maxlength="5"> to <input type="text" data-h="${i}" data-hp="to" value="${esc(h.to)}" placeholder="MM-DD" maxlength="5"></div>
+        <label class="ef"><span>Theme</span><select data-h="${i}" data-hp="theme">${themeOpts(h.theme)}</select></label>
+        <label class="ef"><span>Effect on top</span><select data-h="${i}" data-hp="fx">${fxOpts(h.fx)}</select></label>
+        <button class="wbtn" data-holprev="${i}">👁 Preview it now</button>` : ''}</div>`).join('')}
+      ${window._previewHol ? '<button class="wbtn" id="holStop">✕ Stop holiday preview</button>' : ''}
+      <hr><b>🔋 Battery saver</b>
+      <p>Music and animations always pause when someone leaves the page or switches apps, and pick back up when they return.</p>
+      ${chk('battery.lite','Lighter animations on phones',true)}
+      <hr><b>↩ Version history</b>
+      <p>Every save is kept on GitHub. Bring back how the page was before.</p>
+      ${hist ? (hist.length ? hist.map((v,i) => `<div class="ver"><span>${new Date(v.date).toLocaleString([], { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' })}<br><i>${esc(v.msg)}</i></span>${i === 0 ? '<i>current</i>' : `<button class="wbtn" data-restore="${v.sha}">Restore</button>`}</div>`).join('') : '<p>No history yet.</p>') : '<button class="wbtn" id="histLoad">Show history</button>'}`; },
     theme(){ const custom = !!CUSTOM[themeKey];
       return `
       <b>Make a new theme</b>
@@ -2482,9 +2706,68 @@ if(isOwner){
   addEventListener('wheel', e => { if(!document.body.classList.contains('decoEdit')) return; const el = e.target.closest('.deco'); if(!el) return;
     e.preventDefault(); selDeco = +el.dataset.i; const d = W.decos[selDeco]; d.size = Math.max(12, Math.min(500, (d.size || 60) - Math.sign(e.deltaY) * 6)); changed('light'); markSel(); }, { passive: false, capture: true });
 
+  /* ---------- Site tab helpers ---------- */
+  function mergedHols(){
+    const have = SW.holidays || [];
+    const list = HOL_PRESETS.map(p => ({ ...p, ...(have.find(h => h.id === p.id) || {}) }));
+    have.filter(h => !HOL_PRESETS.some(p => p.id === h.id)).forEach(h => list.push(h));
+    return SW.holidays = list;
+  }
+  function readOG(){ const m = (sel, a = 'content') => (document.querySelector(sel) || {})[a] || '';
+    const img = m('meta[property="og:image"]'), base = location.origin + location.pathname.replace(/[^/]*$/, '');
+    return { title: m('meta[property="og:title"]') || document.title, desc: m('meta[property="og:description"]'), site: m('meta[property="og:site_name"]'),
+      color: m('meta[name="theme-color"]') || T.accent, big: m('meta[name="twitter:card"]') !== 'summary', image: img.startsWith(base) ? img.slice(base.length) : img }; }
+  const attr = v => String(v ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  function ogBlock(o){
+    const base = location.origin + location.pathname.replace(/[^/]*$/, ''), img = o.image ? (/^https?:/.test(o.image) ? o.image : base + o.image) : '';
+    return `<!-- LINK PREVIEW START (edit in ✏️ → Site) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="${attr(o.site)}">
+<meta property="og:title" content="${attr(o.title)}">
+<meta property="og:description" content="${attr(o.desc)}">
+<meta property="og:url" content="${attr(base)}">
+${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="twitter:card" content="${o.big ? 'summary_large_image' : 'summary'}">
+<meta name="theme-color" content="${attr(o.color)}">
+<meta name="description" content="${attr(o.desc)}">
+<!-- LINK PREVIEW END -->`;
+  }
+  async function saveOG(){
+    if(!getTok()) return st(KEYMSG);
+    try{
+      if(uploads.length){ st('Finishing uploads…'); await Promise.all(uploads); uploads = []; }
+      st('Updating link preview…');
+      const j = await (await gh(`index.html?ref=${GH.branch}`)).json();
+      const html = decodeURIComponent(escape(atob(j.content.replace(/\n/g,''))));
+      const re = /<!-- LINK PREVIEW START[\s\S]*?<!-- LINK PREVIEW END -->/;
+      if(!re.test(html)) throw new Error('link preview block not found in index.html');
+      const out = html.replace(re, ogBlock(OGW));
+      await gh('index.html', { method:'PUT', body: JSON.stringify({ message:'Update link preview', content: textB64(out), sha: j.sha, branch: GH.branch }) });
+      st('✓ Link preview updated. Live in about a minute.');
+    }catch(err){ st('Link preview failed: ' + err.message); }
+  }
+  async function loadHist(){
+    try{ st('Loading history…');
+      const r = await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/commits?path=${GH.dir || ''}site.json&sha=${GH.branch}&per_page=25&_=${Date.now()}`, { headers: { Authorization: `Bearer ${getTok()}`, Accept: 'application/vnd.github+json' } });
+      if(!r.ok) throw new Error(r.status);
+      hist = (await r.json()).map(c => ({ sha: c.sha, date: c.commit.author.date, msg: c.commit.message.split('\n')[0] })); st(''); render();
+    }catch(err){ st('Couldn\'t load history: ' + err.message); }
+  }
+  function siteChanged(){ SITE = SW; siteDirty = true; _lite = siteOpt('battery.lite', true) && isPhone; document.body.classList.toggle('lite', _lite);
+    renderViews(); renderUser(); st('Unsaved changes — press 💾 Save to make them live.'); }
+
   /* ---------- reading the inputs ---------- */
   function onInput(e){
     const el = e.target;
+    if(el.dataset.s){ const path = el.dataset.s.split('.'); let o = SW; for(let i = 0; i < path.length - 1; i++) o = o[path[i]] = o[path[i]] || {};
+      o[path.at(-1)] = el.type === 'checkbox' ? el.checked : el.value; siteChanged();
+      if(el.type === 'checkbox' || el.tagName === 'SELECT'){ if(e.type === 'change' || el.type === 'checkbox') render(); }
+      if(el.dataset.s === 'counter.on' && el.checked && _views == null) loadViews().then(render);
+      return; }
+    if(el.dataset.h != null){ const h = mergedHols()[+el.dataset.h]; const p2 = el.dataset.hp;
+      h[p2] = el.type === 'checkbox' ? el.checked : el.value; siteChanged(); if(p2 === 'on' || el.tagName === 'SELECT') render(); return; }
+    if(el.dataset.og){ OGW[el.dataset.og] = el.type === 'checkbox' ? el.checked : el.value;
+      const pv = document.querySelector('.ogPrev'); if(pv){ pv.querySelector('.t').textContent = OGW.title; pv.querySelector('.d').textContent = OGW.desc; pv.querySelector('.s').textContent = OGW.site; pv.style.borderColor = OGW.color; pv.classList.toggle('small', !OGW.big); }
+      st('Press 🔗 Update link preview to publish it.'); return; }
     if(el.dataset.fx){ const k = el.dataset.fx, p = el.dataset.p; W.effects = W.effects || {}; const c = W.effects[k] = W.effects[k] || {};
       c[p] = el.type === 'checkbox' ? el.checked : el.type === 'color' ? el.value : +el.value;
       if(p === 'on'){ if(!el.checked && !c.img) delete W.effects[k]; changed('light'); if(e.type === 'change') render(); return; }
@@ -2539,6 +2822,17 @@ if(isOwner){
     if(b.id === 'dDel'){ W.decos.splice(selDeco, 1); if(!W.decos.length) delete W.decos; selDeco = -1; changed('light'); render(); return; }
     if(b.id === 'dClear'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to remove all'; return; } delete W.decos; selDeco = -1; changed('light'); render(); return; }
     if(b.id === 'epLookReset'){ delete W.look; changed('light'); render(); return; }
+    if(b.id === 'ogSave'){ saveOG(); return; }
+    if(b.id === 'histLoad'){ loadHist(); return; }
+    if(b.dataset.restore){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again'; return; }
+      try{ st('Restoring…'); const j = await (await gh(`site.json?ref=${b.dataset.restore}`)).json();
+        const old = JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))));
+        await saveSite(d => { Object.keys(d).forEach(k => delete d[k]); Object.assign(d, old); });
+        st('✓ Restored. Reloading…'); setTimeout(() => location.reload(), 900); }catch(err){ st('Restore failed: ' + err.message); }
+      return; }
+    if(b.dataset.holprev != null){ const h = mergedHols()[+b.dataset.holprev]; window._previewHol = true; activeHol = h; setHolidayFX(h);
+      if(h.theme && THEMES[h.theme]) applyTheme(h.theme); else applyExtras(themeKey); setTimeout(openEditor, 60); tab = 'site'; return; }
+    if(b.id === 'holStop'){ window._previewHol = false; activeHol = null; setHolidayFX(null); applyExtras(themeKey); render(); return; }
     if(b.id === 'epTokSave'){ const v = $('epTok').value.trim(); if(!v) return; try{ localStorage.setItem('ghToken', v); }catch(err){} render(); st('Key saved on this device.'); return; }
     if(b.id === 'epTokForget'){ try{ localStorage.removeItem('ghToken'); }catch(err){} render(); st('Key removed from this device.'); return; }
     if(b.id === 'epSplash'){ $('splash').classList.remove('gone'); $('editPanel').classList.remove('open'); toast('Click the splash to close it — then ✏️ to keep editing'); return; }
@@ -2570,7 +2864,7 @@ if(isOwner){
   });
 
   /* ---------- uploads (go straight to GitHub, shown right away) ---------- */
-  const LIMITS = { playerCover: 500, deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
+  const LIMITS = { og: 1200, playerCover: 500, deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
   async function shrink(file, kind){
     if(/gif|video/.test(file.type)) return file;
     const bmp = await createImageBitmap(file), max = LIMITS[kind] || 1500;
@@ -2579,7 +2873,7 @@ if(isOwner){
     else if(Math.max(w, h) > max){ const s = max / Math.max(w, h); w = Math.round(w*s); h = Math.round(h*s); }
     const cvs = document.createElement('canvas'); cvs.width = kind === 'cursor' ? 32 : w; cvs.height = kind === 'cursor' ? 32 : h;
     cvs.getContext('2d').drawImage(bmp, kind === 'cursor' ? (32-w)/2 : 0, kind === 'cursor' ? (32-h)/2 : 0, w, h);
-    const type = kind === 'cursor' ? 'image/png' : kind === 'background' ? 'image/jpeg' : 'image/webp';
+    const type = kind === 'cursor' ? 'image/png' : (kind === 'background' || kind === 'og') ? 'image/jpeg' : 'image/webp';
     return await new Promise(res => cvs.toBlob(b => res(b || file), type, .88));
   }
   async function onUpload(e){
@@ -2595,11 +2889,12 @@ if(isOwner){
       PREVIEW[path] = URL.createObjectURL(blob);
       // show it right away while it uploads
       if(kind === 'character') W.character = [...[].concat(opt(CONFIG).character || []).filter(Boolean), path];
+      else if(kind === 'og'){ OGW.image = path; }
       else if(kind === 'deco'){ addDeco({ kind: 'img', v: path, anim: 'a-float', speed: 4, glow: false }, true); }
       else if(kind === 'floater'){ W.effects = W.effects || {}; W.effects.floater = { ...(W.effects.floater || {}), on: true, img: path }; }
       else W[kind] = path;
       if(kind === 'cursor' && !W.cursorHotspot) W.cursorHotspot = '0 0';
-      if(kind !== 'deco'){ changed(); setTimeout(render, 220); }
+      if(kind === 'og') setTimeout(render, 50); else if(kind !== 'deco'){ changed(); setTimeout(render, 220); }
       st('Uploading to GitHub…');
       await gh(path, { method:'PUT', body: JSON.stringify({ message:`Add ${kind} picture`, content: await fileB64(blob), branch: GH.branch }) });
       st('✓ Uploaded. Press 💾 Save to make it live.');
@@ -2620,6 +2915,7 @@ if(isOwner){
   $('chara').addEventListener('wheel', e => { if(!dragOn) return; e.preventDefault(); W.charH = Math.max(15, Math.min(120, (W.charH || 70) - Math.sign(e.deltaY) * 3)); changed('light'); }, { passive: false });
 
   /* ---------- open / close / save / undo ---------- */
+  if(window.SITEF && !document.querySelector('#editPanel .epTabs [data-tab=site]')){ const tb = document.createElement('button'); tb.dataset.tab = 'site'; tb.textContent = 'Site'; document.querySelector('#editPanel .epTabs').appendChild(tb); }
   $('editBtn').style.display = 'grid';
   $('editBtn').onclick = e => { e.stopPropagation(); $('themeMenu').classList.remove('open'); if(hasMusic) $('musicPanel').classList.remove('open');
     if($('editPanel').classList.toggle('open')) openEditor(); else document.body.classList.remove('dragChar', 'decoEdit'); };
@@ -2637,15 +2933,16 @@ if(isOwner){
       $('epSave').disabled = true;
       if(uploads.length){ st('Finishing uploads…'); await Promise.all(uploads); uploads = []; }
       st('Saving…');
-      await saveSite(d => { d.themeEdits = d.themeEdits || {}; if(data) d.themeEdits[k] = data; else delete d.themeEdits[k];
+      const siteData = siteDirty ? JSON.parse(JSON.stringify(SW)) : null;
+      await saveSite(d => { if(siteData) d.site = siteData; d.themeEdits = d.themeEdits || {}; if(data) d.themeEdits[k] = data; else delete d.themeEdits[k];
         d.customThemes = { ...(d.customThemes || {}), ...CUSTOM }; });
-      if(data) lastSaved[k] = data; else delete lastSaved[k];
+      if(data) lastSaved[k] = data; else delete lastSaved[k]; siteDirty = false;
       st(`✓ Saved "${T.label}". Live for everyone in about a minute.`);
     }catch(err){ st('Save failed: ' + err.message); }
     finally{ $('epSave').disabled = false; }
   };
   addEventListener('beforeunload', e => { if(JSON.stringify(EDITS[themeKey] || {}) !== JSON.stringify(lastSaved[themeKey] || {})){ e.preventDefault(); e.returnValue = ''; } });
-  window._edSynced = d => { lastSaved = JSON.parse(JSON.stringify(d.themeEdits || {})); if($('editPanel').classList.contains('open')) openEditor(); };
+  window._edSynced = d => { if(window.SITEF && !siteDirty) SW = JSON.parse(JSON.stringify(d.site || {})); lastSaved = JSON.parse(JSON.stringify(d.themeEdits || {})); if($('editPanel').classList.contains('open')) openEditor(); };
   // switching themes from 🎨 while the editor is open edits the new one
   $('themeMenu').addEventListener('click', () => { if($('editPanel').classList.contains('open')) setTimeout(openEditor, 50); });
 }
