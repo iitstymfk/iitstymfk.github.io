@@ -479,6 +479,17 @@ body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-st
 #aboutCards .about{display:block;padding:10px 12px;font-size:12.5px}
 #aboutCards .abTop{display:flex;gap:6px;align-items:center;font-size:13px}
 #aboutCards .abEm{font-size:16px}
+#appGrid{display:block;padding:12px 12px 8px;margin:0 0 16px}
+#appGrid .apHead{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--accent)}
+#appGrid .apRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:10px 6px}
+#appGrid .app{display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;color:inherit;min-width:0}
+#appGrid .apIc{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:26px;overflow:hidden;background:rgba(255,255,255,.06);
+  border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);box-shadow:0 4px 14px rgba(0,0,0,.35);transition:transform .2s,box-shadow .2s}
+#appGrid.ap-circle .apIc{border-radius:50%}#appGrid.ap-square .apIc{border-radius:6px}#appGrid.ap-bare .apIc{background:none!important;border:0;box-shadow:none}
+#appGrid .apIc img{width:100%;height:100%;object-fit:contain;padding:3px;box-sizing:border-box}
+#appGrid .apIc img.cv{object-fit:cover;padding:0}
+#appGrid .app:hover .apIc{transform:translateY(-3px) scale(1.06);box-shadow:0 0 18px color-mix(in srgb,var(--accent) 55%,transparent)}
+#appGrid .apT{font-size:10.5px;text-align:center;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.9}
 #aboutCards .abTxt{color:var(--muted);margin-top:4px;line-height:1.4}
 /* ---------- name animations ---------- */
 #name.nf-rainbow{animation:nfRain 4s linear infinite}
@@ -530,6 +541,8 @@ body.ytbg #bgCanvas,body.ytbg #bgVideo,body.ytbg #bgImage{display:none!important
 #peBox details{border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 9px;margin:6px 0}#peBox summary{cursor:pointer;font-weight:700}
 #peBox input[type=range]{width:100%;accent-color:var(--accent)}#peBox .peHint{color:#aaa;text-align:center;margin:2px 0}
 #peBox .wbtn{display:block;width:100%;margin-top:6px;padding:8px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}#peBox .wbtn.go{background:var(--accent);color:#111}
+#epBody .apPrev{flex:0 0 40px;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:20px;overflow:hidden;background:rgba(255,255,255,.06)}
+#epBody .apPrev img{width:100%;height:100%;object-fit:contain}
 </style>
 </head>
 <body data-theme="sakura">
@@ -2852,7 +2865,16 @@ function plusApply(key){
   nameFx((e.look || {}).nameAnim || '');
   themeSound(key);
 }
-function plusSite(){ renderLinks(); renderAbout(); applyEntry(); }
+/* ---------- app icons (your own HTML apps/games) ---------- */
+function renderApps(){
+  let box = $('appGrid'); const list = (SITE.apps || []).filter(a => a.url);
+  if(!list.length || SITE.appsOn === false){ if(box) box.remove(); return; }
+  if(!box){ box = document.createElement('div'); box.id = 'appGrid'; box.className = 'card'; (($('aboutCards')) || $('socials')).after(box); }
+  box.className = 'card ap-' + (SITE.appsShape || 'round');
+  box.innerHTML = (SITE.appsTitle !== '' ? `<div class="apHead">${escA(SITE.appsTitle || '🎮 My apps & games')}</div>` : '') + '<div class="apRow">' +
+    list.map(a => `<a class="app" href="${escA(a.url)}" target="_blank" rel="noopener" title="${escA(a.title || '')}"><span class="apIc" style="${a.img ? '' : `background:linear-gradient(135deg,${escA(a.c1 || '#8e44ad')},${escA(a.c2 || '#9b59b6')})`}">${a.img ? `<img src="${escA(asset(a.img))}" alt="" loading="lazy" class="${a.fit === 'cover' ? 'cv' : ''}">` : escA(a.emoji || '🎮')}</span><span class="apT">${escA(a.title || '')}</span></a>`).join('') + '</div>';
+}
+function plusSite(){ renderLinks(); renderAbout(); renderApps(); applyEntry(); }
 var _plusReady = true;
 
 /* =====================================================================
@@ -3296,7 +3318,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
   });
 
   /* ---------- uploads (go straight to GitHub, shown right away) ---------- */
-  const LIMITS = { lkicon: 160, og: 1200, playerCover: 500, deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
+  const LIMITS = { lkicon: 160, appimg: 256, og: 1200, playerCover: 500, deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
   async function shrink(file, kind){
     if(!/^image\//.test(file.type) || /gif/.test(file.type)) return file;
     const bmp = await createImageBitmap(file), max = LIMITS[kind] || 1500;
@@ -3352,7 +3374,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
   /* =================== PLUS: Links tab, sounds/entry (Site tab), trail/visualizer (Effects), name animation (Look), photo editor =================== */
   if(window._plusReady){
     const SI_BASE = 'https://cdn.jsdelivr.net/npm/simple-icons@16';
-    let siIndex = null, pickFor = null, siResults = [], aboutSel = -1;
+    let siIndex = null, pickFor = null, siResults = [], aboutSel = -1, apPick = null;
     const linksW = () => SW.links || (SW.links = JSON.parse(JSON.stringify(currentLinks())));
     const BUILTIN = Object.keys(ICONS);
     async function siSearch(q){
@@ -3392,7 +3414,20 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       ${A.map((c, i) => `<div class="fx on"><div class="pair"><input type="text" data-ab="${i}" data-abp="emoji" value="${esc(c.emoji || '')}" placeholder="🎮" maxlength="4" style="width:52px"><input type="text" data-ab="${i}" data-abp="title" value="${esc(c.title || '')}" placeholder="Title" maxlength="40"></div>
         <textarea data-ab="${i}" data-abp="text" rows="2" placeholder="Text (new line = new line)" maxlength="300">${esc(c.text || '')}</textarea>
         <div class="pair"><button class="wbtn" data-abmv="${i}:-1">↑</button><button class="wbtn" data-abmv="${i}:1">↓</button><button class="wbtn danger" data-abdel="${i}">✕ Remove</button></div></div>`).join('')}
-      <button class="wbtn" id="abAdd">＋ Add a card</button>`;
+      <button class="wbtn" id="abAdd">＋ Add a card</button>
+      <hr><b>🎮 App icons</b>
+      <p>Icons for your own apps/games (like a phone home screen), under your links. Tap 🖼 to give one a picture; without a picture it shows the emoji on a color.</p>
+      <label class="ef"><span>Show them</span><input type="checkbox" data-s="appsOn" ${SW.appsOn === false ? '' : 'checked'}></label>
+      <label class="ef"><span>Heading (empty = none)</span><input type="text" data-apx="appsTitle" value="${esc(SW.appsTitle ?? '🎮 My apps & games')}" maxlength="40"></label>
+      <label class="ef"><span>Icon shape</span><select data-s="appsShape">${Object.entries({ round:'Rounded (like phone apps)', circle:'Circles', square:'Square', bare:'Just the picture' }).map(([k,v]) => `<option value="${k}" ${(SW.appsShape || 'round') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      ${(SW.apps || []).map((a, i) => `<div class="fx on"><div class="pair"><span class="apPrev" style="${a.img ? '' : `background:linear-gradient(135deg,${esc(a.c1 || '#8e44ad')},${esc(a.c2 || '#9b59b6')})`}">${a.img ? `<img src="${esc(asset(a.img))}">` : esc(a.emoji || '🎮')}</span>
+          <input type="text" data-ap="${i}" data-app="title" value="${esc(a.title || '')}" placeholder="Name" maxlength="30"></div>
+        <input type="text" data-ap="${i}" data-app="url" value="${esc(a.url || '')}" placeholder="https://…">
+        ${a.img ? `<label class="ef"><span>Fill the whole icon (crop)</span><input type="checkbox" data-ap="${i}" data-app="fit" ${a.fit === 'cover' ? 'checked' : ''}></label>`
+          : `<div class="pair"><input type="text" data-ap="${i}" data-app="emoji" value="${esc(a.emoji || '')}" placeholder="🎮" maxlength="4" style="width:52px"><input type="color" data-ap="${i}" data-app="c1" value="${toHex(a.c1 || '#8e44ad')}"><input type="color" data-ap="${i}" data-app="c2" value="${toHex(a.c2 || '#9b59b6')}"></div>`}
+        <div class="pair"><button class="wbtn" data-apimg="${i}">🖼 Picture</button>${a.img ? `<button class="wbtn" data-apnoimg="${i}">✕ Picture</button>` : ''}<button class="wbtn" data-apmv="${i}:-1">↑</button><button class="wbtn" data-apmv="${i}:1">↓</button><button class="wbtn danger" data-apdel="${i}">✕</button></div>
+        ${apPick === i ? up('appimg','Choose a picture for ' + esc(a.title || 'this app'),'image/*') : ''}</div>`).join('')}
+      <button class="wbtn" id="apAdd">＋ Add an app icon</button>`;
     };
     function pickerHTML(){
       return `<div class="lkPick"><b>Choose an icon</b>
@@ -3455,6 +3490,10 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
         if(p === 'colorMode'){ l.color = el.value === 'custom' ? (l.color && l.color[0] === '#' ? l.color : '#ffffff') : el.value; if(!l.color) delete l.color; lkSet(); render(); return; }
         if(p === 'tint'){ l.icon.tint = el.checked; lkSet(); render(); return; }
         l[p] = el.value; if(p === 'label' && !el.value) delete l.label; lkSet(); return; }
+      if(el.dataset.ap != null){ const a = SW.apps[+el.dataset.ap], p = el.dataset.app;
+        if(p === 'fit'){ a.fit = el.checked ? 'cover' : ''; if(!a.fit) delete a.fit; } else a[p] = el.value;
+        siteChanged(); if(['emoji','c1','c2','fit'].includes(p)) setTimeout(render, 0); return; }
+      if(el.dataset.apx){ SW.appsTitle = el.value; siteChanged(); return; }
       if(el.dataset.ab != null){ const c = (SW.about || [])[+el.dataset.ab]; c[el.dataset.abp] = el.value; siteChanged(); return; }
     });
     // number-ish site values + link colour mode
@@ -3478,6 +3517,11 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       if(b.id === 'abAdd'){ (SW.about = SW.about || []).push({ emoji: '🎮', title: 'Currently playing', text: '' }); siteChanged(); render(); return; }
       if(b.dataset.abdel != null){ SW.about.splice(+b.dataset.abdel, 1); siteChanged(); render(); return; }
       if(b.dataset.abmv){ const A = SW.about, [i, d] = b.dataset.abmv.split(':').map(Number), j = i + d; if(j < 0 || j >= A.length) return; [A[i], A[j]] = [A[j], A[i]]; siteChanged(); render(); return; }
+      if(b.id === 'apAdd'){ (SW.apps = SW.apps || []).push({ title: '', url: '', emoji: '🎮', c1: '#8e44ad', c2: '#9b59b6' }); siteChanged(); render(); return; }
+      if(b.dataset.apimg != null){ apPick = apPick === +b.dataset.apimg ? null : +b.dataset.apimg; render(); return; }
+      if(b.dataset.apnoimg != null){ delete SW.apps[+b.dataset.apnoimg].img; siteChanged(); render(); return; }
+      if(b.dataset.apdel != null){ SW.apps.splice(+b.dataset.apdel, 1); apPick = null; siteChanged(); render(); return; }
+      if(b.dataset.apmv){ const A = SW.apps, [i, d] = b.dataset.apmv.split(':').map(Number), j = i + d; if(j < 0 || j >= A.length) return; [A[i], A[j]] = [A[j], A[i]]; apPick = null; siteChanged(); render(); return; }
       if(b.dataset.sndprev){ const S = SW.sounds || {}; const was = SITE.sounds; SITE.sounds = { ...S, on: true }; playSnd(b.dataset.sndprev === 'click' ? (S.click || 'pop') : (S.theme || 'whoosh')); SITE.sounds = was; return; }
       if(b.id === 'entPrev'){ const p = $('profile'); applyEntry(); p.classList.remove('show'); void p.offsetWidth; setTimeout(() => p.classList.add('show'), 60); return; }
       if(b.dataset.pe){ const [kind, i] = b.dataset.pe.split(':'); openPE(kind, kind === 'deco' ? selDeco : +i); return; }
@@ -3492,6 +3536,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
     // uploads for link icons + sounds (hooked into the existing uploader)
     window._plusUpload = (kind, path) => {
       if(kind === 'lkicon'){ const L = linksW(), i = pickFor >= 0 ? pickFor : L.length - 1; if(L[i]){ L[i].icon = { t: 'img', src: path, tint: true }; } pickFor = null; lkSet(); setTimeout(render, 50); return true; }
+      if(kind === 'appimg'){ const a = (SW.apps || [])[apPick]; if(a){ a.img = path; } apPick = null; siteChanged(); setTimeout(render, 50); return true; }
       if(kind === 'sndClick' || kind === 'sndTheme'){ SW.sounds = SW.sounds || {}; SW.sounds[kind === 'sndClick' ? 'click' : 'theme'] = path; siteChanged(); setTimeout(render, 50); return true; }
       return false;
     };
