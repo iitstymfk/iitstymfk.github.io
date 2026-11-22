@@ -409,6 +409,16 @@ body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-st
 .ogPrev{border-left:4px solid var(--accent);background:#2b2d31;border-radius:6px;padding:10px 12px;margin:8px 0;color:#dbdee1;font-family:system-ui,sans-serif}
 .ogPrev .s{font-size:11px;color:#b5bac1}.ogPrev .t{font-weight:700;color:#00a8fc;font-size:14px;margin:3px 0}.ogPrev .d{font-size:12.5px}
 .ogPrev img{max-width:100%;border-radius:6px;margin-top:8px;display:block}.ogPrev.small{display:grid;grid-template-columns:1fr 70px;gap:8px}.ogPrev.small img{width:70px;height:70px;object-fit:cover;margin:0;grid-row:1/4;grid-column:2}
+#loginBox{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#loginBox.open{display:grid}
+#loginBox .lbIn{width:min(340px,92vw);background:rgba(14,10,24,.97);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:18px;color:#eee;font:13px/1.45 system-ui,sans-serif;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+#loginBox b{font-size:16px;display:block;margin-bottom:4px}
+#loginBox p{color:#aaa;margin:4px 0 8px}#loginBox p.small{font-size:11px}#loginBox p.ok{color:#7dffb0}
+#loginBox input{display:block;width:100%;margin:6px 0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 11px;color:#fff;font:inherit;cursor:text!important}
+#loginBox button.go{width:100%;margin-top:8px;padding:10px;border-radius:9px;background:var(--accent);color:#111;font-weight:800;font-size:14px}
+#loginBox .lbMsg{min-height:16px;margin:8px 0 2px;color:#7dffb0}#loginBox .lbMsg.bad{color:#ff8a8a}
+#loginBox .lbLinks{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:8px}
+#loginBox .lbLinks a{color:var(--accent);cursor:pointer;font-size:12px;text-decoration:underline}
 </style>
 </head>
 <body data-theme="sakura">
@@ -2155,14 +2165,17 @@ fetch('site.json?v=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json()
 
 /* ---------- hidden owner music panel ---------- */
 const GH = CONFIG.github;
-const getTok = () => { try{ return localStorage.getItem('ghToken') || ''; }catch(e){ return ''; } };
+// logged in (password) or a GitHub key saved on this device
+const getTok = () => { try{ return localStorage.getItem('bioSession') || localStorage.getItem('ghToken') || ''; }catch(e){ return ''; } };
+const devKey = () => { try{ return localStorage.getItem('ghToken') || ''; }catch(e){ return ''; } };
 const status = (msg) => $('mpStatus').textContent = msg;
 async function gh(path, opts = {}){
+  if(window._authReady && getSess()){ const lr = await ghViaLogin(path, opts); if(lr) return lr; }
   // GET requests get a unique URL so the browser never reuses an old copy (avoids "does not match" errors).
   // (Don't add cache:'no-store' here: it adds headers GitHub's API rejects -> "Failed to fetch".)
   const url = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}` + (opts.method ? '' : `${path.includes('?') ? '&' : '?'}_=${Date.now()}`);
   const r = await fetch(url, { ...opts,
-    headers: { Authorization: `Bearer ${getTok()}`, Accept: 'application/vnd.github+json', ...(opts.body ? {'Content-Type':'application/json'} : {}) } });
+    headers: { Authorization: `Bearer ${devKey()}`, Accept: 'application/vnd.github+json', ...(opts.body ? {'Content-Type':'application/json'} : {}) } });
   if(!r.ok && r.status !== 404){ let m = r.status; try{ m = (await r.json()).message; }catch(e){} throw new Error(m); }
   return r;
 }
@@ -2193,7 +2206,7 @@ function saveSite(change){
   _siteQueue = job.catch(() => {});
   return job;
 }
-function needKey(){ if(getTok()) return false; $('mpTokBox').open = true; status('Add your GitHub key first (below).'); return true; }
+function needKey(){ if(getTok()) return false; if(window._authReady){ showLogin(); return true; } $('mpTokBox').open = true; status('Add your GitHub key first (below).'); return true; }
 
 const tagText = s => (!s.themes || !s.themes.length) ? 'all themes' : s.themes.map(k => (THEMES[k]||{}).label || k).join(', ');
 const chipsHTML = (sel = []) => Object.entries(THEMES).map(([k,v]) =>
@@ -2446,6 +2459,92 @@ function siteUserExtras(u){
 }
 
 /* =====================================================================
+   OWNER LOGIN — a password instead of pasting the GitHub key.
+   The GitHub key lives on the server (Supabase "bio-owner" function).
+   ===================================================================== */
+const AUTH_URL = 'https://nbqifpnkdwjzvapyztqh.supabase.co/functions/v1/bio-owner';
+const AUTH_PAGE = CONFIG.counterPage || 'iitstymfk';
+const lsGet = k => { try{ return localStorage.getItem(k) || ''; }catch(e){ return ''; } };
+const lsSet = (k, v) => { try{ v ? localStorage.setItem(k, v) : localStorage.removeItem(k); }catch(e){} };
+const getSess = () => lsGet('bioSession');
+async function authCall(body){
+  const r = await fetch(AUTH_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SB_KEY }, body: JSON.stringify({ page: AUTH_PAGE, ...body }) });
+  let j = {}; try{ j = await r.json(); }catch(e){}
+  if(!r.ok) throw new Error(j.error || j.message || ('error ' + r.status));
+  return j;
+}
+// GitHub requests go through the login server when you're logged in
+async function ghViaLogin(path, opts = {}){
+  const full = (GH.dir || '') + path.replace(/[?&]_=\d+/, '');
+  let res;
+  try{
+    res = await fetch(AUTH_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SB_KEY },
+      body: JSON.stringify({ action: 'gh', page: AUTH_PAGE, session: getSess(), method: opts.method || 'GET', path: full, body: opts.body ? JSON.parse(opts.body) : undefined }) });
+  }catch(e){ res = null; }
+  // very big uploads can be too large for the login server → use this device's GitHub key if it has one
+  if((!res || res.status === 413 || res.status === 546) && lsGet('ghToken')) return null;
+  if(!res) throw new Error('Couldn\'t reach the login server');
+  if(res.status === 401){ const j = await res.clone().json().catch(() => ({})); if(/log in/i.test(j.error || '')){ lsSet('bioSession', ''); setTimeout(() => showLogin('login'), 50); } }
+  if(!res.ok && res.status !== 404){ let m = res.status; try{ const j = await res.json(); m = j.message || j.error || m; }catch(e){} throw new Error(m); }
+  return res;
+}
+
+/* ---------- the login box ---------- */
+let _authStatus = null;
+function showLogin(view){
+  if(!isOwner) return;
+  let box = $('loginBox');
+  if(!box){ box = document.createElement('div'); box.id = 'loginBox'; document.body.appendChild(box);
+    box.addEventListener('click', e => e.stopPropagation()); box.addEventListener('pointerdown', e => e.stopPropagation()); }
+  const st = _authStatus || {}, hasDeviceKey = !!lsGet('ghToken');
+  view = view || (st.setup || st.adminSetup ? 'login' : 'setup');
+  const forHer = AUTH_PAGE !== 'iitstymfk';
+  box.innerHTML = view === 'login' ? `
+    <div class="lbIn"><b>🔐 Owner login</b>
+      <p>${forHer ? 'Her password or yours.' : 'Type your password to edit and save.'}</p>
+      <input type="password" id="lbPw" placeholder="Password" autocomplete="current-password">
+      <button class="go" id="lbGo">Log in</button>
+      <p class="lbMsg" id="lbMsg"></p>
+      <div class="lbLinks">${st.setup ? '<a id="lbForgot">Forgot password?</a>' : ''}<a id="lbReset">${st.setup ? 'Reset with a GitHub key' : (forHer ? 'Set up her own password' : 'Set up a password')}</a><a id="lbLater">Not now</a></div></div>`
+  : `
+    <div class="lbIn"><b>${st.setup ? '🔑 Reset password' : (forHer ? '🔑 Her own password' : '🔑 Set up your owner password')}</b>
+      <p>${st.setup ? 'A GitHub key proves it\'s you.' : 'One time only. After this you just type your password on any device.'}</p>
+      ${hasDeviceKey ? '<p class="ok">✓ Using the GitHub key already saved on this device.</p>' : `<input type="password" id="lbKey" placeholder="GitHub key (github_pat_…)" autocomplete="off">
+      <p class="small">github.com → Settings → Developer settings → Fine-grained tokens → repo <b>iitstymfk.github.io</b>, Contents: Read and write.</p>`}
+      <input type="password" id="lbNew" placeholder="New password (6+ characters)" autocomplete="new-password">
+      <input type="password" id="lbNew2" placeholder="Type it again" autocomplete="new-password">
+      <input type="text" id="lbHint" placeholder="Password hint (emailed if you forget)" maxlength="200">
+      <input type="email" id="lbEmail" placeholder="Email for the hint" maxlength="120">
+      <button class="go" id="lbSetup">Save password</button>
+      <p class="lbMsg" id="lbMsg"></p>
+      <div class="lbLinks">${(st.setup || st.adminSetup) ? '<a id="lbBack">Back to login</a>' : ''}<a id="lbLater">Not now</a></div></div>`;
+  box.classList.add('open');
+  const msg = (t, bad) => { const m = $('lbMsg'); m.textContent = t; m.classList.toggle('bad', !!bad); };
+  const done = j => { lsSet('bioSession', j.session); lsSet('bioWho', j.who); box.classList.remove('open');
+    toast(j.who === AUTH_PAGE ? '✓ Logged in' : '✓ Logged in with ' + j.who + '\'s password'); if(window._edAfterLogin) window._edAfterLogin(); };
+  const on = (id, fn) => { const el = $(id); if(el) el.onclick = fn; };
+  on('lbLater', () => box.classList.remove('open'));
+  on('lbReset', () => showLogin('setup')); on('lbBack', () => showLogin('login'));
+  on('lbGo', async () => { const pw = $('lbPw').value; if(!pw) return;
+    msg('Checking…'); try{ done(await authCall({ action: 'login', password: pw })); }catch(e){ msg(e.message, true); } });
+  const pwIn = $('lbPw'); if(pwIn){ pwIn.onkeydown = e => { if(e.key === 'Enter') $('lbGo').click(); }; setTimeout(() => pwIn.focus(), 50); }
+  on('lbForgot', async () => { msg('Sending…'); try{ const j = await authCall({ action: 'forgot' }); msg(`✓ Hint sent to ${j.sentTo}. Check spam too.`); }catch(e){ msg(e.message, true); } });
+  on('lbSetup', async () => {
+    const key = hasDeviceKey ? lsGet('ghToken') : ($('lbKey').value || '').trim(), pw = $('lbNew').value, pw2 = $('lbNew2').value;
+    if(!key) return msg('Paste a GitHub key first.', true);
+    if(pw.length < 6) return msg('Password needs at least 6 characters.', true);
+    if(pw !== pw2) return msg('The two passwords don\'t match.', true);
+    msg('Saving…');
+    try{ const j = await authCall({ action: 'setup', ghToken: key, password: pw, hint: $('lbHint').value, email: $('lbEmail').value });
+      _authStatus = { ...(st), setup: true }; done(j); }catch(e){ msg(e.message, true); }
+  });
+}
+if(isOwner){
+  authCall({ action: 'status' }).then(s => { _authStatus = s; if(!getSess()) showLogin(); }).catch(() => {});
+}
+var _authReady = true;
+
+/* =====================================================================
    ✏️ THEME EDITOR (only in #owner) — edit any theme live, then Save
    ===================================================================== */
 if(isOwner){
@@ -2673,8 +2772,19 @@ if(isOwner){
       <hr>
       ${custom ? `<b>Delete</b><p>Removes "${esc(T.label)}" from your site.</p><button class="wbtn danger" id="epDel">🗑 Delete this theme</button>`
                : `<b>Reset</b><p>Undo every edit on "${esc(T.label)}" and go back to how it was built.</p><button class="wbtn danger" id="epReset">↺ Reset to original</button>`}
-      ${hasMusic ? '' : `<hr><b>GitHub key</b><p>${getTok() ? 'Key saved on this device ✓' : 'Needed once per device to save. Same key as the main page (github.com → Settings → Developer settings → Fine-grained tokens, repo <b>iitstymfk.github.io</b>, Contents: Read and write).'}</p>
-      <input type="password" id="epTok" placeholder="${getTok() ? 'key saved ✓' : 'github_pat_...'}"><div class="pair"><button class="wbtn go" id="epTokSave">Save key</button><button class="wbtn" id="epTokForget">Forget key</button></div>`}
+      ${window._authReady ? (() => { const who = lsGet('bioWho'), on = !!getSess();
+        return `<hr><b>🔐 Owner login</b>
+        ${on ? `<p>Logged in${who ? ` as <b style="display:inline">${esc(who)}</b>` : ''} ✓ on this device.</p>
+          <input type="password" id="acPw" placeholder="New password (leave blank to keep)">
+          <input type="text" id="acHint" placeholder="New hint (leave blank to keep)" maxlength="200">
+          <input type="email" id="acEmail" placeholder="New email for the hint (leave blank to keep)" maxlength="120">
+          <div class="pair"><button class="wbtn go" id="acSave">Save login changes</button><button class="wbtn" id="acOut">Log out</button></div>`
+        : `<p>Not logged in on this device.</p><button class="wbtn go" id="acIn">Log in</button>`}
+        <details style="margin-top:8px"><summary style="cursor:pointer;color:#aaa">Advanced: GitHub key on this device</summary>
+        <p>Only needed for very big uploads, or if the login server is down.</p>
+        <input type="password" id="epTok" placeholder="${lsGet('ghToken') ? 'key saved ✓' : 'github_pat_...'}"><div class="pair"><button class="wbtn" id="epTokSave">Save key</button><button class="wbtn" id="epTokForget">Forget key</button></div></details>`; })() : ''}
+      ${window._authReady ? '' : (hasMusic ? '' : `<hr><b>GitHub key</b><p>${getTok() ? 'Key saved on this device ✓' : 'Needed once per device to save. Same key as the main page (github.com → Settings → Developer settings → Fine-grained tokens, repo <b>iitstymfk.github.io</b>, Contents: Read and write).'}</p>
+      <input type="password" id="epTok" placeholder="${getTok() ? 'key saved ✓' : 'github_pat_...'}"><div class="pair"><button class="wbtn go" id="epTokSave">Save key</button><button class="wbtn" id="epTokForget">Forget key</button></div>`)}
       <hr><p>Edits save to <code>site.json</code> on your GitHub. Pictures you upload go in <code>${EDIT_DIR}</code>.</p>`; },
   };
   function render(){
@@ -2732,7 +2842,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
 <!-- LINK PREVIEW END -->`;
   }
   async function saveOG(){
-    if(!getTok()) return st(KEYMSG);
+    if(!getTok()) return (window._authReady && showLogin(), st(window._authReady ? 'Log in first (🔐).' : KEYMSG));
     try{
       if(uploads.length){ st('Finishing uploads…'); await Promise.all(uploads); uploads = []; }
       st('Updating link preview…');
@@ -2747,7 +2857,10 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
   }
   async function loadHist(){
     try{ st('Loading history…');
-      const r = await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/commits?path=${GH.dir || ''}site.json&sha=${GH.branch}&per_page=25&_=${Date.now()}`, { headers: { Authorization: `Bearer ${getTok()}`, Accept: 'application/vnd.github+json' } });
+      const q = `?path=${GH.dir || ''}site.json&sha=${GH.branch}&per_page=25`;
+      const r = (window._authReady && getSess())
+        ? await fetch(AUTH_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SB_KEY }, body: JSON.stringify({ action: 'gh', kind: 'commits', page: AUTH_PAGE, session: getSess(), path: q }) })
+        : await fetch(`https://api.github.com/repos/${GH.owner}/${GH.repo}/commits${q}&_=${Date.now()}`, { headers: { Authorization: `Bearer ${lsGet ? lsGet('ghToken') : getTok()}`, Accept: 'application/vnd.github+json' } });
       if(!r.ok) throw new Error(r.status);
       hist = (await r.json()).map(c => ({ sha: c.sha, date: c.commit.author.date, msg: c.commit.message.split('\n')[0] })); st(''); render();
     }catch(err){ st('Couldn\'t load history: ' + err.message); }
@@ -2833,6 +2946,13 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
     if(b.dataset.holprev != null){ const h = mergedHols()[+b.dataset.holprev]; window._previewHol = true; activeHol = h; setHolidayFX(h);
       if(h.theme && THEMES[h.theme]) applyTheme(h.theme); else applyExtras(themeKey); setTimeout(openEditor, 60); tab = 'site'; return; }
     if(b.id === 'holStop'){ window._previewHol = false; activeHol = null; setHolidayFX(null); applyExtras(themeKey); render(); return; }
+    if(b.id === 'acIn'){ showLogin(); return; }
+    if(b.id === 'acOut'){ lsSet('bioSession', ''); lsSet('bioWho', ''); render(); st('Logged out on this device.'); return; }
+    if(b.id === 'acSave'){ const pw = $('acPw').value, h = $('acHint').value, em = $('acEmail').value; if(!pw && !h && !em) return st('Nothing to change.');
+      if(pw && pw.length < 6) return st('Password needs at least 6 characters.');
+      try{ st('Saving…'); const j = await authCall({ action: 'account', session: getSess(), ...(pw ? { password: pw } : {}), ...(h ? { hint: h } : {}), ...(em ? { email: em } : {}) });
+        lsSet('bioSession', j.session); render(); st('✓ Login details updated.' + (pw ? ' Other devices will need the new password.' : '')); }catch(err){ st('Couldn\'t save: ' + err.message); }
+      return; }
     if(b.id === 'epTokSave'){ const v = $('epTok').value.trim(); if(!v) return; try{ localStorage.setItem('ghToken', v); }catch(err){} render(); st('Key saved on this device.'); return; }
     if(b.id === 'epTokForget'){ try{ localStorage.removeItem('ghToken'); }catch(err){} render(); st('Key removed from this device.'); return; }
     if(b.id === 'epSplash'){ $('splash').classList.remove('gone'); $('editPanel').classList.remove('open'); toast('Click the splash to close it — then ✏️ to keep editing'); return; }
@@ -2852,7 +2972,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
     if(b.id === 'epReset'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to reset'; return; }
       W = {}; changed(); setTimeout(render, 220); st('Reset — press 💾 Save to make it live.'); return; }
     if(b.id === 'epDel'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to delete for good'; return; }
-      if(!getTok()) return st(KEYMSG);
+      if(!getTok()) return (window._authReady && showLogin(), st(window._authReady ? 'Log in first (🔐).' : KEYMSG));
       const key = themeKey, base = baseOf(key);
       try{ st('Deleting…');
         await saveSite(d => { if(d.customThemes) delete d.customThemes[key]; if(d.themeEdits) delete d.themeEdits[key]; if(d.defaultTheme === key) d.defaultTheme = base;
@@ -2878,7 +2998,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
   }
   async function onUpload(e){
     const el = e.target, kind = el.dataset.up, file = el.files[0]; if(!file) return;
-    if(!getTok()) return st(KEYMSG);
+    if(!getTok()) return (window._authReady && showLogin(), st(window._authReady ? 'Log in first (🔐).' : KEYMSG));
     if(file.size > 45e6) return st('That file is over 45 MB — try a smaller one (MP4 is much smaller than GIF).');
     const job = (async () => {
       st('Getting it ready…');
@@ -2927,7 +3047,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
     if(lastSaved[k]) EDITS[k] = JSON.parse(JSON.stringify(lastSaved[k])); else delete EDITS[k];
     W = JSON.parse(JSON.stringify(EDITS[k] || {})); rebuildTheme(k); applyTheme(k); buildThemeMenu(); render(); st('Back to the last saved version.'); };
   $('epSave').onclick = async () => {
-    if(!getTok()) return st(KEYMSG);
+    if(!getTok()) return (window._authReady && showLogin(), st(window._authReady ? 'Log in first (🔐).' : KEYMSG));
     const k = themeKey, data = Object.keys(W).length ? JSON.parse(JSON.stringify(W)) : null;
     try{
       $('epSave').disabled = true;
@@ -2942,6 +3062,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
     finally{ $('epSave').disabled = false; }
   };
   addEventListener('beforeunload', e => { if(JSON.stringify(EDITS[themeKey] || {}) !== JSON.stringify(lastSaved[themeKey] || {})){ e.preventDefault(); e.returnValue = ''; } });
+  window._edAfterLogin = () => { if($('editPanel').classList.contains('open')) render(); };
   window._edSynced = d => { if(window.SITEF && !siteDirty) SW = JSON.parse(JSON.stringify(d.site || {})); lastSaved = JSON.parse(JSON.stringify(d.themeEdits || {})); if($('editPanel').classList.contains('open')) openEditor(); };
   // switching themes from 🎨 while the editor is open edits the new one
   $('themeMenu').addEventListener('click', () => { if($('editPanel').classList.contains('open')) setTimeout(openEditor, 50); });
