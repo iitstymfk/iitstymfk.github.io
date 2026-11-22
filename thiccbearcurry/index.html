@@ -344,6 +344,38 @@ body.decoEdit .deco.sel{outline:2px solid var(--accent)}
 @keyframes cbreathe{50%{transform:scale(1.025,1.035)}}
 @keyframes csway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
 @keyframes cbob{50%{transform:translateY(-10px)}}
+#chara.idle-hover{animation:chover 5s ease-in-out infinite!important}
+#chara.idle-bounce{animation:cbounce 1.4s cubic-bezier(.3,0,.6,1) infinite!important}
+#chara.idle-jelly{animation:cjelly 3s ease-in-out infinite!important}
+#chara.idle-pulse{animation:cpulse 1.6s ease-in-out infinite!important}
+#chara.idle-rock{animation:crock 3.2s ease-in-out infinite!important}
+#chara.idle-drift{animation:cdrift 9s ease-in-out infinite!important}
+#chara.idle-dance{animation:cdance 1.2s ease-in-out infinite!important}
+#chara.idle-shiver{animation:cshiver .25s linear infinite!important}
+#chara.idle-ghost{animation:cghost 6s ease-in-out infinite!important}
+#chara.idle-turn{animation:cturn 8s ease-in-out infinite!important}
+#chara.idle-hop{animation:chop 4s ease-out infinite!important}
+#chara.idle-glitch{animation:cglitch 3s steps(1) infinite!important}
+#chara.idle-wave{animation:cwave 4s ease-in-out infinite!important}
+#chara.idle-zoom{animation:czoom 10s ease-in-out infinite!important}
+#chara.idle-spin{animation:cspin 20s linear infinite!important;transform-origin:50% 50%}
+#chara.idle-orbit{animation:corbit 6s linear infinite!important}
+@keyframes chover{0%,100%{transform:translateY(0)}50%{transform:translateY(-34px)}}
+@keyframes cbounce{0%,100%{transform:translateY(0) scale(1.04,.96)}15%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-28px) scale(.98,1.03)}85%{transform:translateY(0) scale(1,1)}}
+@keyframes cjelly{0%,60%,100%{transform:scale(1,1)}68%{transform:scale(1.06,.94)}76%{transform:scale(.95,1.05)}84%{transform:scale(1.03,.97)}92%{transform:scale(.99,1.01)}}
+@keyframes cpulse{0%,40%,100%{transform:scale(1)}10%,30%{transform:scale(1.04)}}
+@keyframes crock{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+@keyframes cdrift{0%,100%{transform:translateX(0)}25%{transform:translateX(-4vw)}75%{transform:translateX(4vw)}}
+@keyframes cdance{0%,100%{transform:translateY(0) rotate(-4deg)}25%{transform:translateY(-12px) rotate(0)}50%{transform:translateY(0) rotate(4deg)}75%{transform:translateY(-12px) rotate(0)}}
+@keyframes cshiver{0%,100%{transform:translateX(0)}25%{transform:translateX(-1.5px)}75%{transform:translateX(1.5px)}}
+@keyframes cghost{0%,100%{transform:translateY(0);opacity:.95}50%{transform:translateY(-20px);opacity:.45}}
+@keyframes cturn{0%,40%,100%{transform:perspective(900px) rotateY(0)}50%,90%{transform:perspective(900px) rotateY(180deg)}}
+@keyframes chop{0%,70%,100%{transform:translateY(0)}78%{transform:translateY(-40px)}86%{transform:translateY(0) scale(1.04,.96)}92%{transform:translateY(-10px)}}
+@keyframes cglitch{0%,90%,100%{transform:none}91%{transform:translate(-6px,2px) skewX(6deg);filter:hue-rotate(90deg)}93%{transform:translate(5px,-2px);filter:invert(.2)}95%{transform:translate(-3px,0) skewX(-4deg)}97%{transform:none;filter:saturate(3)}}
+@keyframes cwave{0%,100%{transform:skewX(0)}25%{transform:skewX(3deg)}75%{transform:skewX(-3deg)}}
+@keyframes czoom{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes cspin{to{transform:rotate(360deg)}}
+@keyframes corbit{0%{transform:translate(0,-12px)}25%{transform:translate(12px,0)}50%{transform:translate(0,12px)}75%{transform:translate(-12px,0)}100%{transform:translate(0,-12px)}}
 .tapBubble{position:fixed;z-index:65;pointer-events:none;background:#fff;color:#111;font:700 14px/1.3 system-ui,sans-serif;padding:8px 12px;border-radius:14px;
   max-width:240px;transform:translate(-50%,-100%) scale(.6);opacity:0;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .2s;box-shadow:0 6px 20px rgba(0,0,0,.35)}
 .tapBubble::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-7px;border:7px solid transparent;border-bottom:0;border-top-color:#fff}
@@ -1716,21 +1748,43 @@ addEventListener('pointerdown', e => {
       if(d.tapBurst) tapBurst(cx, cy, d.tapBurst, d.tapSym); } });
 });
 /* character idle movement + mouse following */
+const IDLE_KINDS = ['none','breathe','sway','bob','hover','bounce','jelly','pulse','rock','drift','dance','shiver','ghost','turn','hop','glitch','wave','zoom','spin','orbit'];
 function applyCharMotion(ed){
-  const ch = $('chara'); ['idle-none','idle-breathe','idle-sway','idle-bob'].forEach(c => ch.classList.remove(c));
+  const ch = $('chara'); IDLE_KINDS.forEach(k => ch.classList.remove('idle-' + k));
   if(ed.charIdle && ed.charIdle !== 'float') ch.classList.add('idle-' + ed.charIdle);
-  ch.style.rotate = '';
+  ch.style.rotate = ''; ch.style.scale = ''; ch.style.translate = ''; ch._mx = ch._my = ch._vx = ch._ox = ch._oy = 0;
 }
-(function charMouse(){
-  const ed = EDITS[themeKey] || {}, ch = $('chara');
-  if(ch && ed.charMouse && mX > -999 && !document.body.classList.contains('dragChar')){
-    const r = ch.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
+(function charMouse(time){
+  const ed = EDITS[themeKey] || {}, ch = $('chara'), m = ed.charMouse;
+  if(ch && m && mX > -999 && !document.body.classList.contains('dragChar')){
+    const r = ch.getBoundingClientRect(), cx = r.left + r.width/2 - (ch._ox || 0), cy = r.top + r.height/2 - (ch._oy || 0);
     const dx = Math.max(-1, Math.min(1, (mX - cx) / (innerWidth/2))), dy = Math.max(-1, Math.min(1, (mY - cy) / (innerHeight/2)));
-    ch._mx = (ch._mx || 0) + (dx - (ch._mx || 0))*.08; ch._my = (ch._my || 0) + (dy - (ch._my || 0))*.08;
-    const base = ed.charX != null ? '-50%' : '0px';
-    if(ed.charMouse === 'tilt'){ ch.style.rotate = `${(-ch._my).toFixed(3)} ${ch._mx.toFixed(3)} 0 ${(Math.hypot(ch._mx, ch._my)*14).toFixed(2)}deg`; ch.style.translate = ed.charX != null ? '-50% 0' : ''; }
-    else if(ed.charMouse === 'lean'){ ch.style.rotate = (ch._mx*7).toFixed(2) + 'deg'; ch.style.translate = ed.charX != null ? '-50% 0' : ''; }
-    else if(ed.charMouse === 'depth'){ ch.style.rotate = ''; ch.style.translate = `calc(${base} + ${(-ch._mx*22).toFixed(1)}px) ${(-ch._my*12).toFixed(1)}px`; }
+    const near = Math.max(0, 1 - Math.hypot(mX - cx, mY - cy) / (Math.min(innerWidth, innerHeight) * .6));
+    const sp = m === 'spring' ? 0 : .08;
+    if(m === 'spring'){ ch._vx = ((ch._vx || 0) + (dx - (ch._mx || 0)) * .02) * .9; ch._mx = (ch._mx || 0) + ch._vx; ch._my = 0; }
+    else { ch._mx = (ch._mx || 0) + (dx - (ch._mx || 0))*sp; ch._my = (ch._my || 0) + (dy - (ch._my || 0))*sp; }
+    ch._near = (ch._near || 0) + (near - (ch._near || 0)) * .08;
+    const X = ch._mx, Y = ch._my, base = ed.charX != null ? '-50%' : '0px';
+    let rot = '', tx = 0, ty = 0, sc = '';
+    switch(m){
+      case 'tilt':  rot = `${(-Y).toFixed(3)} ${X.toFixed(3)} 0 ${(Math.hypot(X, Y)*14).toFixed(2)}deg`; break;
+      case 'away':  rot = `${Y.toFixed(3)} ${(-X).toFixed(3)} 0 ${(Math.hypot(X, Y)*14).toFixed(2)}deg`; break;
+      case 'lean':  rot = (X*7).toFixed(2) + 'deg'; break;
+      case 'spring': rot = (X*10).toFixed(2) + 'deg'; break;
+      case 'depth': tx = -X*22; ty = -Y*12; break;
+      case 'parallax': tx = -X*60; ty = -Y*30; break;
+      case 'follow': tx = X * innerWidth * .12; ty = Y * 20; rot = (X*4).toFixed(2) + 'deg'; break;
+      case 'shy':   tx = -X * innerWidth * .08 * (.4 + ch._near); rot = (-X*5).toFixed(2) + 'deg'; break;
+      case 'face':  sc = X < -.05 ? '-1 1' : '1 1'; break;
+      case 'faceR': sc = X > .05 ? '-1 1' : '1 1'; break;
+      case 'grow':  sc = (1 + ch._near*.12).toFixed(3); break;
+      case 'shrink': sc = (1 - ch._near*.12).toFixed(3); break;
+      case 'peek':  ty = ch._near * r.height * .35; break;
+      case 'look':  rot = `0 1 0 ${(X*25).toFixed(2)}deg`; ty = -Y*8; break;
+    }
+    ch._ox = tx; ch._oy = ty;
+    ch.style.rotate = rot; ch.style.scale = sc;
+    ch.style.translate = (tx || ty) ? `calc(${base} + ${tx.toFixed(1)}px) ${ty.toFixed(1)}px` : (ed.charX != null ? '-50% 0' : '');
   }
   requestAnimationFrame(charMouse);
 })();
@@ -2410,8 +2464,8 @@ if(isOwner){
       ${sel('charTapBurst','Burst on tap', BURSTS, e.charTapBurst || '', 'light')}
       ${e.charTapBurst === 'custom' ? txt('charTapSym','Burst emoji (1–3)','💜🔥') : ''}
       ${row('Speech bubble on tap <i>(one line per tap, in order)</i>', `<textarea data-f="charSay" data-k="lines" data-kind="light" rows="3" placeholder="hi!&#10;stop poking me 😤">${esc((e.charSay || []).join('\n'))}</textarea>`)}
-      ${sel('charIdle','Moves on its own', { float:'🎈 Float (default)', breathe:'😮‍💨 Breathe', sway:'🍃 Sway', bob:'🎵 Bob to the beat', none:'⏸ Still' }, e.charIdle || 'float', 'light')}
-      ${sel('charMouse','Follows the mouse', { '':'No', tilt:'🧊 3D tilt toward it', lean:'↔️ Lean toward it', depth:'🪟 Depth shift' }, e.charMouse || '', 'light')}
+      ${sel('charIdle','Moves on its own', { float:'🎈 Float (default)', breathe:'😮‍💨 Breathe', sway:'🍃 Sway', bob:'🎵 Bob to the beat', hover:'🛸 Big hover', bounce:'🏀 Bounce', jelly:'🍮 Jelly wobble', pulse:'💓 Heartbeat', rock:'🕰 Rock side to side', drift:'🌊 Drift left & right', dance:'💃 Dance', shiver:'🥶 Shiver', ghost:'👻 Ghost (float + fade)', turn:'🔄 Turn around (3D)', hop:'🐸 Hop now and then', glitch:'📺 Glitch', wave:'🌬 Wave in the wind', zoom:'🔍 Slow zoom in & out', spin:'🌀 Slow spin', orbit:'🪐 Small circles', none:'⏸ Still' }, e.charIdle || 'float', 'light')}
+      ${sel('charMouse','Follows the mouse', { '':'No', tilt:'🧊 3D tilt toward it', away:'🧊 3D tilt away', lean:'↔️ Lean toward it', spring:'🪀 Springy lean (wobbles)', look:'👀 Turn to look at it', face:'🔁 Face it (flip sides)', faceR:'🔁 Face it (picture faces left)', follow:'🚶 Walk toward it', shy:'🙈 Shy (moves away)', peek:'🫣 Hide down when it gets close', grow:'🔎 Grow when it gets close', shrink:'🤏 Shrink when it gets close', depth:'🪟 Depth shift', parallax:'🌌 Big parallax' }, e.charMouse || '', 'light')}
       ${$('themeLogo') ? `<hr><b>Logo above the name</b>
       <p>${o.logo ? `Using <img class="mini" src="${esc(asset(o.logo))}">` : 'None.'}</p>
       ${up('logo','Upload logo','image/*')}${o.logo ? '<button class="wbtn" data-clear="logo">✕ Remove logo</button>' : ''}` : ''}
