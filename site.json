@@ -13,5 +13,83 @@
       "effects": {}
     }
   },
-  "customThemes": {}
+  "customThemes": {},
+  "site": {
+    "holidays": [
+      {
+        "id": "xmas",
+        "name": "🎄 Christmas",
+        "from": "12-01",
+        "to": "12-26",
+        "fx": "snow"
+      },
+      {
+        "id": "newyear",
+        "name": "🎆 New Year",
+        "from": "12-31",
+        "to": "01-01",
+        "fx": "confetti"
+      },
+      {
+        "id": "valentine",
+        "name": "💘 Valentine's",
+        "from": "02-10",
+        "to": "02-14",
+        "fx": "hearts"
+      },
+      {
+        "id": "stpat",
+        "name": "🍀 St. Patrick's",
+        "from": "03-15",
+        "to": "03-17",
+        "fx": "sparkles"
+      },
+      {
+        "id": "spring",
+        "name": "🌸 Spring",
+        "from": "03-20",
+        "to": "04-20",
+        "fx": "petals"
+      },
+      {
+        "id": "july4",
+        "name": "🎇 4th of July",
+        "from": "07-03",
+        "to": "07-05",
+        "fx": "confetti"
+      },
+      {
+        "id": "fall",
+        "name": "🍂 Fall",
+        "from": "09-22",
+        "to": "10-14",
+        "fx": "leaves"
+      },
+      {
+        "id": "halloween",
+        "name": "🎃 Halloween",
+        "from": "10-15",
+        "to": "10-31",
+        "fx": "fog"
+      },
+      {
+        "id": "thanks",
+        "name": "🦃 Thanksgiving week",
+        "from": "11-22",
+        "to": "11-28",
+        "fx": "leaves"
+      },
+      {
+        "id": "bday",
+        "name": "🎂 My birthday",
+        "from": "",
+        "to": "",
+        "fx": "confetti"
+      }
+    ],
+    "counter": {
+      "on": true,
+      "label": "views"
+    }
+  }
 }
