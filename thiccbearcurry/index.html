@@ -391,6 +391,85 @@ body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-st
 #loginBox .lbMsg{min-height:16px;margin:8px 0 2px;color:#7dffb0}#loginBox .lbMsg.bad{color:#ff8a8a}
 #loginBox .lbLinks{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:8px}
 #loginBox .lbLinks a{color:var(--accent);cursor:pointer;font-size:12px;text-decoration:underline}
+/* ---------- links: styles, colors, hover ---------- */
+.socials .soc svg{fill:var(--lc,var(--icon))}
+.soc .lkMask{display:block;width:30px;height:30px;background:var(--lc,var(--icon));-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--accent) 60%,transparent))}
+.soc .lkImg{width:30px;height:30px;object-fit:contain;display:block}
+.socials.lk-round .soc,.socials.lk-square .soc{width:46px;height:46px;background:var(--card);border:1px solid var(--line);border-radius:50%;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.socials.lk-square .soc{border-radius:12px}
+.socials.lk-round .soc svg,.socials.lk-square .soc svg,.socials.lk-round .soc .lkMask,.socials.lk-square .soc .lkMask,.socials.lk-round .soc .lkImg,.socials.lk-square .soc .lkImg{width:24px;height:24px}
+.socials.lk-glow .soc svg,.socials.lk-glow .soc .lkMask{filter:drop-shadow(0 0 8px var(--lc,var(--accent))) drop-shadow(0 0 16px var(--lc,var(--accent)))}
+.socials.lk-buttons{flex-direction:column;align-items:stretch;gap:8px;max-width:420px;margin-left:auto;margin-right:auto}
+.socials.lk-buttons .x{display:none}
+.socials.lk-buttons .soc{width:auto;height:auto;display:flex;align-items:center;gap:12px;justify-content:flex-start;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-decoration:none}
+.socials.lk-buttons .soc svg,.socials.lk-buttons .soc .lkMask,.socials.lk-buttons .soc .lkImg{width:22px;height:22px;flex:0 0 22px}
+.socials.lk-buttons .btxt{color:var(--text);font-weight:700;font-size:14px}
+.socials.lk-buttons .tip{display:none}
+.socials.noTip .tip{display:none}
+.socials.hv-spin .soc:hover{transform:rotate(360deg) scale(1.1);transition:transform .6s}
+.socials.hv-bounce .soc:hover{transform:none;animation:lkBounce .6s}
+.socials.hv-glow .soc:hover{transform:scale(1.06)}
+.socials.hv-glow .soc:hover svg,.socials.hv-glow .soc:hover .lkMask{filter:drop-shadow(0 0 12px var(--lc,var(--accent))) drop-shadow(0 0 24px var(--lc,var(--accent)))}
+.socials.hv-none .soc:hover{transform:none}
+.socials.lk-buttons .soc:hover{transform:translateX(4px);border-color:var(--accent)}
+.socials.lk-buttons.hv-none .soc:hover{transform:none}
+@keyframes lkBounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-10px)}60%{transform:translateY(-3px)}}
+/* ---------- about cards ---------- */
+#aboutCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 16px}
+#aboutCards .about{display:block;padding:10px 12px;font-size:12.5px}
+#aboutCards .abTop{display:flex;gap:6px;align-items:center;font-size:13px}
+#aboutCards .abEm{font-size:16px}
+#aboutCards .abTxt{color:var(--muted);margin-top:4px;line-height:1.4}
+/* ---------- name animations ---------- */
+#name.nf-rainbow{animation:nfRain 4s linear infinite}
+@keyframes nfRain{to{filter:hue-rotate(360deg)}}
+#name.nf-neon{animation:nfNeon 3s steps(1) infinite}
+@keyframes nfNeon{0%,19%,22%,62%,64%,100%{opacity:1;filter:drop-shadow(0 0 8px var(--accent)) drop-shadow(0 0 22px var(--accent))}20%,21%,63%{opacity:.35;filter:none}}
+#name.nf-glitch{animation:nfGlitch 3.2s infinite}
+@keyframes nfGlitch{0%,86%,100%{transform:none;filter:none;clip-path:none}
+  88%{transform:translate(-3px,1px) skewX(-8deg);filter:hue-rotate(90deg);clip-path:inset(10% 0 45% 0)}
+  90%{transform:translate(3px,-1px) skewX(6deg);filter:hue-rotate(-90deg);clip-path:inset(55% 0 5% 0)}
+  92%{transform:translate(-2px,0);filter:none;clip-path:inset(30% 0 30% 0)}94%{transform:none;clip-path:none}}
+#name.nf-wave span,#name span[style*="--i"]{display:inline-block;background:inherit;background-size:inherit;-webkit-background-clip:text;background-clip:text;animation:nfWave 1.6s ease-in-out infinite;animation-delay:calc(var(--i)*.08s)}
+@keyframes nfWave{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+#name.nf-typing::after{content:"";display:inline-block;width:.08em;height:.9em;margin-left:.06em;background:var(--accent);vertical-align:-.05em;animation:nfCaret .7s steps(1) infinite}
+@keyframes nfCaret{50%{opacity:0}}
+/* ---------- entry animations (improves the built-in rise) ---------- */
+#profile.ent-fade{transform:none}
+#profile.ent-zoom{transform:scale(.6)}
+#profile.ent-slide{transform:translateX(-60px)}
+#profile.ent-none{opacity:1;transform:none}
+#profile.ent-fade.show,#profile.ent-zoom.show,#profile.ent-slide.show{transform:none}
+#profile.ent-glitch.show{animation:entGlitch .9s steps(2) both}
+@keyframes entGlitch{0%{opacity:0;transform:translateX(-12px) skewX(12deg);filter:hue-rotate(90deg)}30%{opacity:1;transform:translateX(10px) skewX(-8deg)}55%{transform:translateX(-6px);filter:hue-rotate(-60deg)}80%{transform:translateX(3px);filter:none}100%{opacity:1;transform:none}}
+#profile.ent-cards{opacity:1;transform:none}
+#profile.ent-cards > *{opacity:0}
+#profile.ent-cards.show > *{animation:entDrop .6s cubic-bezier(.2,.9,.3,1.2) both;animation-delay:calc(var(--ei,0)*.13s)}
+@keyframes entDrop{from{opacity:0;transform:translateY(-26px) scale(.96)}to{opacity:1;transform:none}}
+/* ---------- visualizer ring + YouTube background ---------- */
+#pCover{box-shadow:0 0 calc(var(--vlvl,0)*26px) calc(var(--vlvl,0)*6px) var(--accent);scale:calc(1 + var(--vlvl,0)*.07)}
+#ytBg{position:fixed;top:50%;left:50%;width:100vw;height:56.25vw;min-height:100vh;min-width:177.78vh;transform:translate(-50%,-50%);border:0;z-index:0;pointer-events:none}
+body.ytbg #bgCanvas,body.ytbg #bgVideo,body.ytbg #bgImage{display:none!important}
+/* ---------- editor: links + photo editor ---------- */
+.lkRow{display:flex;gap:8px;align-items:flex-start;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;margin:6px 0;background:rgba(255,255,255,.03)}
+.lkRow .lkDrag{cursor:grab;color:#888;padding-top:6px}
+.lkRow .lkPrev{width:28px;height:28px;flex:0 0 28px;display:grid;place-items:center;margin-top:4px}
+.lkRow .lkPrev svg{width:24px;height:24px;fill:var(--lc,var(--icon))}.lkRow .lkPrev .lkMask,.lkRow .lkPrev .lkImg{width:24px;height:24px}
+.lkRow .lkF{flex:1;min-width:0}.lkRow .lkF input[type=text]{margin:2px 0}
+.lkRow .lkBtns{display:flex;flex-direction:column;gap:3px}.lkRow .lkBtns button{width:26px;height:24px;border-radius:6px;background:rgba(255,255,255,.08);font-size:12px}
+.lkPick{border:1px solid color-mix(in srgb,var(--accent) 50%,transparent);border-radius:10px;padding:8px;margin:6px 0}
+.lkGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:6px 0;max-height:260px;overflow:auto}
+.lkGrid button{background:rgba(255,255,255,.06);border-radius:8px;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;color:#ccc;overflow:hidden}
+.lkGrid img,.lkGrid svg{width:22px;height:22px;filter:invert(1)}.lkGrid svg{filter:none;fill:#fff}
+.lkGrid span{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thumbs .peBtn{right:auto!important;left:2px}
+#peBox{position:fixed;inset:0;z-index:85;display:none;place-items:center;background:rgba(0,0,0,.6)}
+#peBox.open{display:grid}
+#peBox .peIn{width:min(380px,94vw);max-height:92vh;overflow:auto;background:rgba(14,10,24,.97);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px;color:#eee;font-size:12.5px}
+#peBox canvas{display:block;max-width:100%;max-height:42vh;margin:8px auto;background:repeating-conic-gradient(#333 0 25%,#222 0 50%) 0 0/16px 16px;border-radius:8px;cursor:crosshair}
+#peBox details{border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 9px;margin:6px 0}#peBox summary{cursor:pointer;font-weight:700}
+#peBox input[type=range]{width:100%;accent-color:var(--accent)}#peBox .peHint{color:#aaa;text-align:center;margin:2px 0}
+#peBox .wbtn{display:block;width:100%;margin-top:6px;padding:8px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}#peBox .wbtn.go{background:var(--accent);color:#111}
 </style>
 </head>
 <body data-theme="sakura">
@@ -1398,6 +1477,7 @@ function applyExtras(key){
   document.documentElement.style.setProperty('--ornSize', e.ornSize ? e.ornSize + 'px' : '42px');
   ['ornL','ornR','sx1','sx2'].forEach(id => $(id).style.animationDuration = e.ornSpeed ? e.ornSpeed + 's' : '');
   document.body.classList.toggle('noSocOrn', e.ornSocials === false);
+  if(window._plusReady) plusApply(key);
   setFX({ ...(e.effects || {}), ...(window.holidayFX || {}) });
   renderDecos(e.decos); applyLook(e.look);
   if(typeof applyCharMotion === 'function') applyCharMotion(e);
@@ -1418,8 +1498,8 @@ function setFX(cfg){
   const fl = fxCfg.floater; fxImg = null;
   if(fl && fl.on && fl.img){ fxImg = new Image(); fxImg.src = asset(fl.img); }
   fxOn = Object.values(fxCfg).some(v => v && v.on);
-  fxc.style.display = fxOn ? 'block' : 'none';
-  if(!fxOn) fctx.clearRect(0, 0, innerWidth, innerHeight);
+  fxc.style.display = fxActive() ? 'block' : 'none';
+  if(!fxActive()) fctx.clearRect(0, 0, innerWidth, innerHeight);
 }
 function fxNew(k, W, H, any){
   const y0 = any ? R()*H : -20, p = { x: R()*W, y: y0, ph: R()*TAU, r: R()*TAU };
@@ -1434,8 +1514,9 @@ function fxNew(k, W, H, any){
   }
   return p;
 }
+function fxActive(){ return fxOn || (window._plusReady && ((trailCfg && trailCfg.on) || (vizCfg && vizCfg.on))); }
 function drawFX(t){
-  if(!fxOn) return;
+  if(!fxActive()) return;
   const W = innerWidth, H = innerHeight, c = fctx; c.clearRect(0, 0, W, H);
   for(const [k, cf] of Object.entries(fxCfg)){
     if(!cf || !cf.on) continue;
@@ -1496,6 +1577,7 @@ function drawFX(t){
       if(k === 'fireflies' && (p.x < -20 || p.x > W+20 || p.y < -20 || p.y > H+20)) arr[i] = fxNew(k, W, H, true);
     }
   }
+  if(window._plusReady){ drawViz(c, W, H); drawTrail(c); }
 }
 function hexA(h, a){
   if(!h || h[0] !== '#') return h;
@@ -1924,7 +2006,7 @@ function loadSite(d){
   document.body.classList.toggle('lite', _lite);
   activeHol = isOwner && !window._previewHol ? null : findHoliday();
   setHolidayFX(activeHol);
-  renderViews(); renderUser();
+  renderViews(); renderUser(); if(window._plusReady) plusSite();
   return activeHol && activeHol.theme && THEMES[activeHol.theme] ? activeHol.theme : null;
 }
 loadViews();
@@ -2057,6 +2139,181 @@ if(isOwner){
   authCall({ action: 'status' }).then(s => { _authStatus = s; if(!getSess()) showLogin(); }).catch(() => {});
 }
 var _authReady = true;
+
+/* =====================================================================
+   PLUS — custom links + icons, about cards, name animations, entry
+   animation, sounds, cursor trail, music visualizer, YouTube background.
+   Site-wide bits live in site.json → site; per-theme bits in themeEdits.
+   ===================================================================== */
+var PLUS = true;
+
+/* ---------- links (replaces the built-in social list once you edit it) ---------- */
+const escA = s => String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+function linkIcon(l){
+  const ic = l.icon || {};
+  if(ic.t === 'img') return ic.tint === false ? `<img class="lkImg" src="${escA(asset(ic.src))}" alt="">`
+    : `<i class="lkMask" style="-webkit-mask-image:url('${escA(asset(ic.src))}');mask-image:url('${escA(asset(ic.src))}')"></i>`;
+  if(ic.t === 'si') return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${escA(ic.d)}"/></svg>`;
+  return svg(ICONS[ic.k || l.type] || '');
+}
+const BRAND_HEX = { discord:'5865F2', youtube:'FF0000', twitch:'9146FF', tiktok:'FF0050', instagram:'E4405F', steam:'66C0F4', spotify:'1DB954', xbox:'107C10', playstation:'0070D1', x:'FFFFFF', github:'FFFFFF' };
+function linkColor(l, S){
+  const mode = l.color || S.color || 'theme';
+  if(mode === 'brand'){ const hx = (l.icon && l.icon.hex) || BRAND_HEX[(l.icon && l.icon.k) || l.type]; return hx ? '#' + hx : 'var(--icon)'; }
+  if(mode === 'theme') return 'var(--icon)';
+  return mode;
+}
+function currentLinks(){
+  if(SITE.links) return SITE.links;
+  return CONFIG.socials.filter(s => s.url).map(s => ({ id: s.type, title: s.label, url: s.url, icon: { t: 'b', k: s.type } }));
+}
+function renderLinks(){
+  const nav = $('socials'); if(!nav) return;
+  const S = SITE.linkStyle || {}, list = currentLinks();
+  nav.querySelectorAll('.soc').forEach(a => a.remove());
+  nav.className = 'socials lk-' + (S.style || 'plain') + ' hv-' + (S.hover || 'lift') + (S.label === false ? ' noTip' : '');
+  const sx2 = $('sx2');
+  list.forEach(l => {
+    const a = document.createElement('a'); a.className = 'soc'; a.href = l.url || '#'; a.target = '_blank'; a.rel = 'noopener';
+    a.setAttribute('aria-label', l.title || ''); a.style.setProperty('--lc', linkColor(l, S));
+    if(l.icon && l.icon.hex) a.style.setProperty('--brand', '#' + l.icon.hex);
+    a.innerHTML = linkIcon(l) + (S.style === 'buttons' ? `<span class="btxt">${escA(l.title)}</span>` : '') + `<span class="tip">${escA(l.label || l.title)}</span>`;
+    nav.insertBefore(a, sx2);
+  });
+}
+
+/* ---------- "about me" cards ---------- */
+function renderAbout(){
+  let box = $('aboutCards'); const list = (SITE.about || []).filter(c => c.title || c.text);
+  if(!list.length || SITE.aboutOn === false){ if(box) box.remove(); return; }
+  if(!box){ box = document.createElement('div'); box.id = 'aboutCards'; const nav = $('socials'); nav.after(box); }
+  box.innerHTML = list.map(c => `<div class="card about"><div class="abTop">${c.emoji ? `<span class="abEm">${escA(c.emoji)}</span>` : ''}<b>${escA(c.title)}</b></div>${c.text ? `<div class="abTxt">${escA(c.text).replace(/\n/g,'<br>')}</div>` : ''}</div>`).join('');
+}
+
+/* ---------- name animations (per theme) ---------- */
+let _nameTyping = null;
+function nameFx(kind){
+  const nm = $('name'); if(!nm || nm.querySelector('img')) return;     // leave picture logos alone
+  const text = (EDITS[themeKey] || {}).nameText || CONFIG.name;
+  clearInterval(_nameTyping); nm.classList.remove('nf-glitch','nf-rainbow','nf-neon','nf-wave','nf-typing');
+  nm.removeAttribute('data-text');
+  if(kind === 'wave'){ nm.innerHTML = [...text].map((ch, i) => `<span style="--i:${i}">${ch === ' ' ? '&nbsp;' : escA(ch)}</span>`).join(''); }
+  else if(kind === 'typing'){ let i = 0; nm.textContent = ''; nm.classList.add('nf-typing');
+    _nameTyping = setInterval(() => { nm.textContent = text.slice(0, ++i); if(i >= text.length){ clearInterval(_nameTyping); setTimeout(() => nm.classList.remove('nf-typing'), 1600); } }, 110); return; }
+  else nm.textContent = text;
+  if(kind){ nm.classList.add('nf-' + kind); nm.dataset.text = text; }
+}
+
+/* ---------- entry animation (site-wide) ---------- */
+function applyEntry(){
+  const p = $('profile'), st = (SITE.entry && SITE.entry.style) || 'rise';
+  p.classList.remove('ent-fade','ent-zoom','ent-slide','ent-glitch','ent-cards','ent-none');
+  if(st !== 'rise') p.classList.add('ent-' + st);
+  [...p.children].forEach((c, i) => c.style.setProperty('--ei', i));
+}
+
+/* ---------- sounds (site-wide) ---------- */
+let _actx = null, _sndReady = false, _lastSndTheme = null;
+const SND = {
+  pop:    [[620, 180, .09, 'sine']],
+  tick:   [[1800, 1800, .03, 'square']],
+  bubble: [[300, 900, .12, 'sine']],
+  blip:   [[880, 880, .06, 'triangle'], [1320, 1320, .06, 'triangle', .06]],
+  coin:   [[988, 988, .08, 'square'], [1319, 1319, .2, 'square', .08]],
+  whoosh: [[200, 1200, .35, 'sawtooth']],
+  chime:  [[1047, 1047, .5, 'sine'], [1568, 1568, .5, 'sine', .08]],
+  swoop:  [[900, 300, .25, 'triangle']],
+};
+function ac(){ if(!_actx){ const A = window.AudioContext || window.webkitAudioContext; if(!A) return null; _actx = new A(); } if(_actx.state === 'suspended') _actx.resume(); return _actx; }
+function playSnd(name, vol){
+  const S = SITE.sounds || {}; if(!S.on || (typeof muted !== 'undefined' && muted)) return;
+  const v = (vol ?? S.vol ?? .5) * .6;
+  if(name && /\//.test(name)){ const a = new Audio(asset(name)); a.volume = Math.min(1, v * 1.6); a.play().catch(() => {}); return; }
+  const c = ac(); if(!c || !SND[name]) return;
+  for(const [f1, f2, dur, type, delay = 0] of SND[name]){
+    const o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime + delay;
+    o.type = type; o.frequency.setValueAtTime(f1, t0); o.frequency.exponentialRampToValueAtTime(Math.max(40, f2), t0 + dur);
+    g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(v * (type === 'sawtooth' || type === 'square' ? .25 : .6), t0 + .01);
+    g.gain.exponentialRampToValueAtTime(.0001, t0 + dur); o.connect(g).connect(c.destination); o.start(t0); o.stop(t0 + dur + .02);
+  }
+}
+addEventListener('pointerdown', e => {
+  _sndReady = true;
+  if(e.target.closest('#editPanel,#loginBox,#musicPanel')) return;
+  if(e.target.closest('a,button,.card,.deco,#chara,#splash')) playSnd((SITE.sounds || {}).click || 'pop');
+}, true);
+function themeSound(key){ if(_sndReady && _lastSndTheme && _lastSndTheme !== key) playSnd((SITE.sounds || {}).theme || 'whoosh'); _lastSndTheme = key; }
+
+/* ---------- cursor trail (per theme, drawn on the effects layer) ---------- */
+var trailCfg = null; const trailP = [];
+addEventListener('pointermove', e => {
+  if(!trailCfg || !trailCfg.on) return;
+  const n = Math.max(1, Math.round((trailCfg.amt ?? 50) / 25));
+  for(let i = 0; i < n; i++) trailP.push({ x: e.clientX + rr(-4,4), y: e.clientY + rr(-4,4), vx: rr(-.6,.6), vy: rr(-.4,.9), l: 1, r: R()*TAU, s: rr(.7,1.3) });
+  if(trailP.length > 220) trailP.splice(0, trailP.length - 220);
+}, { passive: true });
+function drawTrail(c){
+  if(!trailCfg || !trailCfg.on || !trailP.length) return;
+  const col = trailCfg.color || T.accent, k = trailCfg.kind || 'sparkle', glyph = k === 'heart' ? '♥' : k === 'star' ? '★' : k === 'emoji' ? (trailCfg.emoji || '✨') : '';
+  for(let i = trailP.length - 1; i >= 0; i--){
+    const p = trailP[i]; p.x += p.vx; p.y += p.vy; p.l -= .025 * (trailCfg.spd ?? 1); p.r += .05;
+    if(p.l <= 0){ trailP.splice(i, 1); continue; }
+    c.globalAlpha = p.l;
+    if(glyph){ c.fillStyle = col; c.font = `${Math.round(14*p.s)}px serif`; c.textAlign = 'center'; c.fillText(glyph, p.x, p.y); c.textAlign = 'left'; }
+    else { const s = 5*p.s*p.l + 1; c.fillStyle = col; c.beginPath(); c.moveTo(p.x, p.y-s*2); c.quadraticCurveTo(p.x, p.y, p.x+s*2, p.y); c.quadraticCurveTo(p.x, p.y, p.x, p.y+s*2); c.quadraticCurveTo(p.x, p.y, p.x-s*2, p.y); c.quadraticCurveTo(p.x, p.y, p.x, p.y-s*2); c.fill(); }
+  }
+  c.globalAlpha = 1;
+}
+
+/* ---------- music visualizer (per theme) ---------- */
+var vizCfg = null, _an = null, _vizData = null;
+function vizHook(){
+  if(_an || !vizCfg || !vizCfg.on || audio.paused) return;
+  try{ const u = new URL(audio.currentSrc || audio.src, location.href); if(u.origin !== location.origin) return; }catch(e){ return; }
+  const c = ac(); if(!c) return;
+  try{ const src = c.createMediaElementSource(audio); _an = c.createAnalyser(); _an.fftSize = 128; _an.smoothingTimeConstant = .8;
+    src.connect(_an); _an.connect(c.destination); _vizData = new Uint8Array(_an.frequencyBinCount); }catch(e){ _an = null; }
+}
+audio.addEventListener('play', () => { if(_actx && _actx.state === 'suspended') _actx.resume(); vizHook(); });
+addEventListener('pointerdown', () => { if(vizCfg && vizCfg.on && !audio.paused) vizHook(); }, true);
+function drawViz(c, W, H){
+  const cov = $('pCover');
+  if(!vizCfg || !vizCfg.on || !_an || audio.paused){ if(cov) cov.style.removeProperty('--vlvl'); return; }
+  _an.getByteFrequencyData(_vizData);
+  const n = _vizData.length, col = vizCfg.color || T.accent, st = vizCfg.style || 'bars';
+  let sum = 0; for(let i = 0; i < n; i++) sum += _vizData[i];
+  if((st === 'ring' || st === 'both') && cov) cov.style.setProperty('--vlvl', (sum / n / 255 * 1.6).toFixed(3));
+  if(st === 'bars' || st === 'both'){
+    const hMax = H * (vizCfg.height ?? .18), bw = W / n;
+    c.fillStyle = col; c.globalAlpha = .75;
+    for(let i = 0; i < n; i++){ const h = Math.max(2, _vizData[i] / 255 * hMax); c.fillRect(i*bw + 1, H - h, bw - 2, h); }
+    c.globalAlpha = 1;
+  }
+}
+
+/* ---------- YouTube background (per theme) ---------- */
+function ytId(v){ v = String(v || '').trim(); const m = v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([\w-]{11})/); return m ? m[1] : (/^[\w-]{11}$/.test(v) ? v : ''); }
+function applyYT(v){
+  const id = ytId(v); let f = $('ytBg');
+  document.body.classList.toggle('ytbg', !!id);
+  if(!id){ if(f) f.remove(); return; }
+  const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&modestbranding=1&playsinline=1&rel=0&disablekb=1&iv_load_policy=3`;
+  if(!f){ f = document.createElement('iframe'); f.id = 'ytBg'; f.allow = 'autoplay; encrypted-media'; f.setAttribute('tabindex', '-1'); f.title = 'background';
+    const cvs = $('bgCanvas'); cvs.parentNode.insertBefore(f, cvs); }
+  if(f.dataset.id !== id){ f.src = src; f.dataset.id = id; }
+}
+
+/* ---------- applied on every theme change / edit ---------- */
+function plusApply(key){
+  const e = EDITS[key] || {};
+  trailCfg = e.trail || null; vizCfg = e.viz || null;
+  if(vizCfg && vizCfg.on) vizHook();
+  applyYT(e.ytBg);
+  nameFx((e.look || {}).nameAnim || '');
+  themeSound(key);
+}
+function plusSite(){ renderLinks(); renderAbout(); applyEntry(); }
+var _plusReady = true;
 
 /* =====================================================================
    ✏️ THEME EDITOR (only in #owner) — edit any theme live, then Save
@@ -2215,6 +2472,7 @@ if(isOwner){
         <label class="ef"><span>In front of the cards</span><input type="checkbox" data-d="front" ${d.front ? 'checked' : ''}></label>
         <label class="ef"><span>Mirror</span><input type="checkbox" data-d="flip" ${d.flip ? 'checked' : ''}></label>
         <label class="ef"><span>Reverse direction</span><input type="checkbox" data-d="rev" ${d.rev ? 'checked' : ''}></label>
+        ${d.kind === 'img' ? `<button class="wbtn" data-pe="deco:${selDeco}">✂️ Edit picture (crop, background, colors, outline)</button>` : ''}
         <div class="pair"><button class="wbtn" id="dDup">⧉ Duplicate</button><button class="wbtn danger" id="dDel">🗑 Remove</button></div></div>` : ''}
       <hr><b>Add a built-in icon</b>
       <div class="ornGrid add">${ORNS.map(k => `<button data-dadd="${k}" title="${k}">${orn(k)}</button>`).join('')}</div>
@@ -2380,7 +2638,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
     }catch(err){ st('Couldn\'t load history: ' + err.message); }
   }
   function siteChanged(){ SITE = SW; siteDirty = true; _lite = siteOpt('battery.lite', false) && isPhone; document.body.classList.toggle('lite', _lite);
-    renderViews(); renderUser(); st('Unsaved changes — press 💾 Save to make them live.'); }
+    renderViews(); renderUser(); if(window._plusReady) plusSite(); st('Unsaved changes — press 💾 Save to make them live.'); }
 
   /* ---------- reading the inputs ---------- */
   function onInput(e){
@@ -2498,9 +2756,9 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
   });
 
   /* ---------- uploads (go straight to GitHub, shown right away) ---------- */
-  const LIMITS = { og: 1200, playerCover: 500, deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
+  const LIMITS = { lkicon: 160, og: 1200, playerCover: 500, deco: 600, logo: 900, character: 1500, ornament: 256, cursor: 32, background: 1920, floater: 500 };
   async function shrink(file, kind){
-    if(/gif|video/.test(file.type)) return file;
+    if(!/^image\//.test(file.type) || /gif/.test(file.type)) return file;
     const bmp = await createImageBitmap(file), max = LIMITS[kind] || 1500;
     let w = bmp.width, h = bmp.height;
     if(kind === 'cursor'){ const s = 32 / Math.max(w, h); w = Math.max(1, Math.round(w*s)); h = Math.max(1, Math.round(h*s)); }
@@ -2522,13 +2780,15 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       const path = `${EDIT_DIR}${kind}-${base}-${Date.now().toString(36)}.${ext}`;
       PREVIEW[path] = URL.createObjectURL(blob);
       // show it right away while it uploads
-      if(kind === 'character') W.character = [...[].concat(opt(CONFIG).character || []).filter(Boolean), path];
+      const plusKind = !!(window._plusUpload && window._plusUpload(kind, path));
+      if(plusKind){}
+      else if(kind === 'character') W.character = [...[].concat(opt(CONFIG).character || []).filter(Boolean), path];
       else if(kind === 'og'){ OGW.image = path; }
       else if(kind === 'deco'){ addDeco({ kind: 'img', v: path, anim: 'a-float', speed: 4, glow: false }, true); }
       else if(kind === 'floater'){ W.effects = W.effects || {}; W.effects.floater = { ...(W.effects.floater || {}), on: true, img: path }; }
       else W[kind] = path;
       if(kind === 'cursor' && !W.cursorHotspot) W.cursorHotspot = '0 0';
-      if(kind === 'og') setTimeout(render, 50); else if(kind !== 'deco'){ changed(); setTimeout(render, 220); }
+      if(kind === 'og' || plusKind) setTimeout(render, 50); else if(kind !== 'deco'){ changed(); setTimeout(render, 220); }
       st('Uploading to GitHub…');
       await gh(path, { method:'PUT', body: JSON.stringify({ message:`Add ${kind} picture`, content: await fileB64(blob), branch: GH.branch }) });
       st('✓ Uploaded. Press 💾 Save to make it live.');
@@ -2547,6 +2807,255 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
     W.charX = +(drag.cx + (e.clientX - drag.x) / innerWidth * 100).toFixed(1); W.charY = +(drag.cy - (e.clientY - drag.y) / innerHeight * 100).toFixed(1); changed('light'); });
   $('chara').addEventListener('pointerup', () => { if(drag){ drag = null; if(tab === 'pictures') render(); } });
   $('chara').addEventListener('wheel', e => { if(!dragOn) return; e.preventDefault(); W.charH = Math.max(15, Math.min(120, (W.charH || 70) - Math.sign(e.deltaY) * 3)); changed('light'); }, { passive: false });
+
+
+  /* =================== PLUS: Links tab, sounds/entry (Site tab), trail/visualizer (Effects), name animation (Look), photo editor =================== */
+  if(window._plusReady){
+    const SI_BASE = 'https://cdn.jsdelivr.net/npm/simple-icons@16';
+    let siIndex = null, pickFor = null, siResults = [], aboutSel = -1;
+    const linksW = () => SW.links || (SW.links = JSON.parse(JSON.stringify(currentLinks())));
+    const BUILTIN = Object.keys(ICONS);
+    async function siSearch(q){
+      q = q.trim().toLowerCase(); if(!q){ siResults = []; return; }
+      if(!siIndex){ st('Loading icon library…'); siIndex = await (await fetch(`${SI_BASE}/data/simple-icons.json`)).json(); st(''); }
+      const hit = (x) => x.title.toLowerCase().includes(q) || x.slug.includes(q.replace(/\s+/g,'')) || JSON.stringify(x.aliases || '').toLowerCase().includes(q);
+      siResults = siIndex.filter(hit).sort((a, b) => (a.title.toLowerCase().startsWith(q) ? 0 : 1) - (b.title.toLowerCase().startsWith(q) ? 0 : 1)).slice(0, 36);
+    }
+    async function siPath(slug){ const t = await (await fetch(`${SI_BASE}/icons/${slug}.svg`)).text(); const m = t.match(/<path d="([^"]+)"/); return m ? m[1] : ''; }
+
+    TABS.links = function(){
+      const L = linksW(), S = SW.linkStyle || {}, A = SW.about || [];
+      const colorSel = (val, attrs) => `<select ${attrs}><option value="">Use the overall setting</option><option value="theme" ${val === 'theme' ? 'selected' : ''}>Theme color</option><option value="brand" ${val === 'brand' ? 'selected' : ''}>Brand color</option><option value="custom" ${val && val[0] === '#' ? 'selected' : ''}>Pick a color…</option></select>`;
+      return `
+      <p>Your icon links (Discord, Twitch…). Drag the ☰ handle or use ↑ ↓ to reorder. Changes show right away; press 💾 Save for everyone when done.</p>
+      <div id="lkList">${L.map((l, i) => `<div class="lkRow" draggable="true" data-lki="${i}">
+        <span class="lkDrag" title="Drag to reorder">☰</span><span class="lkPrev" style="--lc:${linkColor(l, S)}">${linkIcon(l)}</span>
+        <div class="lkF"><input type="text" data-lk="${i}" data-lp="title" value="${esc(l.title)}" placeholder="Name (e.g. Twitch)">
+          <input type="text" data-lk="${i}" data-lp="url" value="${esc(l.url)}" placeholder="https://…">
+          <input type="text" data-lk="${i}" data-lp="label" value="${esc(l.label || '')}" placeholder="Hover label (optional, e.g. Twitch — iitstymfk)">
+          <div class="pair">${colorSel(l.color && l.color[0] === '#' ? 'custom' : (l.color || ''), `data-lk="${i}" data-lp="colorMode"`)}${l.color && l.color[0] === '#' ? `<input type="color" data-lk="${i}" data-lp="color" value="${toHex(l.color)}">` : ''}</div>
+          ${l.icon && l.icon.t === 'img' ? `<label class="ef"><span>Tint to match the color</span><input type="checkbox" data-lk="${i}" data-lp="tint" ${l.icon.tint === false ? '' : 'checked'}></label>` : ''}
+        </div>
+        <div class="lkBtns"><button data-lkic="${i}" title="Change icon">🎨</button><button data-lkmv="${i}:-1" title="Up">↑</button><button data-lkmv="${i}:1" title="Down">↓</button><button data-lkdel="${i}" title="Remove">✕</button></div></div>
+        ${pickFor === i ? pickerHTML() : ''}`).join('')}</div>
+      <button class="wbtn go" id="lkAdd">＋ Add a link</button>
+      ${pickFor === -1 ? pickerHTML() : ''}
+      <hr><b>Look of all links</b>
+      <label class="ef"><span>Style</span><select data-s="linkStyle.style">${Object.entries({ plain:'Plain icons (like now)', round:'Round badges', square:'Square badges', glow:'Glowing icons', buttons:'Full-width buttons with names' }).map(([k,v]) => `<option value="${k}" ${(S.style || 'plain') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="ef"><span>Icon color</span><span class="pair"><select data-s="linkStyle.colorMode">${Object.entries({ theme:'Theme color (like now)', brand:'Each brand\'s real color', custom:'Pick a color…' }).map(([k,v]) => `<option value="${k}" ${((S.color && S.color[0] === '#') ? 'custom' : (S.color || 'theme')) === k ? 'selected' : ''}>${v}</option>`).join('')}</select>${S.color && S.color[0] === '#' ? `<input type="color" data-s="linkStyle.color" value="${toHex(S.color)}">` : ''}</span></label>
+      <label class="ef"><span>When you hover</span><select data-s="linkStyle.hover">${Object.entries({ lift:'Lift (like now)', spin:'Spin', bounce:'Bounce', glow:'Glow', none:'Nothing' }).map(([k,v]) => `<option value="${k}" ${(S.hover || 'lift') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="ef"><span>Show labels on hover</span><input type="checkbox" data-s="linkStyle.label" ${S.label === false ? '' : 'checked'}></label>
+      <button class="wbtn" id="lkReset">↺ Go back to the original links</button>
+      <hr><b>📝 About me cards</b>
+      <p>Little cards under your links, like "Currently playing" or "Top 3 anime".</p>
+      <label class="ef"><span>Show them</span><input type="checkbox" data-s="aboutOn" ${SW.aboutOn === false ? '' : 'checked'}></label>
+      ${A.map((c, i) => `<div class="fx on"><div class="pair"><input type="text" data-ab="${i}" data-abp="emoji" value="${esc(c.emoji || '')}" placeholder="🎮" maxlength="4" style="width:52px"><input type="text" data-ab="${i}" data-abp="title" value="${esc(c.title || '')}" placeholder="Title" maxlength="40"></div>
+        <textarea data-ab="${i}" data-abp="text" rows="2" placeholder="Text (new line = new line)" maxlength="300">${esc(c.text || '')}</textarea>
+        <div class="pair"><button class="wbtn" data-abmv="${i}:-1">↑</button><button class="wbtn" data-abmv="${i}:1">↓</button><button class="wbtn danger" data-abdel="${i}">✕ Remove</button></div></div>`).join('')}
+      <button class="wbtn" id="abAdd">＋ Add a card</button>`;
+    };
+    function pickerHTML(){
+      return `<div class="lkPick"><b>Choose an icon</b>
+        <div class="pair"><input type="text" id="lkSearch" placeholder="Search 3,400+ brands (jellyfin, kick, roblox…)"><button class="wbtn" id="lkGo" style="width:auto;margin:0">Search</button></div>
+        <div class="lkGrid">${siResults.map(x => `<button data-si="${x.slug}" data-hex="${x.hex}" data-title="${esc(x.title)}" title="${esc(x.title)}"><img src="${SI_BASE}/icons/${x.slug}.svg" alt="" loading="lazy"><span>${esc(x.title)}</span></button>`).join('')}</div>
+        <p>Built-in:</p><div class="lkGrid">${BUILTIN.map(k => `<button data-bi="${k}" title="${k}">${svg(ICONS[k])}<span>${k}</span></button>`).join('')}</div>
+        ${up('lkicon','Use my own picture as the icon','image/*')}
+        <button class="wbtn" id="lkPickClose">Close</button></div>`;
+    }
+    function lkSet(){ siteChanged(); }
+    const tb = document.createElement('button'); tb.dataset.tab = 'links'; tb.textContent = 'Links';
+    const tabsEl = document.querySelector('#editPanel .epTabs'); tabsEl.insertBefore(tb, tabsEl.querySelector('[data-tab=site]') || null);
+
+    // ---- extra controls added to existing tabs (improving what's there, not repeating it) ----
+    const _look = TABS.look, _eff = TABS.effects, _pics = TABS.pictures, _site = TABS.site;
+    TABS.look = function(){ const L = W.look || {};
+      return _look().replace('<hr><b>Cards</b>', `${row('Animation', `<select data-f="look.nameAnim" data-kind="light">${Object.entries({ '':'None', typing:'⌨️ Types itself in', glitch:'📺 Glitch', wave:'🌊 Wave', rainbow:'🌈 Rainbow shimmer', neon:'💡 Neon flicker' }).map(([k,v]) => `<option value="${k}" ${(L.nameAnim || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select>`)}
+      <hr><b>Cards</b>`); };
+    TABS.effects = function(){ const tr = W.trail || {}, vz = W.viz || {};
+      return `<div class="fx ${tr.on ? 'on' : ''}"><label class="fxh"><input type="checkbox" data-f="trail.on" data-k="bool" ${tr.on ? 'checked' : ''}> 🪄 Cursor trail</label>
+        ${tr.on ? `<div class="fxb"><label class="ef"><span>Shape</span><select data-f="trail.kind">${Object.entries({ sparkle:'✦ Sparkles', star:'★ Stars', heart:'♥ Hearts', emoji:'Your own emoji ↓' }).map(([k,v]) => `<option value="${k}" ${(tr.kind || 'sparkle') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+          ${tr.kind === 'emoji' ? `<label class="ef"><span>Emoji</span><input type="text" data-f="trail.emoji" value="${esc(tr.emoji || '✨')}" maxlength="4"></label>` : ''}
+          <label class="ef"><span>Amount</span><input type="range" data-f="trail.amt" data-k="num" min="10" max="100" step="5" value="${tr.amt ?? 50}"></label>
+          <label class="ef"><span>How long it lasts</span><input type="range" data-f="trail.spd" data-k="num" min=".4" max="2.5" step=".1" value="${tr.spd ?? 1}"></label>
+          <label class="ef"><span>Color</span><input type="color" data-f="trail.color" value="${toHex(tr.color || T.accent)}"></label></div>` : ''}</div>
+        <div class="fx ${vz.on ? 'on' : ''}"><label class="fxh"><input type="checkbox" data-f="viz.on" data-k="bool" ${vz.on ? 'checked' : ''}> 🎚️ Music visualizer</label>
+        ${vz.on ? `<div class="fxb"><label class="ef"><span>Style</span><select data-f="viz.style">${Object.entries({ bars:'Bars along the bottom', ring:'Ring around the player picture', both:'Both' }).map(([k,v]) => `<option value="${k}" ${(vz.style || 'bars') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+          <label class="ef"><span>Bar height</span><input type="range" data-f="viz.height" data-k="num" min=".05" max=".45" step=".01" value="${vz.height ?? .18}"></label>
+          <label class="ef"><span>Color</span><input type="color" data-f="viz.color" value="${toHex(vz.color || T.accent)}"></label>
+          <p>Starts moving once a song is playing.</p></div>` : ''}</div>` + _eff(); };
+    TABS.pictures = function(){
+      let h = _pics();
+      h = h.replace(/<span class="th"><img src="([^"]*)"><button data-delchar="(\d+)" title="Remove">✕<\/button><\/span>/g,
+        (m, src, i) => `<span class="th"><img src="${src}"><button data-delchar="${i}" title="Remove">✕</button><button class="peBtn" data-pe="char:${i}" title="Edit picture">✂️</button></span>`);
+      const yt = W.ytBg || '';
+      return h.replace('<hr><b>Mouse pointer</b>', `<label class="ef"><span>…or a YouTube video as the background (muted, loops)</span><input type="text" data-f="ytBg" data-kind="light" value="${esc(yt)}" placeholder="Paste a YouTube link"></label>
+        ${yt ? '<button class="wbtn" data-clear="ytBg">✕ Remove YouTube background</button>' : ''}
+        <hr><b>Mouse pointer</b>`);
+    };
+    TABS.site = function(){ const SS = SW.sounds || {}, EN = SW.entry || {};
+      const sndOpts = (val) => Object.keys(SND).map(k => `<option value="${k}" ${val === k ? 'selected' : ''}>${k}</option>`).join('') + (val && /\//.test(val) ? `<option value="${esc(val)}" selected>my sound</option>` : '');
+      return _site().replace('<hr><b>🔋 Battery saver</b>', `<hr><b>🎬 Entry animation</b>
+        <p>How your page appears after the splash screen.</p>
+        <label class="ef"><span>Style</span><select data-s="entry.style">${Object.entries({ rise:'Rise up (like now)', fade:'Fade in', zoom:'Zoom in', slide:'Slide in', glitch:'Glitch in', cards:'Cards drop in one by one', none:'Appear instantly' }).map(([k,v]) => `<option value="${k}" ${(EN.style || 'rise') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+        <button class="wbtn" id="entPrev">👁 Preview it</button>
+        <hr><b>🔊 Sound effects</b>
+        <label class="ef"><span>Sounds on</span><input type="checkbox" data-s="sounds.on" ${SS.on ? 'checked' : ''}></label>
+        ${SS.on ? `<label class="ef"><span>Tap sound (links, buttons, cards, pictures)</span><span class="pair"><select data-s="sounds.click">${sndOpts(SS.click || 'pop')}</select><button class="wbtn" data-sndprev="click" style="width:auto;margin:0">▶</button></span></label>
+          ${up('sndClick','Use my own tap sound','audio/*')}
+          <label class="ef"><span>Theme change sound</span><span class="pair"><select data-s="sounds.theme">${sndOpts(SS.theme || 'whoosh')}</select><button class="wbtn" data-sndprev="theme" style="width:auto;margin:0">▶</button></span></label>
+          ${up('sndTheme','Use my own theme sound','audio/*')}
+          <label class="ef"><span>Volume</span><input type="range" data-s="sounds.vol" min=".05" max="1" step=".05" value="${SS.vol ?? .5}"></label>
+          <p>The 🔇 button on the page also silences these.</p>` : ''}
+        <hr><b>🔋 Battery saver</b>`); };
+
+    // ---- inputs for links / about / sounds ----
+    $('epBody').addEventListener('input', e => {
+      const el = e.target;
+      if(el.dataset.lk != null){ const l = linksW()[+el.dataset.lk], p = el.dataset.lp;
+        if(p === 'colorMode'){ l.color = el.value === 'custom' ? (l.color && l.color[0] === '#' ? l.color : '#ffffff') : el.value; if(!l.color) delete l.color; lkSet(); render(); return; }
+        if(p === 'tint'){ l.icon.tint = el.checked; lkSet(); render(); return; }
+        l[p] = el.value; if(p === 'label' && !el.value) delete l.label; lkSet(); return; }
+      if(el.dataset.ab != null){ const c = (SW.about || [])[+el.dataset.ab]; c[el.dataset.abp] = el.value; siteChanged(); return; }
+    });
+    // number-ish site values + link colour mode
+    const _onIn = (el) => { if(['trail.on','viz.on','trail.kind'].includes(el.dataset.f)) setTimeout(render, 30);
+      if(el.dataset.s === 'linkStyle.colorMode'){ SW.linkStyle = SW.linkStyle || {}; SW.linkStyle.color = el.value === 'custom' ? '#ffffff' : el.value; delete SW.linkStyle.colorMode; siteChanged(); render(); }
+      if(el.dataset.s === 'sounds.vol' || el.dataset.s === 'viz.height'){ const path = el.dataset.s.split('.'); SW[path[0]][path[1]] = +el.value; } };
+    $('epBody').addEventListener('change', e => _onIn(e.target));
+    $('epBody').addEventListener('click', async e => {
+      const b = e.target.closest('button'); if(!b) return;
+      const L = tab === 'links' ? linksW() : null;
+      if(b.id === 'lkAdd'){ L.push({ id: 'l' + Date.now().toString(36), title: '', url: '', icon: { t: 'b', k: 'discord' } }); pickFor = L.length - 1; lkSet(); render(); return; }
+      if(b.dataset.lkic != null){ pickFor = pickFor === +b.dataset.lkic ? null : +b.dataset.lkic; render(); return; }
+      if(b.dataset.lkdel != null){ L.splice(+b.dataset.lkdel, 1); pickFor = null; lkSet(); render(); return; }
+      if(b.dataset.lkmv){ const [i, d] = b.dataset.lkmv.split(':').map(Number), j = i + d; if(j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; pickFor = null; lkSet(); render(); return; }
+      if(b.id === 'lkGo'){ try{ await siSearch($('lkSearch').value); }catch(err){ st('Couldn\'t load the icon library: ' + err.message); } const q = $('lkSearch').value; render(); const s = $('lkSearch'); if(s){ s.value = q; } if(!siResults.length) st('No icons found — try another word, or use your own picture.'); return; }
+      if(b.id === 'lkPickClose'){ pickFor = null; render(); return; }
+      if(b.dataset.si){ const l = L[pickFor]; try{ st('Getting icon…'); const d = await siPath(b.dataset.si);
+          l.icon = { t: 'si', slug: b.dataset.si, hex: b.dataset.hex, d }; if(!l.title) l.title = b.dataset.title; pickFor = null; st(''); lkSet(); render(); }catch(err){ st('Couldn\'t get that icon: ' + err.message); } return; }
+      if(b.dataset.bi){ const l = L[pickFor]; l.icon = { t: 'b', k: b.dataset.bi }; if(!l.title) l.title = b.dataset.bi; pickFor = null; lkSet(); render(); return; }
+      if(b.id === 'lkReset'){ if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to reset your links'; return; } delete SW.links; delete SW.linkStyle; pickFor = null; siteChanged(); render(); return; }
+      if(b.id === 'abAdd'){ (SW.about = SW.about || []).push({ emoji: '🎮', title: 'Currently playing', text: '' }); siteChanged(); render(); return; }
+      if(b.dataset.abdel != null){ SW.about.splice(+b.dataset.abdel, 1); siteChanged(); render(); return; }
+      if(b.dataset.abmv){ const A = SW.about, [i, d] = b.dataset.abmv.split(':').map(Number), j = i + d; if(j < 0 || j >= A.length) return; [A[i], A[j]] = [A[j], A[i]]; siteChanged(); render(); return; }
+      if(b.dataset.sndprev){ const S = SW.sounds || {}; const was = SITE.sounds; SITE.sounds = { ...S, on: true }; playSnd(b.dataset.sndprev === 'click' ? (S.click || 'pop') : (S.theme || 'whoosh')); SITE.sounds = was; return; }
+      if(b.id === 'entPrev'){ const p = $('profile'); applyEntry(); p.classList.remove('show'); void p.offsetWidth; setTimeout(() => p.classList.add('show'), 60); return; }
+      if(b.dataset.pe){ const [kind, i] = b.dataset.pe.split(':'); openPE(kind, kind === 'deco' ? selDeco : +i); return; }
+    });
+    // drag to reorder links
+    let dragI = null;
+    $('epBody').addEventListener('dragstart', e => { const r = e.target.closest('.lkRow'); if(r){ dragI = +r.dataset.lki; e.dataTransfer.effectAllowed = 'move'; } });
+    $('epBody').addEventListener('dragover', e => { if(dragI != null && e.target.closest('.lkRow')) e.preventDefault(); });
+    $('epBody').addEventListener('drop', e => { const r = e.target.closest('.lkRow'); if(dragI == null || !r) return; e.preventDefault();
+      const L = linksW(), to = +r.dataset.lki, [it] = L.splice(dragI, 1); L.splice(to, 0, it); dragI = null; pickFor = null; lkSet(); render(); });
+    $('epBody').addEventListener('keydown', e => { if(e.target.id === 'lkSearch' && e.key === 'Enter'){ e.preventDefault(); $('lkGo').click(); } });
+    // uploads for link icons + sounds (hooked into the existing uploader)
+    window._plusUpload = (kind, path) => {
+      if(kind === 'lkicon'){ const L = linksW(), i = pickFor >= 0 ? pickFor : L.length - 1; if(L[i]){ L[i].icon = { t: 'img', src: path, tint: true }; } pickFor = null; lkSet(); setTimeout(render, 50); return true; }
+      if(kind === 'sndClick' || kind === 'sndTheme'){ SW.sounds = SW.sounds || {}; SW.sounds[kind === 'sndClick' ? 'click' : 'theme'] = path; siteChanged(); setTimeout(render, 50); return true; }
+      return false;
+    };
+
+    /* ---------- photo editor ---------- */
+    let PE = null;
+    function peBox(){ let b = $('peBox'); if(!b){ b = document.createElement('div'); b.id = 'peBox'; document.body.appendChild(b);
+      b.addEventListener('click', e => e.stopPropagation()); b.addEventListener('pointerdown', e => e.stopPropagation()); } return b; }
+    async function openPE(kind, i){
+      const path = kind === 'deco' ? ((W.decos || [])[i] || {}).v : [].concat((CONFIG.themes[themeKey] || {}).character || [])[i];
+      if(!path) return;
+      const img = new Image(); img.crossOrigin = 'anonymous'; img.src = asset(path);
+      try{ await img.decode(); }catch(e){ return st('Couldn\'t open that picture.'); }
+      PE = { kind, i, path, img, crop: { l: 0, r: 0, t: 0, b: 0 }, adj: { bright: 100, contrast: 100, sat: 100, hue: 0 }, outline: 0, outlineCol: '#ffffff', erase: [], tol: 28, tapMode: false };
+      const b = peBox(); b.classList.add('open');
+      b.innerHTML = `<div class="peIn"><b>✂️ Edit picture</b><canvas id="peCv"></canvas>
+        <p class="peHint" id="peHint">Changes save as a new copy — the original stays.</p>
+        <details open><summary>Crop</summary>${['l','r','t','b'].map(k => `<label class="ef"><span>${{ l:'Left', r:'Right', t:'Top', b:'Bottom' }[k]}</span><input type="range" data-pc="${k}" min="0" max="45" step="1" value="0"></label>`).join('')}</details>
+        <details><summary>Remove background</summary><p>Works best when the background is one plain color.</p>
+          <div class="pair"><button class="wbtn" id="peAuto">🪄 Remove it automatically</button><button class="wbtn" id="peTap">👆 Tap a color to erase</button></div>
+          <label class="ef"><span>How strong</span><input type="range" id="peTol" min="5" max="90" step="1" value="28"></label>
+          <button class="wbtn" id="peUndoBg">↩ Undo background changes</button></details>
+        <details><summary>Colors</summary>
+          ${[['bright','Brightness',30,170],['contrast','Contrast',30,170],['sat','Saturation',0,200],['hue','Hue',-180,180]].map(([k,l,a,z]) => `<label class="ef"><span>${l}</span><input type="range" data-pa="${k}" min="${a}" max="${z}" step="1" value="${PE.adj[k]}"></label>`).join('')}</details>
+        <details><summary>Outline</summary><label class="ef"><span>Thickness</span><input type="range" id="peOl" min="0" max="20" step="1" value="0"></label>
+          <label class="ef"><span>Color</span><input type="color" id="peOc" value="#ffffff"></label><p>For a glow, use Look → Character glow (or the decoration's Glow).</p></details>
+        <div class="pair" style="margin-top:10px"><button class="wbtn" id="peCancel">Cancel</button><button class="wbtn go" id="peSave">💾 Save picture</button></div></div>`;
+      b.querySelectorAll('input').forEach(el => el.addEventListener('input', peInput));
+      $('peAuto').onclick = () => { PE.erase.push({ auto: true, tol: PE.tol }); peDraw(); };
+      $('peTap').onclick = () => { PE.tapMode = !PE.tapMode; $('peTap').classList.toggle('go', PE.tapMode); $('peHint').textContent = PE.tapMode ? 'Tap the color in the picture you want gone.' : 'Changes save as a new copy — the original stays.'; };
+      $('peUndoBg').onclick = () => { PE.erase = []; peDraw(); };
+      $('peCv').onclick = ev => { if(!PE.tapMode) return; const r = ev.target.getBoundingClientRect(); PE.erase.push({ x: (ev.clientX - r.left) / r.width, y: (ev.clientY - r.top) / r.height, tol: PE.tol }); peDraw(); };
+      $('peCancel').onclick = () => { b.classList.remove('open'); PE = null; };
+      $('peSave').onclick = peSave;
+      peDraw();
+    }
+    function peInput(e){ const el = e.target;
+      if(el.dataset.pc) PE.crop[el.dataset.pc] = +el.value; else if(el.dataset.pa) PE.adj[el.dataset.pa] = +el.value;
+      else if(el.id === 'peTol') PE.tol = +el.value; else if(el.id === 'peOl') PE.outline = +el.value; else if(el.id === 'peOc') PE.outlineCol = el.value;
+      clearTimeout(peInput.h); peInput.h = setTimeout(peDraw, 40); }
+    // the whole edit pipeline; scale < 1 makes a quick preview
+    function peRender(scale){
+      const im = PE.img, c = PE.crop, sx = im.naturalWidth * c.l/100, sy = im.naturalHeight * c.t/100;
+      const sw = Math.max(1, im.naturalWidth * (1 - (c.l + c.r)/100)), sh = Math.max(1, im.naturalHeight * (1 - (c.t + c.b)/100));
+      const w = Math.max(1, Math.round(sw*scale)), h = Math.max(1, Math.round(sh*scale));
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const x = cv.getContext('2d', { willReadFrequently: true });
+      x.drawImage(im, sx, sy, sw, sh, 0, 0, w, h);
+      const id = x.getImageData(0, 0, w, h), d = id.data;
+      for(const op of PE.erase) floodErase(d, w, h, op);
+      adjust(d, PE.adj);
+      x.putImageData(id, 0, 0);
+      const o = Math.round(PE.outline * scale * (Math.max(im.naturalWidth, im.naturalHeight) / 800));
+      if(!o) return cv;
+      const out = document.createElement('canvas'); out.width = w + o*2; out.height = h + o*2; const ox = out.getContext('2d');
+      const sil = document.createElement('canvas'); sil.width = w; sil.height = h; const sx2 = sil.getContext('2d');
+      sx2.drawImage(cv, 0, 0); sx2.globalCompositeOperation = 'source-in'; sx2.fillStyle = PE.outlineCol; sx2.fillRect(0, 0, w, h);
+      for(let a = 0; a < 24; a++){ const t = a / 24 * TAU; ox.drawImage(sil, o + Math.cos(t)*o, o + Math.sin(t)*o); }
+      ox.drawImage(cv, o, o); return out;
+    }
+    function floodErase(d, w, h, op){
+      const tol = op.tol * 3.2, seen = new Uint8Array(w*h), stack = [];
+      const seeds = op.auto ? (() => { const s = []; for(let i = 0; i < w; i += Math.max(1, w/40|0)){ s.push([i,0],[i,h-1]); } for(let j = 0; j < h; j += Math.max(1, h/40|0)){ s.push([0,j],[w-1,j]); } return s; })()
+        : [[Math.min(w-1, op.x*w|0), Math.min(h-1, op.y*h|0)]];
+      for(const [sx, sy] of seeds){
+        const k0 = (sy*w + sx)*4; if(d[k0+3] < 10) continue;
+        const r0 = d[k0], g0 = d[k0+1], b0 = d[k0+2]; stack.push(sy*w + sx);
+        while(stack.length){ const p = stack.pop(); if(seen[p]) continue; const k = p*4;
+          if(d[k+3] > 10 && Math.abs(d[k]-r0) + Math.abs(d[k+1]-g0) + Math.abs(d[k+2]-b0) > tol) continue;
+          seen[p] = 1; d[k+3] = 0; const px = p % w, py = (p / w) | 0;
+          if(px > 0) stack.push(p-1); if(px < w-1) stack.push(p+1); if(py > 0) stack.push(p-w); if(py < h-1) stack.push(p+w); }
+      }
+    }
+    function adjust(d, a){
+      if(a.bright === 100 && a.contrast === 100 && a.sat === 100 && !a.hue) return;
+      const br = a.bright/100, ct = a.contrast/100, s = a.sat/100, th = a.hue * Math.PI/180, cs = Math.cos(th), sn = Math.sin(th);
+      // hue-rotate matrix (same as CSS), then saturation
+      const H = [.213+cs*.787-sn*.213, .715-cs*.715-sn*.715, .072-cs*.072+sn*.928, .213-cs*.213+sn*.143, .715+cs*.285+sn*.140, .072-cs*.072-sn*.283, .213-cs*.213-sn*.787, .715-cs*.715+sn*.715, .072+cs*.928+sn*.072];
+      for(let k = 0; k < d.length; k += 4){
+        if(d[k+3] === 0) continue;
+        let r = d[k], g = d[k+1], b = d[k+2];
+        if(a.hue){ const r2 = H[0]*r + H[1]*g + H[2]*b, g2 = H[3]*r + H[4]*g + H[5]*b, b2 = H[6]*r + H[7]*g + H[8]*b; r = r2; g = g2; b = b2; }
+        if(s !== 1){ const L = .2126*r + .7152*g + .0722*b; r = L + (r-L)*s; g = L + (g-L)*s; b = L + (b-L)*s; }
+        r = ((r*br) - 128)*ct + 128; g = ((g*br) - 128)*ct + 128; b = ((b*br) - 128)*ct + 128;
+        d[k] = r < 0 ? 0 : r > 255 ? 255 : r; d[k+1] = g < 0 ? 0 : g > 255 ? 255 : g; d[k+2] = b < 0 ? 0 : b > 255 ? 255 : b;
+      }
+    }
+    function peDraw(){ const im = PE.img, sc = Math.min(1, 520 / Math.max(im.naturalWidth, im.naturalHeight)), out = peRender(sc), cv = $('peCv');
+      cv.width = out.width; cv.height = out.height; cv.getContext('2d').drawImage(out, 0, 0); }
+    async function peSave(){
+      if(!getTok()) return (window._authReady && showLogin(), st('Log in first (🔐).'));
+      $('peSave').disabled = true; $('peHint').textContent = 'Saving…';
+      try{
+        const out = peRender(1), blob = await new Promise(r => out.toBlob(r, 'image/webp', .9));
+        const path = `${EDIT_DIR}edit-${PE.kind}-${Date.now().toString(36)}.webp`;
+        PREVIEW[path] = URL.createObjectURL(blob);
+        await gh(path, { method:'PUT', body: JSON.stringify({ message:'Add edited picture', content: await fileB64(blob), branch: GH.branch }) });
+        if(PE.kind === 'deco'){ W.decos[PE.i].v = path; }
+        else { const list = [].concat((CONFIG.themes[themeKey] || {}).character || []); list[PE.i] = path; W.character = list; }
+        changed(); setTimeout(render, 220); peBox().classList.remove('open'); PE = null;
+        st('✓ Picture edited. Press 💾 Save to make it live.');
+      }catch(err){ $('peHint').textContent = 'Save failed: ' + err.message; $('peSave').disabled = false; }
+    }
+    window._peOpen = openPE;
+  }
 
   /* ---------- open / close / save / undo ---------- */
   if(window.SITEF && !document.querySelector('#editPanel .epTabs [data-tab=site]')){ const tb = document.createElement('button'); tb.dataset.tab = 'site'; tb.textContent = 'Site'; document.querySelector('#editPanel .epTabs').appendChild(tb); }
