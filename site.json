@@ -10,7 +10,12 @@
   ],
   "themeEdits": {
     "sakura": {
-      "effects": {}
+      "effects": {},
+      "charIdle": "float",
+      "charMouse": "lean",
+      "charX": 84.7,
+      "charY": -2.4,
+      "charH": 80.8
     }
   },
   "customThemes": {},
@@ -21,14 +26,16 @@
         "name": "🎄 Christmas",
         "from": "12-01",
         "to": "12-26",
-        "fx": "snow"
+        "fx": "snow",
+        "on": false
       },
       {
         "id": "newyear",
         "name": "🎆 New Year",
         "from": "12-31",
         "to": "01-01",
-        "fx": "confetti"
+        "fx": "confetti",
+        "on": false
       },
       {
         "id": "valentine",
@@ -84,7 +91,8 @@
         "name": "🎂 My birthday",
         "from": "",
         "to": "",
-        "fx": "confetti"
+        "fx": "confetti",
+        "on": false
       }
     ],
     "counter": {
