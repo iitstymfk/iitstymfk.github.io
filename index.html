@@ -3576,6 +3576,366 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
   // switching themes from 🎨 while the editor is open edits the new one
   $('themeMenu').addEventListener('click', () => { if($('editPanel').classList.contains('open')) setTimeout(openEditor, 50); });
 }
+
+/* =====================================================================
+   🎬 THEATER — watch movies together (iitstymfk's page only)
+   The 🎬 button only shows for visitors while the theater is open.
+   Friends need the room code. Playback follows the host (you).
+   ===================================================================== */
+(function(){
+const SBJS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+const HLSJS = 'https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js';
+const REACTS = ['😂','😮','😭','🔥','❤️','🍿','👏','💀'];
+const th = { on:false, host:false, room:'', item:null, base:'', tok:'', v:null, hls:null, ch:null, sb:null, me:'', name:'', tick:null, lastState:null, pend:null };
+const q = s => document.querySelector(s);
+const escH = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const jget = k => { try{ return JSON.parse(localStorage.getItem(k) || 'null'); }catch(e){ return null; } };
+const jset = (k, v) => { try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+const loaded = {};
+const loadJS = src => loaded[src] || (loaded[src] = new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => { delete loaded[src]; no(new Error('Couldn\'t load the player')); }; document.head.appendChild(s); }));
+const did = () => { let d = jget('thDev'); if(!d){ d = 'th-' + Math.random().toString(36).slice(2, 12); jset('thDev', d); } return d; };
+th.me = did();
+async function rpc(fn, args){
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
+  const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.message || ('error ' + r.status)); return j;
+}
+
+/* ---------- styles ---------- */
+const css = document.createElement('style');
+css.textContent = `
+#thBtn{left:72px;font-size:22px;display:none}
+#thBtn.live{animation:thPulse 2.4s ease-in-out infinite}
+@keyframes thPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}50%{box-shadow:0 0 0 8px transparent}}
+.thModal{position:fixed;inset:0;z-index:2147480500;display:grid;place-items:center;background:rgba(0,0,0,.6);backdrop-filter:blur(6px)}
+.thBox{width:min(400px,92vw);max-height:88vh;overflow:auto;background:rgba(14,10,24,.96);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:16px;padding:18px;color:#eee;font:14px system-ui,sans-serif;box-shadow:0 0 40px color-mix(in srgb,var(--accent) 25%,transparent)}
+.thBox.wide{width:min(760px,96vw)}
+.thBox h3{margin:0 0 10px;font-size:18px;color:var(--accent)}
+.thBox p{margin:6px 0;opacity:.85;line-height:1.4}
+.thBox input{width:100%;box-sizing:border-box;margin:6px 0;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font:inherit}
+.thBox input.code{text-transform:uppercase;letter-spacing:4px;text-align:center;font-size:20px}
+.thRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thBtn2{flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#eee;font:inherit;cursor:pointer}
+.thBtn2.go{background:var(--accent);color:#111;border-color:transparent;font-weight:600}
+.thBtn2.bad{background:#7a2030;border-color:transparent}
+.thMsg{min-height:18px;margin-top:8px;color:var(--accent)}
+.thMsg.err{color:#ff8a80}
+.thSw{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);margin:8px 0}
+.thSw input{width:auto;margin:0;accent-color:var(--accent);transform:scale(1.4)}
+.thPick{display:flex;gap:10px;align-items:center;padding:8px;border-radius:12px;background:rgba(255,255,255,.05);margin:8px 0}
+.thPick i,.thCard i{display:block;background:#222 center/cover;border-radius:8px}
+.thPick i{width:48px;height:70px;flex:0 0 48px}
+.thGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:8px}
+.thCard{background:none;border:0;color:#eee;text-align:left;padding:0;cursor:pointer;font:12px system-ui,sans-serif}
+.thCard i{aspect-ratio:2/3;margin-bottom:4px;border:1px solid rgba(255,255,255,.1)}
+.thCard:hover i{border-color:var(--accent)}
+.thCard span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.thH4{margin:14px 0 2px;font-size:13px;color:var(--accent2)}
+.thEp{display:flex;gap:10px;align-items:center;width:100%;background:rgba(255,255,255,.05);border:0;border-radius:10px;color:#eee;padding:6px;margin:4px 0;cursor:pointer;text-align:left;font:13px system-ui,sans-serif}
+.thEp i{width:96px;height:54px;flex:0 0 96px;background:#222 center/cover;border-radius:6px}
+#thRoom{position:fixed;inset:0;z-index:2147480000;background:#05030a;color:#eee;display:flex;flex-direction:column;font:14px system-ui,sans-serif}
+#thRoom .hd{display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 22%,#0b0814),#0b0814);border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+#thRoom .hd b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#thRoom .hd button,#thRoom .bar button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#eee;border-radius:9px;padding:6px 10px;font:inherit;cursor:pointer}
+#thRoom .cnt{font-size:12px;opacity:.8;white-space:nowrap}
+#thRoom .main{flex:1;display:flex;min-height:0}
+#thRoom .scr{flex:1;position:relative;display:grid;place-items:center;background:#000;min-width:0}
+#thRoom video{width:100%;height:100%;object-fit:contain;background:#000}
+#thRoom .tap{position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);font-size:18px;cursor:pointer}
+#thRoom .tap.on{display:grid}
+#thRoom .wait{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:20px;background:#000 center/contain no-repeat}
+#thRoom .wait.on{display:grid}
+#thRoom .wait div{background:rgba(0,0,0,.65);padding:14px 18px;border-radius:12px}
+#thRoom .fly{position:absolute;bottom:10%;font-size:34px;pointer-events:none;animation:thFly 2.6s ease-out forwards}
+@keyframes thFly{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1;transform:translateY(-20px) scale(1.1)}100%{transform:translateY(-55vh) scale(1);opacity:0}}
+#thRoom .side{width:300px;display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.08);background:#0b0814}
+#thRoom .log{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+#thRoom .log div{line-height:1.35;word-wrap:break-word}
+#thRoom .log b{color:var(--accent)}
+#thRoom .log .sys{opacity:.6;font-size:12px;font-style:italic}
+#thRoom .say{display:flex;gap:6px;padding:8px;border-top:1px solid rgba(255,255,255,.08)}
+#thRoom .say input{flex:1;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;font:inherit}
+#thRoom .bar{display:flex;gap:6px;align-items:center;padding:8px 10px;flex-wrap:wrap;background:#0b0814;border-top:1px solid rgba(255,255,255,.08)}
+#thRoom .bar .rx{font-size:20px;padding:4px 8px}
+#thRoom .bar input[type=range]{width:90px;accent-color:var(--accent)}
+#thRoom .bar .sp{flex:1}
+@media (max-width:760px){
+  #thRoom .main{flex-direction:column}
+  #thRoom .scr{flex:0 0 auto;aspect-ratio:16/9;width:100%}
+  #thRoom .side{width:auto;flex:1;min-height:0;border-left:0;border-top:1px solid rgba(255,255,255,.08)}
+}`;
+document.head.appendChild(css);
+
+/* ---------- the 🎬 button (hidden unless the theater is open, or you're the owner) ---------- */
+const btn = document.createElement('button');
+btn.id = 'thBtn'; btn.className = 'cornerBtn'; btn.textContent = '🎬'; btn.title = 'Theater'; btn.setAttribute('aria-label', 'Theater');
+document.body.appendChild(btn);
+btn.onclick = () => isOwner ? ownerPanel() : joinBox();
+let isOpen = false;
+async function checkOpen(){
+  try{ const s = await rpc('theater_status'); isOpen = !!(s && s.open); }catch(e){ return; }
+  btn.classList.toggle('live', isOpen);
+  btn.style.display = (isOpen || isOwner) && !th.on ? 'grid' : 'none';
+}
+checkOpen();
+setInterval(() => { if(!document.hidden && !th.on) checkOpen(); }, 60000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden && !th.on) checkOpen(); });
+
+function modal(html, wide){
+  closeModal(); const m = document.createElement('div'); m.className = 'thModal'; m.id = 'thModal';
+  m.innerHTML = `<div class="thBox${wide ? ' wide' : ''}">${html}</div>`;
+  m.onclick = e => { if(e.target === m) closeModal(); };
+  document.body.appendChild(m); return m.firstChild;
+}
+function closeModal(){ const m = q('#thModal'); if(m) m.remove(); }
+const msg = (box, t, err) => { const m = box.querySelector('.thMsg'); if(m){ m.textContent = t; m.classList.toggle('err', !!err); } };
+
+/* ---------- friends: room code ---------- */
+function joinBox(){
+  const b = modal(`<h3>🎬 Theater</h3><p>The theater is open. Enter the room code to join.</p>
+    <input class="code" id="thCode" placeholder="ROOM CODE" autocomplete="off" autocapitalize="characters" maxlength="24">
+    <input id="thName" placeholder="Your name (shown in chat)" maxlength="24" value="${escH(jget('thName') || '')}">
+    <div class="thRow"><button class="thBtn2" data-x>Cancel</button><button class="thBtn2 go" data-go>Join</button></div><div class="thMsg"></div>`);
+  const go = async () => {
+    const code = b.querySelector('#thCode').value.trim(), name = b.querySelector('#thName').value.trim().slice(0, 24) || 'Guest';
+    if(!code) return msg(b, 'Type the room code.', 1);
+    jset('thName', name); msg(b, 'Joining…');
+    try{ const r = await rpc('theater_join', { p_code: code }); closeModal(); enter(r, false, name); }
+    catch(e){ msg(b, /closed/i.test(e.message) ? 'The theater just closed.' : /wrong/i.test(e.message) ? 'Wrong room code.' : 'Couldn\'t join (' + e.message + ').', 1); if(/closed/i.test(e.message)) checkOpen(); }
+  };
+  b.querySelector('[data-x]').onclick = closeModal; b.querySelector('[data-go]').onclick = go;
+  b.querySelectorAll('input').forEach(i => i.onkeydown = e => { if(e.key === 'Enter') go(); });
+  setTimeout(() => b.querySelector('#thCode').focus(), 50);
+}
+
+/* ---------- Jellyfin (owner side uses the shared non-admin account) ---------- */
+let jf = jget('thJf');            // {base, token, uid}
+async function jfLogin(force){
+  if(jf && !force) return jf;
+  const r = await authCall({ action: 'jf', session: getSess() });
+  jf = { base: r.base, token: r.token, uid: r.uid }; jset('thJf', jf); return jf;
+}
+async function jfApi(path, retry){
+  await jfLogin();
+  const r = await fetch(jf.base + path, { headers: { 'X-Emby-Token': jf.token } }).catch(() => null);
+  if(!r) throw new Error('Jellyfin isn\'t reachable right now');
+  if(r.status === 401 && !retry){ await jfLogin(true); return jfApi(path, 1); }
+  if(!r.ok) throw new Error('Jellyfin said ' + r.status); return r.json();
+}
+const jfImg = (it, h) => { const id = it.ImageTags && it.ImageTags.Primary ? it.Id : it.SeriesId || it.ParentThumbItemId || it.Id; return jf ? `${jf.base}/Items/${id}/Images/Primary?maxHeight=${h || 300}&quality=80` : ''; };
+const FIELDS = '&Fields=MediaSources,Overview&EnableImageTypes=Primary&ImageTypeLimit=1';
+const itemName = it => it.Type === 'Episode' ? `${it.SeriesName || ''} · S${it.ParentIndexNumber || 0}E${it.IndexNumber || 0} ${it.Name || ''}` : (it.Name || '');
+// can the browser play the file as is? (mp4 + h264 + aac/mp3) — otherwise Jellyfin converts it
+function canDirect(it){
+  const ms = it.MediaSources && it.MediaSources[0]; if(!ms) return false;
+  const st = ms.MediaStreams || [], v = st.find(s => s.Type === 'Video'), a = st.find(s => s.Type === 'Audio');
+  return /^(mp4|m4v|mov)$/i.test((ms.Container || '').split(',')[0]) && v && /^h264$/i.test(v.Codec) && (!a || /^(aac|mp3)$/i.test(a.Codec));
+}
+const slim = it => ({ Id: it.Id, Name: itemName(it), Type: it.Type, RunTimeTicks: it.RunTimeTicks || 0, direct: canDirect(it) });
+
+function picker(onPick){
+  const b = modal(`<h3>🎞 Pick something to watch</h3><input id="thQ" placeholder="🔎 Search movies & shows"><div id="thLib"><p>Loading your library…</p></div>
+    <div class="thRow"><button class="thBtn2" data-back style="display:none">← Back</button><button class="thBtn2" data-x>Cancel</button></div>`, true);
+  const lib = b.querySelector('#thLib'), back = b.querySelector('[data-back]'), stack = [];
+  b.querySelector('[data-x]').onclick = () => { closeModal(); if(th.host && th.on) {} else ownerPanel(); };
+  const show = (fn, push) => { if(push !== false) stack.push(fn); back.style.display = stack.length > 1 ? '' : 'none'; fn(); };
+  back.onclick = () => { stack.pop(); const f = stack[stack.length - 1]; if(f) show(f, false); };
+  const cards = items => '<div class="thGrid">' + items.map(it => `<button class="thCard" data-id="${it.Id}"><i style="background-image:url('${jfImg(it)}')"></i><span>${escH(it.Type === 'Episode' ? itemName(it) : it.Name)}</span></button>`).join('') + '</div>';
+  const wire = items => lib.querySelectorAll('[data-id]').forEach(el => el.onclick = () => {
+    const it = items.find(x => x.Id === el.dataset.id); if(!it) return;
+    if(/^(Movie|Episode|Video|MusicVideo)$/.test(it.Type)) return onPick(it);
+    if(it.Type === 'Series') return show(() => episodes(it));
+    show(() => list(it.Name, `/Users/${jf.uid}/Items?ParentId=${it.Id}&SortBy=SortName&Limit=400${FIELDS}`));
+  });
+  const fail = e => { lib.innerHTML = `<p class="thMsg err">${escH(e.message)}</p>`; };
+  function home(){
+    lib.innerHTML = '<p>Loading…</p>';
+    Promise.all([jfApi(`/Users/${jf.uid}/Items/Resume?Limit=12&MediaTypes=Video${FIELDS}`), jfApi(`/Users/${jf.uid}/Items/Latest?Limit=18&IncludeItemTypes=Movie,Series${FIELDS}`), jfApi(`/Users/${jf.uid}/Views`)]).then(([res, lat, views]) => {
+      const r = (res && res.Items) || [], l = lat || [], v = (views && views.Items) || []; let h = '';
+      if(r.length) h += '<div class="thH4">▶ Continue watching</div>' + cards(r);
+      if(l.length) h += '<div class="thH4">🆕 Recently added</div>' + cards(l);
+      h += '<div class="thH4">📚 Libraries</div>' + cards(v);
+      lib.innerHTML = h; wire(r.concat(l, v));
+    }, fail);
+  }
+  function list(title, path){ lib.innerHTML = `<div class="thH4">${escH(title)}</div><p>Loading…</p>`; jfApi(path).then(r => { const it = (r && r.Items) || []; lib.innerHTML = `<div class="thH4">${escH(title)}</div>` + (it.length ? cards(it) : '<p>Nothing here.</p>'); wire(it); }, fail); }
+  function episodes(s){
+    lib.innerHTML = '<p>Loading…</p>';
+    jfApi(`/Shows/${s.Id}/Episodes?UserId=${jf.uid}${FIELDS}`).then(r => {
+      const it = (r && r.Items) || []; let last = -1, h = `<div class="thH4">${escH(s.Name)}</div>`;
+      it.forEach(e => { if(e.ParentIndexNumber !== last){ last = e.ParentIndexNumber; h += `<div class="thH4">${last === 0 ? 'Specials' : 'Season ' + last}</div>`; }
+        h += `<button class="thEp" data-id="${e.Id}"><i style="background-image:url('${jf.base}/Items/${e.Id}/Images/Primary?maxHeight=120')"></i><span>${e.IndexNumber || ''}. ${escH(e.Name)}</span></button>`; });
+      lib.innerHTML = it.length ? h : '<p>No episodes.</p>'; wire(it);
+    }, fail);
+  }
+  const qi = b.querySelector('#thQ'); qi.onkeydown = e => { if(e.key === 'Enter' && qi.value.trim()){ const t = qi.value.trim(); show(() => list('Search: ' + t, `/Users/${jf.uid}/Items?SearchTerm=${encodeURIComponent(t)}&Recursive=true&IncludeItemTypes=Movie,Series,Episode&Limit=60${FIELDS}`)); } };
+  jfLogin().then(() => show(home), fail);
+}
+
+/* ---------- owner: the theater switch ---------- */
+const newCode = () => Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.random() * 32 | 0]).join('');
+function ownerPanel(){
+  if(!getSess()){ toast('🔑 Log in to owner mode first'); showLogin('login'); return; }
+  const H = jget('thHost') || {}; const pick = ownerPanel.pick || (isOpen && H.item) || null;
+  const b = modal(`<h3>🎬 Theater mode</h3>
+    <div class="thSw"><span><b>Theater ${isOpen ? 'is OPEN' : 'is closed'}</b><br><small style="opacity:.7">${isOpen ? 'Friends see 🎬 on your page and can join with the code.' : 'Turn on to show 🎬 to visitors.'}</small></span><input type="checkbox" id="thOpen" ${isOpen ? 'checked' : ''}></div>
+    <p style="margin-top:12px"><b>Room code</b> — share it with friends</p>
+    <input class="code" id="thCode" value="${escH(ownerPanel.code || (H.code && isOpen ? H.code : newCode()))}" maxlength="24" autocomplete="off">
+    <div class="thPick">${pick ? `<i style="background-image:url('${escH((ownerPanel.pick ? ownerPanel.poster : H.poster) || '')}')"></i><span style="flex:1"><b>${escH(pick.Name)}</b><br><small style="opacity:.7">${pick.direct ? 'Plays as is' : 'Jellyfin converts it while you watch'}</small></span>` : '<span style="flex:1;opacity:.7">Nothing picked yet</span>'}<button class="thBtn2" data-pick style="flex:0 0 auto">🎞 ${pick ? 'Change' : 'Pick'}</button></div>
+    <div class="thRow">${isOpen && H.room ? '<button class="thBtn2 go" data-host>▶ Enter as host</button>' : ''}<button class="thBtn2" data-x>Close</button></div>
+    <div class="thMsg"></div>`);
+  b.querySelector('[data-x]').onclick = closeModal;
+  b.querySelector('[data-pick]').onclick = () => { ownerPanel.code = b.querySelector('#thCode').value.trim(); }, b.querySelector('[data-pick]').addEventListener('click', () => picker(it => { ownerPanel.pick = slim(it); ownerPanel.poster = jfImg(it, 300); closeModal(); ownerPanel(); }));
+  const hb = b.querySelector('[data-host]'); if(hb) hb.onclick = () => { closeModal(); enter({ room: H.room, item: H.item, jfBase: H.base, jfToken: H.token, poster: H.poster, title: H.item && H.item.Name }, true, 'iitstymfk'); };
+  const sw = b.querySelector('#thOpen');
+  sw.onchange = async () => {
+    sw.disabled = true;
+    try{
+      if(sw.checked){
+        const it = ownerPanel.pick || H.item, code = b.querySelector('#thCode').value.trim().toUpperCase();
+        if(!it){ sw.checked = false; sw.disabled = false; return msg(b, 'Pick something to watch first.', 1); }
+        if(code.length < 4){ sw.checked = false; sw.disabled = false; return msg(b, 'Use a room code of at least 4 letters.', 1); }
+        msg(b, 'Opening the theater…');
+        const j = await jfLogin(), poster = ownerPanel.pick ? ownerPanel.poster : H.poster;
+        const r = await authCall({ action: 'theater', session: getSess(), open: true, code, title: it.Name, poster, item: it, jfBase: j.base, jfToken: j.token });
+        const nh = { room: r.room, code, item: it, poster, base: j.base, token: j.token }; jset('thHost', nh);
+        isOpen = true; ownerPanel.pick = null; ownerPanel.code = ''; closeModal();
+        enter({ room: r.room, item: it, jfBase: j.base, jfToken: j.token, poster, title: it.Name }, true, 'iitstymfk');
+        toast('🎬 Theater open — room code ' + code, 6000);
+      } else {
+        msg(b, 'Closing…');
+        await authCall({ action: 'theater', session: getSess(), open: false });
+        isOpen = false; jset('thHost', null); closeModal(); checkOpen(); toast('🎬 Theater closed');
+      }
+    }catch(e){ sw.checked = !sw.checked; sw.disabled = false; msg(b, e.message, 1); }
+  };
+}
+
+/* ---------- the room ---------- */
+function streamUrls(it){
+  const ps = th.me + '-' + Date.now().toString(36);
+  const qs = `api_key=${encodeURIComponent(th.tok)}&MediaSourceId=${it.Id}&DeviceId=${encodeURIComponent(th.me)}&PlaySessionId=${ps}`;
+  return { direct: `${th.base}/Videos/${it.Id}/stream?static=true&${qs}`,
+    hls: `${th.base}/Videos/${it.Id}/main.m3u8?${qs}&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SegmentContainer=ts&MaxStreamingBitrate=6000000&BreakOnNonKeyFrames=true` };
+}
+function loadItem(it, startAt){
+  const v = th.v; th.item = it; try{ th.hls && th.hls.destroy(); }catch(e){} th.hls = null;
+  q('#thRoom .hd b').textContent = '🎬 ' + (it.Name || 'Theater');
+  const u = streamUrls(it); let fell = false;
+  const useHls = () => {
+    if(fell) return; fell = true;
+    if(v.canPlayType('application/vnd.apple.mpegurl')){ v.src = u.hls; v.currentTime = startAt || 0; return; }
+    loadJS(HLSJS).then(() => {
+      if(!window.Hls || !Hls.isSupported()){ v.src = u.hls; return; }
+      const h = new Hls({ startPosition: startAt || -1 }); th.hls = h; h.loadSource(u.hls); h.attachMedia(v);
+      h.on(Hls.Events.ERROR, (e, d) => { if(d.fatal){ if(d.type === Hls.ErrorTypes.NETWORK_ERROR) h.startLoad(); else if(d.type === Hls.ErrorTypes.MEDIA_ERROR) h.recoverMediaError(); else sys('😕 The video stopped loading. Try ↻ Sync.'); } });
+    }, e => sys(e.message));
+  };
+  if(it.direct){ v.onerror = useHls; v.src = u.direct; v.onloadedmetadata = () => { if(startAt) v.currentTime = startAt; v.onloadedmetadata = null; }; }
+  else { v.onerror = null; useHls(); }
+}
+function sys(t){ log(`<div class="sys">${escH(t)}</div>`); }
+function log(h){ const l = q('#thRoom .log'); if(!l) return; l.insertAdjacentHTML('beforeend', h); while(l.children.length > 200) l.firstChild.remove(); l.scrollTop = l.scrollHeight; }
+function fly(e){ const s = q('#thRoom .scr'); if(!s) return; const f = document.createElement('span'); f.className = 'fly'; f.textContent = e; f.style.left = (10 + Math.random() * 80) + '%'; s.appendChild(f); setTimeout(() => f.remove(), 2700); }
+const send = (event, payload) => { try{ th.ch && th.ch.send({ type: 'broadcast', event, payload }); }catch(e){} };
+const stateNow = () => ({ id: th.item && th.item.Id, t: th.v ? th.v.currentTime : 0, p: th.v ? th.v.paused : true, at: Date.now() });
+
+function applyState(s){
+  if(th.host || !th.v || !s) return; th.lastState = s;
+  const target = s.t + (s.p ? 0 : Math.max(0, (Date.now() - s.at) / 1000));
+  if(s.id && th.item && s.id !== th.item.Id) return;      // a 'load' event follows
+  const v = th.v, wait = q('#thRoom .wait');
+  if(wait) wait.classList.toggle('on', s.p && target < 1);
+  if(v.readyState < 1){ th.pend = s; return; }
+  if(Math.abs(v.currentTime - target) > 2) v.currentTime = target;
+  if(s.p && !v.paused) v.pause();
+  if(!s.p && v.paused) v.play().catch(() => q('#thRoom .tap').classList.add('on'));
+}
+
+async function enter(r, host, name){
+  if(th.on) leave(true);
+  th.on = true; th.host = host; th.room = r.room; th.base = r.jfBase; th.tok = r.jfToken; th.name = name || 'Guest';
+  btn.style.display = 'none';
+  try{ if(!audio.paused) audio.pause(); }catch(e){} _wasPlaying = false;
+  const el = document.createElement('div'); el.id = 'thRoom';
+  el.innerHTML = `<div class="hd"><b>🎬 ${escH(r.title || (r.item && r.item.Name) || 'Theater')}</b><span class="cnt">👥 1</span>
+      ${host ? '<button data-k="change" title="Change movie">🎞</button><button data-k="end" title="End for everyone">⏹ End</button>' : ''}<button data-k="x" title="Leave">✕</button></div>
+    <div class="main"><div class="scr"><video playsinline ${host ? 'controls' : ''}></video>
+      <div class="wait ${host ? '' : 'on'}" style="${r.poster ? `background-image:url('${escH(r.poster)}')` : ''}"><div>🍿 Waiting for the host to press play…</div></div>
+      <div class="tap">▶ Tap to start watching</div></div>
+      <div class="side"><div class="log"></div><div class="say"><input placeholder="Say something…" maxlength="300"><button class="thBtn2 go" style="flex:0 0 auto">Send</button></div></div></div>
+    <div class="bar">${REACTS.map(e => `<button class="rx" data-r="${e}">${e}</button>`).join('')}<span class="sp"></span>
+      ${host ? `<span class="cnt">Code: <b>${escH((jget('thHost') || {}).code || '')}</b></span>` : '<button data-k="mute">🔊</button><input type="range" min="0" max="1" step="0.05" value="1" data-k="vol"><button data-k="sync">↻ Sync</button>'}<button data-k="fs">⛶</button></div>`;
+  document.body.appendChild(el);
+  const v = th.v = el.querySelector('video');
+  v.addEventListener('loadedmetadata', () => { if(th.pend){ const p = th.pend; th.pend = null; applyState(p); } });
+  el.querySelector('.tap').onclick = () => { el.querySelector('.tap').classList.remove('on'); v.play().catch(() => {}); if(th.lastState) applyState(th.lastState); };
+  el.onclick = e => {
+    const k = e.target.closest('[data-k]'), rx = e.target.closest('[data-r]');
+    if(rx){ fly(rx.dataset.r); send('react', { e: rx.dataset.r }); return; }
+    if(!k) return;
+    switch(k.dataset.k){
+      case 'x': leave(); break;
+      case 'end': if(confirm('End the theater for everyone and hide 🎬 again?')) endTheater(); break;
+      case 'change': picker(it => { closeModal(); changeItem(slim(it), jfImg(it, 300)); }); break;
+      case 'mute': v.muted = !v.muted; k.textContent = v.muted ? '🔇' : '🔊'; break;
+      case 'sync': send('hello', {}); if(th.lastState) applyState(th.lastState); break;
+      case 'fs': { const t = el.querySelector('.scr'), rq = t.requestFullscreen || t.webkitRequestFullscreen; if(document.fullscreenElement) document.exitFullscreen(); else if(rq) rq.call(t); else if(v.webkitEnterFullscreen) v.webkitEnterFullscreen(); break; }
+    }
+  };
+  const vol = el.querySelector('[data-k=vol]'); if(vol) vol.oninput = () => { v.volume = +vol.value; };
+  const inp = el.querySelector('.say input'), say = () => { const m = inp.value.trim().slice(0, 300); if(!m) return; inp.value = ''; log(`<div><b>${escH(th.name)}:</b> ${escH(m)}</div>`); send('chat', { n: th.name, m }); };
+  inp.onkeydown = e => { if(e.key === 'Enter') say(); }; el.querySelector('.say button').onclick = say;
+  addEventListener('keydown', escKey);
+
+  if(r.item) loadItem(r.item, 0);
+  if(host){
+    ['play', 'pause', 'seeked', 'ratechange'].forEach(ev => v.addEventListener(ev, () => send('state', stateNow())));
+    th.tick = setInterval(() => send('state', stateNow()), 4000);
+    sys('You\'re the host. Press play when everyone\'s in — they follow your play, pause and skips.');
+  } else sys('Joined! Playback follows the host. Use ↻ Sync if you drift.');
+
+  try{
+    await loadJS(SBJS);
+    th.sb = th.sb || supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false } });
+    const ch = th.ch = th.sb.channel('theater-' + th.room, { config: { broadcast: { self: false }, presence: { key: th.me } } });
+    ch.on('broadcast', { event: 'state' }, ({ payload }) => applyState(payload))
+      .on('broadcast', { event: 'hello' }, () => { if(th.host) send('state', stateNow()); })
+      .on('broadcast', { event: 'chat' }, ({ payload: p }) => log(`<div><b>${escH(String(p.n || 'Guest').slice(0, 24))}:</b> ${escH(String(p.m || '').slice(0, 300))}</div>`))
+      .on('broadcast', { event: 'react' }, ({ payload: p }) => { if(REACTS.includes(p.e)) fly(p.e); })
+      .on('broadcast', { event: 'load' }, ({ payload: p }) => { if(th.host || !p.item) return; sys('🎞 Now playing: ' + p.item.Name); const w = q('#thRoom .wait'); if(w){ w.style.backgroundImage = p.poster ? `url('${p.poster}')` : ''; } loadItem(p.item, 0); })
+      .on('broadcast', { event: 'end' }, () => { if(th.host) return; leave(true); toast('🎬 The host ended the theater'); isOpen = false; checkOpen(); })
+      .on('presence', { event: 'sync' }, () => { const st = ch.presenceState(), n = Object.keys(st).length; const c = q('#thRoom .hd .cnt'); if(c) c.textContent = '👥 ' + n; })
+      .on('presence', { event: 'join' }, ({ newPresences }) => (newPresences || []).forEach(p => { if(p.key !== th.me && p.n) sys(p.n + ' joined'); }))
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => (leftPresences || []).forEach(p => { if(p.n) sys(p.n + ' left'); }))
+      .subscribe(st => { if(st === 'SUBSCRIBED'){ ch.track({ n: th.name, host: th.host }); if(!th.host) send('hello', {}); } else if(st === 'CHANNEL_ERROR') sys('⚠️ Lost the connection to the room — retrying…'); });
+  }catch(e){ sys('⚠️ Couldn\'t connect the room (' + e.message + '). The video still plays, but won\'t follow the host.'); }
+}
+function escKey(e){ if(e.key === 'Escape' && th.on && !q('#thModal') && !document.fullscreenElement) leave(); }
+async function changeItem(it, poster){
+  try{
+    const H = jget('thHost') || {};
+    await authCall({ action: 'theater', session: getSess(), open: true, keepCode: true, code: '', title: it.Name, poster, item: it, jfBase: th.base, jfToken: th.tok });
+    jset('thHost', Object.assign(H, { item: it, poster }));
+    loadItem(it, 0); send('load', { item: it, poster }); sys('🎞 Now playing: ' + it.Name);
+  }catch(e){ sys('⚠️ ' + e.message); }
+}
+async function endTheater(){
+  try{ await authCall({ action: 'theater', session: getSess(), open: false }); }catch(e){ return sys('⚠️ ' + e.message); }
+  send('end', {}); jset('thHost', null); isOpen = false; leave(true); toast('🎬 Theater closed'); checkOpen();
+}
+function leave(quiet){
+  if(!th.on) return; th.on = false; clearInterval(th.tick); th.tick = null;
+  try{ th.hls && th.hls.destroy(); }catch(e){} th.hls = null;
+  try{ th.v.pause(); th.v.removeAttribute('src'); th.v.load(); }catch(e){} th.v = null;
+  try{ if(th.ch){ th.ch.untrack(); th.sb.removeChannel(th.ch); } }catch(e){} th.ch = null;
+  removeEventListener('keydown', escKey);
+  const el = q('#thRoom'); if(el) el.remove();
+  try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){}
+  if(!quiet && th.host && isOpen) toast('🎬 You left — the theater is still open. Tap 🎬 to come back or close it.', 5000);
+  checkOpen();
+}
+window.theater = { open: ownerPanel, join: joinBox, leave };
+})();
 </script>
 </body>
 </html>
