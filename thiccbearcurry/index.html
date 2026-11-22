@@ -1907,7 +1907,7 @@ function setHolidayFX(h){ holidayFX = h && h.fx ? { [h.fx]: { on: true, amt: h.a
 // returns the holiday theme key if one should show right now (visitors only)
 function loadSite(d){
   SITE = (d && d.site) || {};
-  _lite = siteOpt('battery.lite', true) && isPhone;
+  _lite = siteOpt('battery.lite', false) && isPhone;
   document.body.classList.toggle('lite', _lite);
   activeHol = isOwner && !window._previewHol ? null : findHoliday();
   setHolidayFX(activeHol);
@@ -2174,7 +2174,7 @@ if(isOwner){
       ${window._previewHol ? '<button class="wbtn" id="holStop">✕ Stop holiday preview</button>' : ''}
       <hr><b>🔋 Battery saver</b>
       <p>Music and animations always pause when someone leaves the page or switches apps, and pick back up when they return.</p>
-      ${chk('battery.lite','Lighter animations on phones',true)}
+      ${chk('battery.lite','Lighter animations on phones (off = phones get the full version)',false)}
       <hr><b>↩ Version history</b>
       <p>Every save is kept on GitHub. Bring back how the page was before.</p>
       ${hist ? (hist.length ? hist.map((v,i) => `<div class="ver"><span>${new Date(v.date).toLocaleString([], { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' })}<br><i>${esc(v.msg)}</i></span>${i === 0 ? '<i>current</i>' : `<button class="wbtn" data-restore="${v.sha}">Restore</button>`}</div>`).join('') : '<p>No history yet.</p>') : '<button class="wbtn" id="histLoad">Show history</button>'}`; },
@@ -2266,7 +2266,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       hist = (await r.json()).map(c => ({ sha: c.sha, date: c.commit.author.date, msg: c.commit.message.split('\n')[0] })); st(''); render();
     }catch(err){ st('Couldn\'t load history: ' + err.message); }
   }
-  function siteChanged(){ SITE = SW; siteDirty = true; _lite = siteOpt('battery.lite', true) && isPhone; document.body.classList.toggle('lite', _lite);
+  function siteChanged(){ SITE = SW; siteDirty = true; _lite = siteOpt('battery.lite', false) && isPhone; document.body.classList.toggle('lite', _lite);
     renderViews(); renderUser(); st('Unsaved changes — press 💾 Save to make them live.'); }
 
   /* ---------- reading the inputs ---------- */
