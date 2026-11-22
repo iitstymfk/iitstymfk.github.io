@@ -3779,11 +3779,13 @@ async function jfLogin(force){
   const r = await authCall({ action: 'jf', session: getSess() });
   jf = { base: r.base, token: r.token, uid: r.uid }; jset('thJf', jf); return jf;
 }
+/* newer Jellyfin only accepts the token in the Authorization header (or ?ApiKey= in links) */
+const jfHdr = tok => ({ Authorization: `MediaBrowser Client="Bio Theater", Device="Web", DeviceId="bio-theater", Version="1.0.0", Token="${tok}"` });
 async function jfBase(){ await jfLogin(); return pickBase(jf.base); }
 async function jfApi(path, retry){
   let base = await jfBase();
-  let r = await fetch(base + path, { headers: { 'X-Emby-Token': jf.token } }).catch(() => null);
-  if(!r){ base = await pickBase(base === JF_PUB ? JF_HOME : JF_PUB, true); r = await fetch(base + path, { headers: { 'X-Emby-Token': jf.token } }).catch(() => null); }
+  let r = await fetch(base + path, { headers: jfHdr(jf.token) }).catch(() => null);
+  if(!r){ base = await pickBase(base === JF_PUB ? JF_HOME : JF_PUB, true); r = await fetch(base + path, { headers: jfHdr(jf.token) }).catch(() => null); }
   if(!r) throw new Error('Jellyfin isn\'t reachable right now (tried the public and home addresses)');
   if(r.status === 401 && !retry){ await jfLogin(true); return jfApi(path, 1); }
   if(!r.ok) throw new Error('Jellyfin said ' + r.status); return r.json();
@@ -3880,7 +3882,7 @@ function ownerPanel(){
 /* ---------- the room ---------- */
 function streamUrls(it){
   const ps = th.me + '-' + Date.now().toString(36);
-  const qs = `api_key=${encodeURIComponent(th.tok)}&MediaSourceId=${it.Id}&DeviceId=${encodeURIComponent(th.me)}&PlaySessionId=${ps}`;
+  const qs = `ApiKey=${encodeURIComponent(th.tok)}&MediaSourceId=${it.Id}&DeviceId=${encodeURIComponent(th.me)}&PlaySessionId=${ps}`;
   return { direct: `${th.base}/Videos/${it.Id}/stream?static=true&${qs}`,
     hls: `${th.base}/Videos/${it.Id}/main.m3u8?${qs}&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SegmentContainer=ts&MaxStreamingBitrate=6000000&BreakOnNonKeyFrames=true` };
 }
