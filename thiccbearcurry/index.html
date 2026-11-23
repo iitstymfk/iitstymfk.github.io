@@ -388,6 +388,8 @@ body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-st
 #viewCount{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);
   border-radius:999px;padding:4px 10px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #viewCount b{color:var(--text);font-weight:700}
+#viewCount .vcIcon{display:inline-flex;align-items:center;color:var(--text)}
+#viewCount .vcEye{width:15px;height:15px;fill:currentColor;display:block}
 #viewCount.vc-corner-left,#viewCount.vc-corner-right{position:fixed;bottom:14px;z-index:9}
 #viewCount.vc-corner-left{left:14px}#viewCount.vc-corner-right{right:14px}
 #viewCount.vc-under-bio{margin:6px auto 0;display:flex;width:max-content}
@@ -2130,13 +2132,14 @@ async function loadViews(){
   }catch(e){ _views = null; }
   renderViews();
 }
+const VC_EYE = '<svg class="vcEye" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>';   // default view-counter icon (a custom Icon in ✏️ → Site still overrides it)
 function renderViews(){
   let el = $('viewCount');
   const c = SITE.counter || {};
   if(!c.on || _views == null){ if(el) el.remove(); return; }
   if(!el){ el = document.createElement('div'); el.id = 'viewCount'; }
   el.className = 'vc-' + (c.place || 'corner-left');
-  el.innerHTML = `<span>${c.icon ?? '👁'}</span><b>${Number(_views).toLocaleString()}</b>${c.label ? `<span>${String(c.label).replace(/</g,'&lt;')}</span>` : ''}`;
+  el.innerHTML = `<span class="vcIcon">${c.icon ? String(c.icon).replace(/</g,'&lt;') : VC_EYE}</span><b>${Number(_views).toLocaleString()}</b>${c.label ? `<span>${String(c.label).replace(/</g,'&lt;')}</span>` : ''}`;
   if(c.place === 'under-bio'){ const bio = document.querySelector('#profile .bio') || $('jp'); if(bio && el.previousElementSibling !== bio) bio.after(el); }
   else if(el.parentNode !== document.body) document.body.appendChild(el);
 }
@@ -2887,7 +2890,7 @@ if(isOwner){
       <hr><b>👁 View counter</b>
       ${chk('counter.on','Show the view counter',false)}
       ${C.on ? `<p>Right now: <b style="display:inline">${_views == null ? '…' : Number(_views).toLocaleString()}</b> views (each visitor counts once every 6 hours; your #owner visits don't count).</p>
-      <label class="ef"><span>Icon</span><input type="text" data-s="counter.icon" value="${esc(C.icon ?? '👁')}" maxlength="4"></label>
+      <label class="ef"><span>Icon</span><input type="text" data-s="counter.icon" value="${esc(C.icon ?? '')}" placeholder="blank = eye icon" maxlength="4"></label>
       <label class="ef"><span>Word after the number</span><input type="text" data-s="counter.label" value="${esc(C.label ?? '')}" placeholder="views" maxlength="20"></label>
       <label class="ef"><span>Where</span><select data-s="counter.place">${Object.entries({ 'corner-left':'Bottom-left corner', 'corner-right':'Bottom-right corner', 'under-bio':'Under the typewriter line' }).map(([k,v]) => `<option value="${k}" ${(C.place || 'corner-left') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>` : ''}
       <hr><b>💬 Discord extras</b>
