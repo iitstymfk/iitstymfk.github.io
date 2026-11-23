@@ -647,6 +647,21 @@ body.ytbg #bgCanvas,body.ytbg #bgVideo,body.ytbg #bgImage{display:none!important
 #spTiles{position:fixed;inset:0;z-index:51;pointer-events:none;overflow:hidden}
 #spTiles i{position:absolute;backdrop-filter:blur(var(--spBlur,14px));-webkit-backdrop-filter:blur(var(--spBlur,14px))}
 #spFlash{position:fixed;inset:0;z-index:52;background:#fff;pointer-events:none;opacity:0}
+
+/* ---------- profile picture ring ---------- */
+.av::before{inset:var(--ringGap,-5px);border:var(--ringW,2px) dashed var(--ringCol,var(--accent));opacity:var(--ringOp,.55);animation:spin var(--ringSpd,12s) linear infinite}
+body.ring-rev .av::before{animation-direction:reverse}
+body.ring-still .av::before{animation:none}
+body.ring-dotted .av::before{border-style:dotted}
+body.ring-solid .av::before{border-style:solid}
+body.ring-double .av::before{border-style:double;border-width:calc(var(--ringW,2px)*2 + 1px)}
+body.ring-glow .av::before{border-style:solid;box-shadow:0 0 12px var(--ringCol,var(--accent)),inset 0 0 8px var(--ringCol,var(--accent))}
+body.ring-gradient .av::before,body.ring-rainbow .av::before{border:0;padding:var(--ringW,2px);background:conic-gradient(var(--ringCol,var(--accent)),var(--accent2),var(--ringCol,var(--accent)));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+body.ring-rainbow .av::before{background:conic-gradient(#ff5e7e,#ffb34d,#f6ff6b,#6bff9e,#6bc8ff,#b07bff,#ff5e7e)}
+body.ring-none .av::before{display:none}
+.cfxRow{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap}
+.cfxRow select{max-width:150px;font-size:11px}
+.cfxRow input[type=range]{width:70px}
 </style>
 </head>
 <body data-theme="sakura">
@@ -3171,6 +3186,48 @@ function previewSplash(){
   setTimeout(() => { splashExit(() => { sp.classList.add('gone'); if(window.playEntry) playEntry(); }, { clientX: innerWidth / 2, clientY: innerHeight / 2 }); }, 1400);
 }
 
+/* ---------- color effects (any theme color can shift / pulse / fade) + profile ring ---------- */
+const CFX_VARS = ['accent','accent2','text','muted','icon','card','line','ringCol'];
+const _cfxReg = {};
+let _cfxCtx = null;
+function cfxParse(c){ if(!_cfxCtx) _cfxCtx = document.createElement('canvas').getContext('2d'); _cfxCtx.fillStyle = '#000'; _cfxCtx.fillStyle = c; const v = _cfxCtx.fillStyle;
+  if(v[0] === '#'){ const n = parseInt(v.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255, 1]; }
+  const m = v.match(/[\d.]+/g) || [0,0,0,1]; return [+m[0], +m[1], +m[2], m[3] != null ? +m[3] : 1]; }
+function cfxHsl([r, g, b]){ r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2; let h = 0, s = 0;
+  if(mx !== mn){ const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+  return [h, s * 100, l * 100]; }
+const cfxRgba = ([r, g, b, a]) => `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},${(+a).toFixed(3)})`;
+const cfxMix = (A, B, t) => A.map((v, i) => v + (B[i] - v) * t);
+function applyColorFx(key){
+  const e = EDITS[key] || {}, fx = e.colorFx || {}, R = (e.look || {}).ring || {}, root = document.documentElement.style;
+  // ring look
+  const ringBase = R.color === 'custom' && R.hex ? R.hex : R.color === 'second' ? T.accent2 : T.accent;
+  root.setProperty('--ringCol', ringBase);
+  root.setProperty('--ringW', (R.w ?? 2) + 'px'); root.setProperty('--ringGap', '-' + ((R.gap ?? 5) + (R.w ?? 2) - 2) + 'px'); root.setProperty('--ringOp', R.op ?? .55);
+  root.setProperty('--ringSpd', (R.spd || 12) + 's');
+  [...document.body.classList].filter(c => c.startsWith('ring-')).forEach(c => document.body.classList.remove(c));
+  document.body.classList.add('ring-' + (R.style || 'dashed')); if(R.rev) document.body.classList.add('ring-rev'); if(R.spd === 0) document.body.classList.add('ring-still');
+  // color effects
+  let css = ''; const anims = [];
+  for(const v of CFX_VARS){
+    const f = fx[v]; if(!f || !f.m) continue;
+    if(!_cfxReg[v] && window.CSS && CSS.registerProperty){ try{ CSS.registerProperty({ name: '--' + v, syntax: '<color>', inherits: true, initialValue: 'transparent' }); }catch(err){} _cfxReg[v] = 1; }
+    const baseStr = v === 'ringCol' ? ringBase : T[v]; if(!baseStr) continue;
+    const B = cfxParse(baseStr), dur = Math.max(.3, f.spd ?? 6); let frames = '', timing = 'ease-in-out';
+    if(f.m === 'shift'){ const [h, s0, l0] = cfxHsl(B), s = Math.max(s0, 75), l = Math.min(72, Math.max(l0, 52));
+      frames = Array.from({ length: 7 }, (_, i) => `${(i / 6 * 100).toFixed(1)}%{--${v}:hsla(${(h + i * 60) % 360},${s}%,${l}%,${B[3]})}`).join(''); timing = 'linear'; }
+    else if(f.m === 'theme' || f.m === 'fade'){ const to = f.m === 'fade' ? (f.to || T.accent2) : (v === 'accent' ? T.accent2 : T.accent);
+      const C = cfxParse(to); C[3] = B[3]; frames = `0%,100%{--${v}:${cfxRgba(B)}}50%{--${v}:${cfxRgba(C)}}`; }
+    else if(f.m === 'pulse'){ const W2 = cfxMix(B, [255, 255, 255, B[3]], .55); frames = `0%,60%,100%{--${v}:${cfxRgba(B)}}25%{--${v}:${cfxRgba(W2)}}`; }
+    else if(f.m === 'breathe'){ const D = [...B]; D[3] = B[3] * .25; frames = `0%,100%{--${v}:${cfxRgba(B)}}50%{--${v}:${cfxRgba(D)}}`; }
+    else if(f.m === 'flicker'){ const D = [...B]; D[3] = B[3] * .15; frames = `0%,18%,22%,58%,64%,100%{--${v}:${cfxRgba(B)}}20%,61%{--${v}:${cfxRgba(D)}}`; timing = 'steps(1)'; }
+    if(!frames) continue;
+    css += `@keyframes cfx-${v}{${frames}}`; anims.push(`cfx-${v} ${dur}s ${timing} infinite`);
+  }
+  let el = document.getElementById('cfxStyle'); if(!el){ el = document.createElement('style'); el.id = 'cfxStyle'; document.head.appendChild(el); }
+  el.textContent = css + (anims.length ? `html{animation:${anims.join(',')}}` : '');
+}
+
 /* ---------- applied on every theme change / edit ---------- */
 function plusApply(key){
   const e = EDITS[key] || {};
@@ -3181,6 +3238,7 @@ function plusApply(key){
   nameFx((e.look || {}).nameAnim || '');
   themeSound(key);
   applySplash(key);
+  applyColorFx(key);
 }
 function plusSite(){ renderLinks(); renderAbout(); applyEntry(); }
 var _plusReady = true;
@@ -3219,8 +3277,13 @@ if(isOwner){
   /* ---------- the tabs ---------- */
   const row = (label, html) => `<label class="ef"><span>${label}</span>${html}</label>`;
   const txt = (f, label, ph = '') => row(label, `<input type="text" data-f="${f}" value="${esc(W[f] ?? T[f] ?? '')}" placeholder="${esc(ph)}">`);
-  const col = (f, label) => row(label, `<input type="color" data-f="${f}" data-k="hex" value="${toHex(T[f])}">`);
-  const rgba = (f, label) => row(label, `<span class="pair"><input type="color" data-f="${f}" data-k="rgbaC" value="${toHex(T[f])}"><input type="range" min="0" max="1" step=".02" data-f="${f}" data-k="rgbaA" value="${alphaOf(T[f])}" title="see-through"></span>`);
+  const CFX_MODES = { '':'✨ Still', shift:'🌈 Color shift (rainbow)', theme:'🎨 Fade with the other theme color', fade:'↔️ Fade to another color…', pulse:'💡 Pulse brighter', breathe:'🌫️ Breathe (dim & back)', flicker:'⚡ Flicker' };
+  const cfx = (f) => { const c = (W.colorFx || {})[f] || {};
+    return `<span class="cfxRow"><select data-f="colorFx.${f}.m" data-kind="light" title="Color effect">${Object.entries(CFX_MODES).map(([k,v]) => `<option value="${k}" ${(c.m || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+      ${c.m ? `<input type="range" data-f="colorFx.${f}.spd" data-k="num" data-kind="light" min=".5" max="20" step=".5" value="${c.spd ?? 6}" title="Speed (seconds per loop)">` : ''}
+      ${c.m === 'fade' ? `<input type="color" data-f="colorFx.${f}.to" data-kind="light" value="${toHex(c.to || T.accent2)}" title="Fade to">` : ''}</span>`; };
+  const col = (f, label) => row(label, `<span class="pair"><input type="color" data-f="${f}" data-k="hex" value="${toHex(T[f])}">${cfx(f)}</span>`);
+  const rgba = (f, label) => row(label, `<span class="pair"><input type="color" data-f="${f}" data-k="rgbaC" value="${toHex(T[f])}"><input type="range" min="0" max="1" step=".02" data-f="${f}" data-k="rgbaA" value="${alphaOf(T[f])}" title="see-through">${cfx(f)}</span>`);
   const rng = (f, label, min, max, step, val, kind = 'light') => row(label, `<input type="range" data-f="${f}" data-k="num" data-kind="${kind}" min="${min}" max="${max}" step="${step}" value="${val}">`);
   const sel = (f, label, opts, val, kind = 'full') => row(label, `<select data-f="${f}" data-kind="${kind}">${Object.entries(opts).map(([k,v]) => `<option value="${k}" ${k === val ? 'selected' : ''}>${v}</option>`).join('')}</select>`);
   const up = (kind, label, accept) => `<label class="wbtn upl">⬆ ${label}<input type="file" data-up="${kind}" accept="${accept}" hidden></label>`;
@@ -3541,9 +3604,11 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
     else if(k === 'rgbaC' || k === 'rgbaA'){ const cur = T[f]; const hx = k === 'rgbaC' ? v : toHex(cur), a = k === 'rgbaA' ? +v : alphaOf(cur); v = hexA(hx, a); }
     else if(/^grad\d$/.test(k)){ const g = gradCols(T.grad); g[+k.slice(4)] = v; v = `linear-gradient(90deg,${g[0]},${g[1]},${g[2]},${g[0]})`; }
     else if(k === 'font' || k === 'fontCustom'){ if(!v.trim()){ if(f.includes('.')) v = ''; else return; } else v = `'${v.trim()}',sans-serif`; }
-    if(f.includes('.')){ const [a, b2] = f.split('.'); const o = W[a] = W[a] || {};
-      if(v === '' || v === false) delete o[b2]; else o[b2] = v;
-      if(!Object.keys(o).length) delete W[a]; changed('light'); return; }
+    if(f.includes('.')){ const path = f.split('.'), chain = [W]; let o = W;
+      for(let i = 0; i < path.length - 1; i++){ o = o[path[i]] = o[path[i]] || {}; chain.push(o); }
+      const last = path.at(-1); if(v === '' || v === false) delete o[last]; else o[last] = v;
+      for(let i = path.length - 1; i > 0; i--){ if(!Object.keys(chain[i]).length) delete chain[i - 1][path[i - 1]]; else break; }
+      changed('light'); if(e.type === 'change' && /^(colorFx\.[^.]+\.m|look\.ring\.(style|color))$/.test(f)) setTimeout(render, 30); return; }
     if(f === 'side' && W.charX != null){ delete W.charX; delete W.charY; delete W.charH; }
     W[f] = v;
     if(f === 'anim' && W.ornSpeed == null) delete W.ornSpeed;
@@ -3769,7 +3834,21 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
         <div class="pair"><button class="wbtn" id="epSplash">👁 Show splash</button><button class="wbtn go" id="spPrev">▶ Preview click-through</button></div>`); };
     TABS.look = function(){ const L = W.look || {};
       return _look().replace('<hr><b>Cards</b>', `${row('Animation', `<select data-f="look.nameAnim" data-kind="light">${Object.entries({ '':'None', typing:'⌨️ Types itself in', glitch:'📺 Glitch', wave:'🌊 Wave', rainbow:'🌈 Rainbow shimmer', neon:'💡 Neon flicker' }).map(([k,v]) => `<option value="${k}" ${(L.nameAnim || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select>`)}
+      ${ringUI()}
       <hr><b>Cards</b>`); };
+    function ringUI(){ const R = (W.look || {}).ring || {}, c = (W.colorFx || {}).ringCol || {};
+      const S4 = (f, o, v) => `<select data-f="${f}" data-kind="light">${Object.entries(o).map(([k,l]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+      return `<hr><b>⭕ Ring around the profile picture</b>
+        ${row('Style', S4('look.ring.style', { '':'Dashed (like now)', dotted:'Dotted', solid:'Solid', double:'Double', glow:'Glowing', gradient:'Theme-color gradient', rainbow:'Rainbow', none:'No ring' }, R.style || ''))}
+        ${R.style !== 'none' ? `${row('Color', `<span class="pair">${S4('look.ring.color', { '':'Main theme color', second:'Second theme color', custom:'Pick a color…' }, R.color || '')}${R.color === 'custom' ? `<input type="color" data-f="look.ring.hex" data-kind="light" value="${toHex(R.hex || T.accent)}">` : ''}</span>`)}
+          ${row('Color effect', `<span class="pair"><select data-f="colorFx.ringCol.m" data-kind="light">${Object.entries({ '':'✨ Still', shift:'🌈 Color shift (rainbow)', theme:'🎨 Fade with the other theme color', fade:'↔️ Fade to another color…', pulse:'💡 Pulse brighter', breathe:'🌫️ Breathe', flicker:'⚡ Flicker' }).map(([k,v]) => `<option value="${k}" ${(c.m || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+            ${c.m ? `<input type="range" data-f="colorFx.ringCol.spd" data-k="num" data-kind="light" min=".5" max="20" step=".5" value="${c.spd ?? 6}" title="Speed">` : ''}${c.m === 'fade' ? `<input type="color" data-f="colorFx.ringCol.to" data-kind="light" value="${toHex(c.to || T.accent2)}">` : ''}</span>`)}
+          ${row('Thickness', `<input type="range" data-f="look.ring.w" data-k="num" data-kind="light" min="1" max="8" step=".5" value="${R.w ?? 2}">`)}
+          ${row('Gap from the picture', `<input type="range" data-f="look.ring.gap" data-k="num" data-kind="light" min="0" max="16" step="1" value="${R.gap ?? 5}">`)}
+          ${row('See-through', `<input type="range" data-f="look.ring.op" data-k="num" data-kind="light" min=".1" max="1" step=".05" value="${R.op ?? .55}">`)}
+          ${row('Seconds per spin (0 = still, lower = faster)', `<input type="range" data-f="look.ring.spd" data-k="num" data-kind="light" min="0" max="30" step="1" value="${R.spd ?? 12}">`)}
+          ${row('Spin the other way', `<input type="checkbox" data-f="look.ring.rev" data-k="bool" data-kind="light" ${R.rev ? 'checked' : ''}>`)}` : ''}`;
+    }
     TABS.effects = function(){ const tr = W.trail || {}, vz = W.viz || {};
       return `<div class="fx ${tr.on ? 'on' : ''}"><label class="fxh"><input type="checkbox" data-f="trail.on" data-k="bool" ${tr.on ? 'checked' : ''}> 🪄 Cursor trail</label>
         ${tr.on ? `<div class="fxb"><label class="ef"><span>Shape</span><select data-f="trail.kind">${Object.entries({ sparkle:'✦ Sparkles', star:'★ Stars', heart:'♥ Hearts', emoji:'Your own emoji ↓' }).map(([k,v]) => `<option value="${k}" ${(tr.kind || 'sparkle') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
