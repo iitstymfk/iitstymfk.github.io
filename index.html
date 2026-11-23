@@ -728,6 +728,7 @@ body.ytbg #bgCanvas,body.ytbg #bgVideo,body.ytbg #bgImage{display:none!important
 
 <main id="stage">
   <section id="profile">
+    <img id="themeLogo" alt="" style="display:none;margin:0 auto 6px;width:min(250px,60vw);filter:drop-shadow(0 0 12px color-mix(in srgb,var(--accent) 45%,transparent))">
     <div class="nameRow">
       <span class="orn" id="ornL"></span>
       <h1 id="name"></h1>
@@ -812,14 +813,14 @@ const CONFIG = {
     cursed:  { character: ["chars/megumi.png", "chars/jjk_group.png"], side: "right", background: "" },
     hero:    { character: ["chars/toga.png"],     side: "right", background: "" },
     gotham:  { character: ["chars/batman.png?v=2"],   side: "right", ornament: "chars/bat_logo.png", signal: "chars/bat_logo.png", background: "" },
-    chainsaw:    { character: [], side: "right", background: "" },
-    mob:         { character: [], side: "right", background: "" },
+    chainsaw:    { character: ["chars/power.webp", "chars/makima.webp", "chars/pochita.webp"], side: "right", background: "" },
+    mob:         { character: ["chars/mob.webp"], logo: "chars/mob_logo.webp", side: "right", background: "" },
     mononoke:    { character: [], side: "right", background: "" },
-    demonslayer: { character: [], side: "right", background: "" },
-    onepiece:    { character: [], side: "right", background: "" },
+    demonslayer: { character: ["chars/demonslayer_group.webp", "chars/demonslayer_squad.webp"], logo: "chars/demonslayer_logo.webp", side: "right", background: "" },
+    onepiece:    { character: ["chars/luffy.webp", "chars/zoro.webp"], ornament: "chars/strawhat.png", side: "right", background: "" },
     naruto:      { character: [], side: "right", background: "" },
     arcade:      { character: [], side: "right", background: "" },
-    joker:       { character: [], side: "right", background: "" },
+    joker:       { character: ["chars/joker_gun.webp", "chars/joker_cane.webp"], ornament: "chars/joker_card.webp", side: "right", background: "" },
     noir:        { character: [], side: "right", background: "" },
     dragon:      { character: [], side: "right", background: "" },
   },
@@ -2324,6 +2325,7 @@ function applyTheme(key){
   } else ch.style.display = 'none';
   signalImg = null;
   if(opt.signal){ signalImg = new Image(); signalImg.src = opt.signal; }
+  { const lg = $('themeLogo'); if(lg){ if(opt.logo){ lg.src = asset(opt.logo); lg.style.display = 'block'; } else lg.style.display = 'none'; } }
 
   const bgFile = opt.background || '', vid = $('bgVideo'), img = $('bgImage');
   vid.style.display = img.style.display = 'none';
