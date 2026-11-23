@@ -15,7 +15,10 @@
       "charMouse": "lean",
       "charX": 84.7,
       "charY": -2.4,
-      "charH": 80.8
+      "charH": 80.8,
+      "viz": {
+        "style": "both"
+      }
     }
   },
   "customThemes": {},
@@ -98,6 +101,74 @@
     "counter": {
       "on": true,
       "label": "views"
+    },
+    "links": [
+      {
+        "id": "discord",
+        "title": "Discord",
+        "url": "https://discord.com/users/835871874197225522",
+        "icon": {
+          "t": "b",
+          "k": "discord"
+        }
+      },
+      {
+        "id": "tiktok",
+        "title": "TikTok",
+        "url": "https://www.tiktok.com/@ttv.iits_ty",
+        "icon": {
+          "t": "b",
+          "k": "tiktok"
+        }
+      },
+      {
+        "id": "steam",
+        "title": "Steam",
+        "url": "https://steamcommunity.com/profiles/76561198117512849/",
+        "icon": {
+          "t": "b",
+          "k": "steam"
+        }
+      },
+      {
+        "id": "playstation",
+        "title": "PSN: Its-_-TyMFK",
+        "url": "https://profile.playstation.com/Its-_-TyMFK",
+        "icon": {
+          "t": "b",
+          "k": "playstation"
+        }
+      },
+      {
+        "id": "xbox",
+        "title": "Xbox: iitstymfk#9231",
+        "url": "https://www.xbox.com/en-US/play/user/iitstymfk9231",
+        "icon": {
+          "t": "b",
+          "k": "xbox"
+        }
+      },
+      {
+        "id": "spotify",
+        "title": "Spotify",
+        "url": "https://open.spotify.com/user/31aidzuqr4dtt54hplf572glorjq",
+        "icon": {
+          "t": "b",
+          "k": "spotify"
+        }
+      },
+      {
+        "id": "youtube",
+        "title": "YouTube",
+        "url": "https://www.youtube.com/@iitsymfk4723",
+        "icon": {
+          "t": "b",
+          "k": "youtube"
+        }
+      }
+    ],
+    "entry": {
+      "style": "rise"
     }
   }
 }
