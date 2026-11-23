@@ -586,6 +586,59 @@ body.ytbg #bgCanvas,body.ytbg #bgVideo,body.ytbg #bgImage{display:none!important
 #peBox .wbtn{display:block;width:100%;margin-top:6px;padding:8px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}#peBox .wbtn.go{background:var(--accent);color:#111}
 
 #profile.entJS,#profile.entJS.show{transition:opacity 0s,transform .15s ease-out}
+
+/* ---------- splash screen look (per theme) ---------- */
+#splash{background:color-mix(in srgb,var(--spTint,#05030c) calc(var(--spDark,.72)*100%),transparent);backdrop-filter:blur(var(--spBlur,14px));-webkit-backdrop-filter:blur(var(--spBlur,14px))}
+#splash > div:not(#spParts){position:relative;z-index:1}
+#splashText{font-size:calc(clamp(24px,5vw,40px)*var(--spSize,1));color:var(--spCol,inherit);letter-spacing:var(--spLs,1px);text-shadow:0 0 var(--spGlowAmt,14px) var(--spGlow,var(--accent))}
+#splash .spL{display:inline-block;animation-duration:calc(1.4s*var(--spSpd,1));animation-iteration-count:infinite;animation-delay:calc(var(--li)*.07s*var(--spSpd,1))}
+#splash:not(.sa-breathe) #splashText{animation:none}
+#splash.sa-pulse #splashText{animation:spPulse calc(1.6s*var(--spSpd,1)) ease-in-out infinite}
+#splash.sa-float #splashText{animation:spFloat calc(3s*var(--spSpd,1)) ease-in-out infinite}
+#splash.sa-heart #splashText{animation:spHeart calc(1.4s*var(--spSpd,1)) ease-in-out infinite}
+#splash.sa-glow #splashText{animation:spGlow calc(2s*var(--spSpd,1)) ease-in-out infinite}
+#splash.sa-flicker #splashText{animation:spFlicker calc(3s*var(--spSpd,1)) steps(1) infinite}
+#splash.sa-glitch #splashText{animation:spGlitch calc(2.5s*var(--spSpd,1)) steps(1) infinite}
+#splash.sa-shimmer #splashText{background:linear-gradient(90deg,var(--spCol,#fff) 0%,var(--spCol,#fff) 40%,var(--accent) 50%,var(--spCol,#fff) 60%,var(--spCol,#fff) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:spShimmer calc(2.6s*var(--spSpd,1)) linear infinite}
+#splash.sa-zoom #splashText{animation:spZoom calc(4s*var(--spSpd,1)) ease-in-out infinite}
+#splash.sa-spin #splashText{animation:spSpin3 calc(5s*var(--spSpd,1)) ease-in-out infinite}
+#splash.sa-wave .spL{animation-name:spWave;animation-timing-function:ease-in-out}
+#splash.sa-bounce .spL{animation-name:spBounce;animation-timing-function:cubic-bezier(.3,0,.6,1)}
+#splash.sa-rainbow .spL{animation-name:spRainbow;animation-timing-function:linear;animation-duration:calc(2.4s*var(--spSpd,1))}
+#splash.sa-type .spL{animation-name:spType;animation-timing-function:steps(1);animation-duration:calc(4s*var(--spSpd,1));animation-delay:calc(var(--li)*.09s*var(--spSpd,1))}
+@keyframes spPulse{50%{transform:scale(1.08)}}
+@keyframes spFloat{50%{transform:translateY(-10px)}}
+@keyframes spHeart{0%,40%,100%{transform:scale(1)}10%,30%{transform:scale(1.1)}}
+@keyframes spGlow{50%{text-shadow:0 0 calc(var(--spGlowAmt,14px)*2.5) var(--spGlow,var(--accent)),0 0 calc(var(--spGlowAmt,14px)*4) var(--spGlow,var(--accent))}}
+@keyframes spFlicker{0%,19%,23%,60%,64%,100%{opacity:1}20%,22%,61%,63%{opacity:.15}}
+@keyframes spGlitch{0%,88%,100%{transform:none;filter:none}89%{transform:translate(-4px,1px) skewX(10deg);filter:hue-rotate(90deg)}92%{transform:translate(4px,-1px)}95%{transform:translate(-2px,0) skewX(-6deg);filter:invert(.3)}}
+@keyframes spShimmer{from{background-position:150% 0}to{background-position:-100% 0}}
+@keyframes spZoom{50%{transform:scale(1.15);letter-spacing:6px}}
+@keyframes spSpin3{0%,70%,100%{transform:perspective(500px) rotateY(0)}85%{transform:perspective(500px) rotateY(360deg)}}
+@keyframes spWave{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-10px)}}
+@keyframes spBounce{0%,50%,100%{transform:translateY(0)}25%{transform:translateY(-14px) scale(1.1)}}
+@keyframes spRainbow{0%{color:#ff5e7e}20%{color:#ffb34d}40%{color:#f6ff6b}60%{color:#6bff9e}80%{color:#6bc8ff}100%{color:#ff5e7e}}
+@keyframes spType{0%{opacity:0}5%{opacity:1}85%{opacity:1}95%,100%{opacity:0}}
+/* tap hint */
+#splash[class*=" sq-"] > div:not(#spParts)::after{display:block;margin:18px auto 0;color:var(--accent)}
+#splash.sq-ring > div:not(#spParts)::after{content:"";width:22px;height:22px;border-radius:50%;border:2px solid var(--accent);animation:spRing 1.6s ease-out infinite}
+#splash.sq-arrow > div:not(#spParts)::after{content:"▼";font-size:16px;animation:spFloat 1.2s ease-in-out infinite}
+#splash.sq-hand > div:not(#spParts)::after{content:"👆";font-size:26px;animation:spTap 1.4s ease-in-out infinite}
+#splash.sq-bar > div:not(#spParts)::after{content:"";width:120px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--accent) 0 40%,transparent 40%);background-size:250% 100%;animation:spBar 1.8s linear infinite;box-shadow:0 0 8px var(--accent)}
+#splash.sq-press > div:not(#spParts)::after{content:"▶ PRESS START";font:700 11px/1 monospace;letter-spacing:3px;animation:spFlicker 1.2s steps(1) infinite}
+@keyframes spRing{0%{transform:scale(.6);opacity:1}100%{transform:scale(2.2);opacity:0}}
+@keyframes spTap{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(6px) scale(.9)}}
+@keyframes spBar{from{background-position:150% 0}to{background-position:-100% 0}}
+/* floating bits */
+#spParts{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+#spParts i{position:absolute;top:-8%;font-style:normal;color:var(--accent);text-shadow:0 0 8px var(--accent);animation:spFall linear infinite}
+#spParts.up i{top:auto;bottom:-8%;animation-name:spRise}
+@keyframes spFall{from{transform:translateY(0) rotate(0)}to{transform:translateY(118vh) rotate(300deg) translateX(40px)}}
+@keyframes spRise{from{transform:translateY(0)}to{transform:translateY(-118vh) translateX(-30px)}}
+/* click-through extras */
+#spTiles{position:fixed;inset:0;z-index:51;pointer-events:none;overflow:hidden}
+#spTiles i{position:absolute;backdrop-filter:blur(var(--spBlur,14px));-webkit-backdrop-filter:blur(var(--spBlur,14px))}
+#spFlash{position:fixed;inset:0;z-index:52;background:#fff;pointer-events:none;opacity:0}
 </style>
 </head>
 <body data-theme="sakura">
@@ -2996,6 +3049,118 @@ function applyYT(v){
   if(f.dataset.id !== id){ f.src = src; f.dataset.id = id; }
 }
 
+/* ---------- splash screen look + click-through animation (per theme) ---------- */
+var spCfg = {};
+const SP_LETTERS = ['wave','type','bounce','rainbow'];
+function spWrap(){
+  const t = $('splashText'); if(!t) return; const txt = t.textContent;
+  if(SP_LETTERS.includes(spCfg.anim)){
+    if(t.dataset.wrapped === txt) return;
+    t.dataset.wrapped = txt; t._spSelf = true;
+    t.innerHTML = [...txt].map((ch, i) => `<span class="spL" style="--li:${i}">${ch === ' ' ? '&nbsp;' : escA(ch)}</span>`).join('');
+    setTimeout(() => { t._spSelf = false; }, 0);
+  } else if(t.dataset.wrapped){ delete t.dataset.wrapped; t._spSelf = true; t.textContent = txt; setTimeout(() => { t._spSelf = false; }, 0); }
+}
+(function(){ const t = $('splashText'); if(t) new MutationObserver(() => { if(!t._spSelf){ delete t.dataset.wrapped; spWrap(); } }).observe(t, { childList: true, characterData: true, subtree: true }); })();
+const SP_PARTS = { sparkle:['✦','✧','⋆'], star:['★','☆','✦'], heart:['♥','♡','❤'], snow:['❄','❅','•'], petal:null, ember:['•','•','·'], bubble:['○','◦','◯'], note:['♪','♫','♬'] };
+function applySplash(key){
+  spCfg = (EDITS[key] || {}).splashFx || {};
+  const sp = $('splash'); if(!sp) return; const C = spCfg;
+  [...sp.classList].filter(c => /^(sa-|sp-|sq-)/.test(c)).forEach(c => sp.classList.remove(c));
+  sp.classList.add('sa-' + (C.anim || 'breathe'));
+  if(C.cue) sp.classList.add('sq-' + C.cue);
+  sp.style.setProperty('--spBlur', (C.blur ?? 14) + 'px');
+  sp.style.setProperty('--spDark', C.dark ?? .72);
+  sp.style.setProperty('--spTint', C.tint ? C.tint : '#05030c');
+  sp.style.setProperty('--spSize', (C.size ?? 1));
+  sp.style.setProperty('--spCol', C.color || 'var(--text)');
+  sp.style.setProperty('--spGlow', C.glowCol || 'var(--accent)');
+  sp.style.setProperty('--spGlowAmt', (C.glow ?? 14) + 'px');
+  sp.style.setProperty('--spSpd', (C.textSpeed ?? 1));
+  sp.style.setProperty('--spLs', (C.spacing ?? 1) + 'px');
+  // floating particles
+  let box = $('spParts'); const kind = C.parts || '';
+  if(!kind){ if(box) box.remove(); }
+  else {
+    if(!box){ box = document.createElement('div'); box.id = 'spParts'; sp.prepend(box); }
+    if(box.dataset.k !== kind + (C.partAmt || 24) + (T.sparks || '')){
+      box.dataset.k = kind + (C.partAmt || 24) + (T.sparks || '');
+      const sym = kind === 'petal' ? (T.sparks && T.sparks.length ? T.sparks : ['✿','❀']) : (SP_PARTS[kind] || ['✦']);
+      const up = kind === 'ember' || kind === 'bubble';
+      box.className = up ? 'up' : '';
+      box.innerHTML = Array.from({ length: Math.round(C.partAmt || 24) }, (_, i) => `<i style="left:${(Math.random()*100).toFixed(1)}%;animation-duration:${(6 + Math.random()*8).toFixed(1)}s;animation-delay:-${(Math.random()*12).toFixed(1)}s;font-size:${(8 + Math.random()*14).toFixed(0)}px;opacity:${(.35 + Math.random()*.6).toFixed(2)}">${escA(sym[i % sym.length])}</i>`).join('');
+    }
+  }
+  spWrap();
+}
+const SP_EXIT = {
+  fade:    { f:[{ opacity:1 }, { opacity:0 }], d:900, e:'ease' },
+  zoomin:  { f:[{ opacity:1, transform:'scale(1)' }, { opacity:0, transform:'scale(2.6)' }], d:900, e:'cubic-bezier(.5,0,.8,.4)' },
+  zoomout: { f:[{ opacity:1, transform:'scale(1)' }, { opacity:0, transform:'scale(.4)' }], d:800, e:'cubic-bezier(.5,0,.8,.4)' },
+  blur:    { f:[{ opacity:1, filter:'blur(0)' }, { opacity:0, filter:'blur(30px)' }], d:1000, e:'ease' },
+  up:      { f:[{ transform:'none' }, { transform:'translateY(-105%)' }], d:900, e:'cubic-bezier(.7,0,.3,1)' },
+  down:    { f:[{ transform:'none' }, { transform:'translateY(105%)' }], d:900, e:'cubic-bezier(.7,0,.3,1)' },
+  left:    { f:[{ transform:'none' }, { transform:'translateX(-105%)' }], d:900, e:'cubic-bezier(.7,0,.3,1)' },
+  curtains:{ f:[{ clipPath:'inset(0 0 0 0)' }, { clipPath:'inset(0 50% 0 50%)' }], d:1000, e:'cubic-bezier(.7,0,.3,1)' },
+  blinds:  { f:[{ clipPath:'inset(0 0 0 0)' }, { clipPath:'inset(50% 0 50% 0)' }], d:900, e:'cubic-bezier(.7,0,.3,1)' },
+  iris:    { f:[{ clipPath:'circle(150% at var(--cx) var(--cy))' }, { clipPath:'circle(0% at var(--cx) var(--cy))' }], d:1000, e:'cubic-bezier(.6,0,.4,1)' },
+  spin:    { f:[{ opacity:1, transform:'rotate(0) scale(1)' }, { opacity:0, transform:'rotate(540deg) scale(0)' }], d:1000, e:'cubic-bezier(.6,0,.8,.4)' },
+  flip:    { f:[{ transform:'perspective(900px) rotateX(0)', transformOrigin:'bottom' }, { transform:'perspective(900px) rotateX(-95deg)', transformOrigin:'bottom' }], d:900, e:'cubic-bezier(.6,0,.8,.4)' },
+  door:    { f:[{ transform:'perspective(1200px) rotateY(0)', transformOrigin:'left' }, { transform:'perspective(1200px) rotateY(-100deg)', transformOrigin:'left', opacity:.2 }], d:1000, e:'cubic-bezier(.6,0,.8,.4)' },
+  tv:      { f:[{ transform:'scale(1,1)', filter:'brightness(1)' }, { transform:'scale(1,.005)', filter:'brightness(3)', offset:.55 }, { transform:'scale(0,.005)', filter:'brightness(5)' }], d:800, e:'ease-in' },
+  glitch:  { f:[{ opacity:1, transform:'none', filter:'none' }, { transform:'translate(-14px,4px) skewX(14deg)', filter:'hue-rotate(90deg)', offset:.2 }, { opacity:.6, transform:'translate(12px,-4px)', filter:'invert(.6)', offset:.4 }, { opacity:.8, transform:'translate(-6px,0) skewX(-10deg)', offset:.6 }, { opacity:.3, transform:'translate(4px,2px)', filter:'saturate(4)', offset:.8 }, { opacity:0, transform:'none' }], d:700, e:'steps(1)' },
+  flash:   { f:[{ opacity:1 }, { opacity:0 }], d:700, e:'ease', special:'flash' },
+  shatter: { d:1200, special:'tiles', mode:'shatter' },
+  dissolve:{ d:1200, special:'tiles', mode:'dissolve' },
+  warp:    { f:[{ opacity:1, transform:'scale(1)', filter:'blur(0)' }, { opacity:.6, transform:'scale(1.3) rotate(4deg)', filter:'blur(6px) hue-rotate(60deg)', offset:.5 }, { opacity:0, transform:'scale(3) rotate(-6deg)', filter:'blur(20px) hue-rotate(160deg)' }], d:1000, e:'ease-in' },
+  none:    { f:[{ opacity:1 }, { opacity:0 }], d:1, e:'linear' }
+};
+function spSound(){
+  const C = spCfg; if(!C.sound || (typeof muted !== 'undefined' && muted)) return;
+  const was = SITE.sounds; SITE.sounds = { ...(was || {}), on: true }; try{ playSnd(C.sound === 'tap' ? ((was || {}).click || 'pop') : C.sound); }finally{ SITE.sounds = was; }
+}
+function splashExit(done, ev){
+  const sp = $('splash'), C = spCfg, E = SP_EXIT[C.exit || 'fade'] || SP_EXIT.fade, k = C.exitSpeed || 1, dur = Math.max(1, E.d * k);
+  spSound();
+  const cx = ev && ev.clientX != null ? (ev.clientX / innerWidth * 100).toFixed(1) + '%' : '50%', cy = ev && ev.clientY != null ? (ev.clientY / innerHeight * 100).toFixed(1) + '%' : '50%';
+  sp.style.setProperty('--cx', cx); sp.style.setProperty('--cy', cy);
+  if(!sp.animate || (C.exit || 'fade') === 'fade' && !C.exitSpeed){ done(); return; }       // the original fade
+  sp.style.transition = 'none';
+  const finish = () => { sp.getAnimations().forEach(a => { if(a.id === 'spx') a.cancel(); }); sp.style.removeProperty('transition'); sp.style.removeProperty('visibility'); };
+  const early = () => { done(); };
+  if(E.special === 'tiles'){
+    const cols = innerWidth < 600 ? 6 : 10, rows = Math.ceil(cols * innerHeight / innerWidth), wrap = document.createElement('div'); wrap.id = 'spTiles';
+    const cs = getComputedStyle(sp);
+    for(let y = 0; y < rows; y++) for(let x = 0; x < cols; x++){
+      const t = document.createElement('i'); t.style.cssText = `left:${x / cols * 100}%;top:${y / rows * 100}%;width:${100 / cols + .2}%;height:${100 / rows + .2}%;background:${cs.backgroundColor}`;
+      wrap.appendChild(t);
+      const dx = (x - cols / 2) * 40 + (Math.random() - .5) * 120, dy = (y - rows / 2) * 40 + (Math.random() - .5) * 120 + 160, r = (Math.random() - .5) * 360;
+      const dl = E.mode === 'dissolve' ? Math.random() * dur * .7 : Math.hypot(x - cols / 2, y - rows / 2) * 25 * k;
+      t.animate(E.mode === 'dissolve' ? [{ opacity:1 }, { opacity:0 }] : [{ transform:'none', opacity:1 }, { transform:`translate(${dx}px,${dy}px) rotate(${r}deg) scale(.4)`, opacity:0 }],
+        { duration: dur * (E.mode === 'dissolve' ? .3 : .75), delay: dl, easing: 'cubic-bezier(.5,0,.9,.6)', fill: 'both' });
+    }
+    document.body.appendChild(wrap);
+    const a = sp.animate([{ opacity:1 }, { opacity:0 }], { duration: 120, fill:'forwards' }); a.id = 'spx';
+    early(); setTimeout(() => { wrap.remove(); finish(); }, dur + 300);
+    return;
+  }
+  if(E.special === 'flash'){
+    const fl = document.createElement('div'); fl.id = 'spFlash'; document.body.appendChild(fl);
+    fl.animate([{ opacity:0 }, { opacity:1, offset:.25 }, { opacity:0 }], { duration: dur * 1.3, easing:'ease-out' }).onfinish = () => fl.remove();
+  }
+  const frames = (E.f || []).map(f => { const o = { ...f }; if(o.clipPath) o.clipPath = o.clipPath.replace(/var\(--cx\)/g, cx).replace(/var\(--cy\)/g, cy); return o; });
+  const a = sp.animate(frames, { duration: dur, easing: E.e || 'ease', fill: 'forwards' }); a.id = 'spx';
+  setTimeout(early, dur * .45);
+  a.onfinish = () => setTimeout(finish, 30);
+}
+(function(){ const sp = $('splash'); if(!sp) return; const orig = sp.onclick; if(!orig) return;
+  sp.onclick = ev => { if(sp.classList.contains('gone') || sp._leaving) return; sp._leaving = true; splashExit(() => { orig.call(sp, ev); sp._leaving = false; }, ev); };
+})();
+function previewSplash(){
+  const sp = $('splash'); sp.getAnimations().forEach(a => a.cancel()); sp.style.removeProperty('transition'); sp.classList.remove('gone');
+  setTimeout(() => { splashExit(() => { sp.classList.add('gone'); if(window.playEntry) playEntry(); }, { clientX: innerWidth / 2, clientY: innerHeight / 2 }); }, 1400);
+}
+
 /* ---------- applied on every theme change / edit ---------- */
 function plusApply(key){
   const e = EDITS[key] || {};
@@ -3005,6 +3170,7 @@ function plusApply(key){
   applyYT(e.ytBg);
   nameFx((e.look || {}).nameAnim || '');
   themeSound(key);
+  applySplash(key);
 }
 function plusSite(){ renderLinks(); renderAbout(); applyEntry(); }
 var _plusReady = true;
@@ -3569,6 +3735,28 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
 
     // ---- extra controls added to existing tabs (improving what's there, not repeating it) ----
     const _look = TABS.look, _eff = TABS.effects, _pics = TABS.pictures, _site = TABS.site;
+    const _text = TABS.text;
+    TABS.text = function(){ const sf = W.splashFx || {}, S3 = (f, opts, val) => `<select data-f="${f}">${Object.entries(opts).map(([k,v]) => `<option value="${k}" ${val === k ? 'selected' : ''}>${v}</option>`).join('')}</select>`;
+      const sndOpts = Object.fromEntries([['', 'No sound'], ['tap', 'Same as my tap sound'], ...Object.keys(SND).map(k => [k, k])]);
+      return _text().replace('<button class="wbtn" id="epSplash">👁 Preview splash screen</button>', `<hr><b>✨ Splash screen</b>
+        <label class="ef"><span>Text animation</span>${S3('splashFx.anim', { breathe:'Breathe (like now)', pulse:'Pulse', float:'Float', heart:'Heartbeat', glow:'Glow pulse', flicker:'Neon flicker', glitch:'Glitch', shimmer:'Shine sweep', zoom:'Slow zoom', spin:'3D spin now and then', wave:'Letters wave', bounce:'Letters bounce', rainbow:'Rainbow letters', type:'Types itself out', none:'Still' }, sf.anim || 'breathe')}</label>
+        <label class="ef"><span>Animation speed (lower = faster)</span><input type="range" data-f="splashFx.textSpeed" data-k="num" min=".3" max="3" step=".1" value="${sf.textSpeed ?? 1}"></label>
+        <label class="ef"><span>Text size</span><input type="range" data-f="splashFx.size" data-k="num" min=".5" max="2.5" step=".05" value="${sf.size ?? 1}"></label>
+        <label class="ef"><span>Letter spacing</span><input type="range" data-f="splashFx.spacing" data-k="num" min="0" max="20" step="1" value="${sf.spacing ?? 1}"></label>
+        <label class="ef"><span>Text color / glow color</span><span class="pair"><input type="color" data-f="splashFx.color" value="${toHex(sf.color || T.text)}"><input type="color" data-f="splashFx.glowCol" value="${toHex(sf.glowCol || T.accent)}"></span></label>
+        <label class="ef"><span>Glow</span><input type="range" data-f="splashFx.glow" data-k="num" min="0" max="50" step="1" value="${sf.glow ?? 14}"></label>
+        <label class="ef"><span>"Tap here" hint</span>${S3('splashFx.cue', { '':'None (like now)', ring:'Pulsing ring', arrow:'Bouncing arrow', hand:'Tapping finger 👆', bar:'Loading bar', press:'▶ PRESS START' }, sf.cue || '')}</label>
+        <label class="ef"><span>Floating bits</span>${S3('splashFx.parts', { '':'None (like now)', petal:'Theme symbols (petals etc.)', sparkle:'Sparkles', star:'Stars', heart:'Hearts', snow:'Snow', ember:'Embers rising', bubble:'Bubbles rising', note:'Music notes' }, sf.parts || '')}</label>
+        ${sf.parts ? `<label class="ef"><span>How many</span><input type="range" data-f="splashFx.partAmt" data-k="num" min="6" max="80" step="2" value="${sf.partAmt ?? 24}"></label>` : ''}
+        <label class="ef"><span>Background blur</span><input type="range" data-f="splashFx.blur" data-k="num" min="0" max="40" step="1" value="${sf.blur ?? 14}"></label>
+        <label class="ef"><span>Background darkness</span><input type="range" data-f="splashFx.dark" data-k="num" min="0" max="1" step=".02" value="${sf.dark ?? .72}"></label>
+        <label class="ef"><span>Background tint</span><input type="color" data-f="splashFx.tint" value="${toHex(sf.tint || '#05030c')}"></label>
+        <hr><b>🚪 When you click through</b>
+        <label class="ef"><span>Animation</span>${S3('splashFx.exit', { fade:'Fade (like now)', zoomin:'Zoom into the page', zoomout:'Shrink away', blur:'Blur away', up:'Slide up', down:'Drop down', left:'Slide left', curtains:'Curtains open', blinds:'Close to a line', iris:'Circle closes on where you tapped', spin:'Spin away', flip:'Fall forward (3D)', door:'Swing open like a door', tv:'Old TV turning off', glitch:'Glitch out', flash:'Camera flash', shatter:'Shatter', dissolve:'Dissolve into squares', warp:'Warp', none:'Instant' }, sf.exit || 'fade')}</label>
+        <label class="ef"><span>Speed (lower = faster)</span><input type="range" data-f="splashFx.exitSpeed" data-k="num" min=".3" max="3" step=".1" value="${sf.exitSpeed ?? 1}"></label>
+        <label class="ef"><span>Sound when clicked</span>${S3('splashFx.sound', sndOpts, sf.sound || '')}</label>
+        <p>The page's own entry animation (✏️ → Site) plays as the splash leaves.</p>
+        <div class="pair"><button class="wbtn" id="epSplash">👁 Show splash</button><button class="wbtn go" id="spPrev">▶ Preview click-through</button></div>`); };
     TABS.look = function(){ const L = W.look || {};
       return _look().replace('<hr><b>Cards</b>', `${row('Animation', `<select data-f="look.nameAnim" data-kind="light">${Object.entries({ '':'None', typing:'⌨️ Types itself in', glitch:'📺 Glitch', wave:'🌊 Wave', rainbow:'🌈 Rainbow shimmer', neon:'💡 Neon flicker' }).map(([k,v]) => `<option value="${k}" ${(L.nameAnim || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select>`)}
       <hr><b>Cards</b>`); };
@@ -3638,7 +3826,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       if(el.dataset.ab != null){ const c = (SW.about || [])[+el.dataset.ab]; c[el.dataset.abp] = el.value; siteChanged(); return; }
     });
     // number-ish site values + link colour mode
-    const _onIn = (el) => { if(['trail.on','viz.on','trail.kind','viz.style','viz.colors','viz.pulse'].includes(el.dataset.f)) setTimeout(render, 30);
+    const _onIn = (el) => { if(['trail.on','viz.on','trail.kind','viz.style','viz.colors','viz.pulse','splashFx.parts'].includes(el.dataset.f)) setTimeout(render, 30);
       if(el.dataset.s === 'linkStyle.colorMode'){ SW.linkStyle = SW.linkStyle || {}; SW.linkStyle.color = el.value === 'custom' ? '#ffffff' : el.value; delete SW.linkStyle.colorMode; siteChanged(); render(); }
       if(['sounds.vol','viz.height','entry.speed','linkStyle.size','linkStyle.gap'].includes(el.dataset.s)){ const path = el.dataset.s.split('.'); SW[path[0]][path[1]] = +el.value; } };
     $('epBody').addEventListener('change', e => _onIn(e.target));
@@ -3660,6 +3848,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       if(b.dataset.abdel != null){ SW.about.splice(+b.dataset.abdel, 1); siteChanged(); render(); return; }
       if(b.dataset.abmv){ const A = SW.about, [i, d] = b.dataset.abmv.split(':').map(Number), j = i + d; if(j < 0 || j >= A.length) return; [A[i], A[j]] = [A[j], A[i]]; siteChanged(); render(); return; }
       if(b.dataset.sndprev){ const S = SW.sounds || {}; const was = SITE.sounds; SITE.sounds = { ...S, on: true }; playSnd(b.dataset.sndprev === 'click' ? (S.click || 'pop') : (S.theme || 'whoosh')); SITE.sounds = was; return; }
+      if(b.id === 'spPrev'){ applySplash(themeKey); previewSplash(); return; }
       if(b.id === 'entPrev'){ SITE = SW; playEntry(); return; }
       if(b.dataset.pe){ const [kind, i] = b.dataset.pe.split(':'); openPE(kind, kind === 'deco' ? selDeco : +i); return; }
     });
