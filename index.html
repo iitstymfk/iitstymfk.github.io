@@ -330,6 +330,10 @@ body.decoEdit .deco.sel{outline:2px solid var(--accent)}
 .a-zigzag{animation:dzigzag 3s ease-in-out infinite}
 .a-blink{animation:dblink 1.5s steps(1) infinite}
 .a-drift{animation:ddrift 14s linear infinite}
+.a-flyabout{animation:dflyabout 14s ease-in-out infinite}
+.a-flutter{animation:dflutter 9s ease-in-out infinite}
+.a-swoop{animation:dswoop 7s ease-in-out infinite}
+.a-wander{animation:dwander 22s ease-in-out infinite}
 .a-fall{animation:dfall 8s linear infinite}
 .a-rise{animation:drise 8s linear infinite}
 @keyframes dshake{0%,100%{transform:translate(0,0)}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,-3px)}80%{transform:translate(3px,3px)}}
@@ -342,6 +346,10 @@ body.decoEdit .deco.sel{outline:2px solid var(--accent)}
 @keyframes droll{0%,100%{transform:translateX(-120%) rotate(-360deg)}50%{transform:translateX(120%) rotate(360deg)}}
 @keyframes dzigzag{0%,100%{transform:translate(0,0)}25%{transform:translate(40%,-30%)}50%{transform:translate(80%,0)}75%{transform:translate(40%,30%)}}
 @keyframes dblink{50%{opacity:0}}
+@keyframes dflyabout{0%{transform:translate(0,0) rotate(0)}10%{transform:translate(28vw,-18vh) rotate(18deg)}20%{transform:translate(38vw,6vh) rotate(-10deg)}30%{transform:translate(12vw,22vh) rotate(-25deg)}40%{transform:translate(-22vw,10vh) rotate(12deg)}50%{transform:translate(-34vw,-16vh) rotate(-8deg)}60%{transform:translate(-8vw,-26vh) rotate(20deg)}70%{transform:translate(20vw,-4vh) rotate(-15deg)}80%{transform:translate(-14vw,18vh) rotate(10deg)}90%{transform:translate(-30vw,0) rotate(-12deg)}100%{transform:translate(0,0) rotate(0)}}
+@keyframes dflutter{0%,100%{transform:translate(0,0) rotate(-6deg)}20%{transform:translate(8vw,-6vh) rotate(8deg)}40%{transform:translate(14vw,3vh) rotate(-8deg)}60%{transform:translate(4vw,8vh) rotate(6deg)}80%{transform:translate(-6vw,2vh) rotate(-4deg)}}
+@keyframes dswoop{0%,100%{transform:translate(-20vw,-10vh) rotate(-20deg)}50%{transform:translate(20vw,12vh) rotate(25deg)}}
+@keyframes dwander{0%,100%{transform:translate(0,0)}25%{transform:translate(10vw,6vh)}50%{transform:translate(-6vw,12vh)}75%{transform:translate(-12vw,-4vh)}}
 @keyframes ddrift{from{transform:translateX(-70vw)}to{transform:translateX(70vw)}}
 @keyframes dfall{from{transform:translateY(-110vh) rotate(0)}to{transform:translateY(110vh) rotate(360deg)}}
 @keyframes drise{from{transform:translateY(110vh)}to{transform:translateY(-110vh)}}
@@ -416,8 +424,6 @@ body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-st
 #viewCount{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);
   border-radius:999px;padding:4px 10px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #viewCount b{color:var(--text);font-weight:700}
-#viewCount .vcIcon{display:inline-flex;align-items:center;color:var(--text)}
-#viewCount .vcEye{width:15px;height:15px;fill:currentColor;display:block}
 #viewCount.vc-corner-left,#viewCount.vc-corner-right{position:fixed;bottom:14px;z-index:9}
 #viewCount.vc-corner-left{left:14px}#viewCount.vc-corner-right{right:14px}
 #viewCount.vc-under-bio{margin:6px auto 0;display:flex;width:max-content}
@@ -2620,14 +2626,13 @@ async function loadViews(){
   }catch(e){ _views = null; }
   renderViews();
 }
-const VC_EYE = '<svg class="vcEye" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>';   // default view-counter icon (a custom Icon in ✏️ → Site still overrides it)
 function renderViews(){
   let el = $('viewCount');
   const c = SITE.counter || {};
   if(!c.on || _views == null){ if(el) el.remove(); return; }
   if(!el){ el = document.createElement('div'); el.id = 'viewCount'; }
   el.className = 'vc-' + (c.place || 'corner-left');
-  el.innerHTML = `<span class="vcIcon">${c.icon ? String(c.icon).replace(/</g,'&lt;') : VC_EYE}</span><b>${Number(_views).toLocaleString()}</b>${c.label ? `<span>${String(c.label).replace(/</g,'&lt;')}</span>` : ''}`;
+  el.innerHTML = `<span>${c.icon ?? '👁'}</span><b>${Number(_views).toLocaleString()}</b>${c.label ? `<span>${String(c.label).replace(/</g,'&lt;')}</span>` : ''}`;
   if(c.place === 'under-bio'){ const bio = document.querySelector('#profile .bio') || $('jp'); if(bio && el.previousElementSibling !== bio) bio.after(el); }
   else if(el.parentNode !== document.body) document.body.appendChild(el);
 }
@@ -3313,7 +3318,7 @@ if(isOwner){
         'a-float':'🎈 Float up & down', 'a-bounce':'🏀 Bounce', 'a-zigzag':'⚡ Zig-zag', 'a-orbit':'🪐 Circle around', 'a-roll':'🎳 Roll side to side',
         'a-pulse':'💢 Pulse', 'a-heartbeat':'💓 Heartbeat', 'a-zoom':'🔍 Zoom in & out', 'a-jello':'🍮 Jello', 'a-tada':'🎉 Tada', 'a-shake':'📳 Shake',
         'a-twinkle':'✨ Twinkle', 'a-glowpulse':'🌫️ Fade in & out', 'a-blink':'💡 Blink',
-        'a-drift':'➡️ Drift across the screen', 'a-fall':'⬇️ Fall from the top', 'a-rise':'⬆️ Rise from the bottom', '':'⏸ Still' };
+        'a-flyabout':'🪽 Fly around the screen (like the Snitch)', 'a-flutter':'🦋 Flutter around', 'a-swoop':'🦅 Swoop back and forth', 'a-wander':'🚶 Slowly wander', 'a-drift':'➡️ Drift across the screen', 'a-fall':'⬇️ Fall from the top', 'a-rise':'⬆️ Rise from the bottom', '':'⏸ Still' };
       const DX = { '':'None', rainbow:'🌈 Rainbow colors', flicker:'💡 Neon flicker', pulseglow:'✨ Glow pulse', shimmer:'💎 Shimmer', ghost:'👻 Ghost (fades)', blur:'🌫️ Dreamy blur', gray:'⬛ Black & white', invert:'🔁 Inverted colors' };
       const DR = { '':'Nothing', follow:'🧲 Follows the mouse/finger', flee:'🏃 Runs away from the mouse', pop:'🎈 Pops when clicked (comes back)', look:'👀 Turns to face the mouse', depth:'🪟 3D depth (shifts with mouse)' };
       return `<p>Add as many as you want and put them anywhere. While this tab is open you can <b style="display:inline">drag them on the page</b> and scroll on one to resize it.</p>
@@ -3378,7 +3383,7 @@ if(isOwner){
       <hr><b>👁 View counter</b>
       ${chk('counter.on','Show the view counter',false)}
       ${C.on ? `<p>Right now: <b style="display:inline">${_views == null ? '…' : Number(_views).toLocaleString()}</b> views (each visitor counts once every 6 hours; your #owner visits don't count).</p>
-      <label class="ef"><span>Icon</span><input type="text" data-s="counter.icon" value="${esc(C.icon ?? '')}" placeholder="blank = eye icon" maxlength="4"></label>
+      <label class="ef"><span>Icon</span><input type="text" data-s="counter.icon" value="${esc(C.icon ?? '👁')}" maxlength="4"></label>
       <label class="ef"><span>Word after the number</span><input type="text" data-s="counter.label" value="${esc(C.label ?? '')}" placeholder="views" maxlength="20"></label>
       <label class="ef"><span>Where</span><select data-s="counter.place">${Object.entries({ 'corner-left':'Bottom-left corner', 'corner-right':'Bottom-right corner', 'under-bio':'Under the typewriter line' }).map(([k,v]) => `<option value="${k}" ${(C.place || 'corner-left') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>` : ''}
       <hr><b>💬 Discord extras</b>

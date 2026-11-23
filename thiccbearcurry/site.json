@@ -1,4 +1,24 @@
 {
   "defaultTheme": "sakura",
-  "songs": []
+  "songs": [],
+  "themeEdits": {
+    "wizard": {
+      "playerCover": "chars/crest_gryffindor.png"
+    },
+    "harley": {
+      "playerCover": "chars/harley_diamond.webp",
+      "decos": [
+        {
+          "kind": "img",
+          "v": "chars/harley_mallet.webp",
+          "x": 50,
+          "y": 30,
+          "size": 70,
+          "anim": "a-flyabout",
+          "speed": 16,
+          "front": false
+        }
+      ]
+    }
+  }
 }
