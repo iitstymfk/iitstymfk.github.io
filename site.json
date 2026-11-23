@@ -100,7 +100,8 @@
     ],
     "counter": {
       "on": true,
-      "label": "views"
+      "label": "views",
+      "icon": ""
     },
     "links": [
       {
