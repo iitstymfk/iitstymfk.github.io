@@ -12,7 +12,7 @@
     "sakura": {
       "effects": {},
       "charIdle": "float",
-      "charMouse": "lean",
+      "charMouse": "tilt",
       "charX": 84.7,
       "charY": -2.4,
       "charH": 80.8,
