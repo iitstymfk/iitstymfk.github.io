@@ -388,8 +388,6 @@ body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-st
 #viewCount{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);
   border-radius:999px;padding:4px 10px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #viewCount b{color:var(--text);font-weight:700}
-#viewCount .vcIcon{display:inline-flex;align-items:center;color:var(--text)}
-#viewCount .vcEye{width:15px;height:15px;fill:currentColor;display:block}
 #viewCount.vc-corner-left,#viewCount.vc-corner-right{position:fixed;bottom:14px;z-index:9}
 #viewCount.vc-corner-left{left:14px}#viewCount.vc-corner-right{right:14px}
 #viewCount.vc-under-bio{margin:6px auto 0;display:flex;width:max-content}
@@ -448,6 +446,70 @@ body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-st
 .socials.lk-buttons .soc:hover{transform:translateX(4px);border-color:var(--accent)}
 .socials.lk-buttons.hv-none .soc:hover{transform:none}
 @keyframes lkBounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-10px)}60%{transform:translateY(-3px)}}
+/* more link looks */
+.socials.lkSized .soc svg,.socials.lkSized .soc .lkMask,.socials.lkSized .soc .lkImg{width:var(--lks)!important;height:var(--lks)!important}
+.socials.lkSized .soc{width:calc(var(--lks) + 8px);height:calc(var(--lks) + 8px)}
+.socials.noOrn .x{display:none}
+.socials.lk-outline .soc,.socials.lk-neon .soc,.socials.lk-hex .soc,.socials.lk-bubble .soc{width:48px;height:48px}
+.socials.lk-outline .soc{border:2px solid var(--lc,var(--accent));border-radius:50%}
+.socials.lk-neon .soc{border:2px solid var(--lc,var(--accent));border-radius:10px;box-shadow:0 0 10px var(--lc,var(--accent)),inset 0 0 10px color-mix(in srgb,var(--lc,var(--accent)) 50%,transparent)}
+.socials.lk-hex .soc{background:var(--card);clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%);border-radius:0}
+.socials.lk-glass .soc{width:58px;height:58px;border-radius:18px;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.socials.lk-bubble .soc{border-radius:50%;background:radial-gradient(circle at 30% 28%,color-mix(in srgb,var(--lc,var(--accent)) 70%,#fff),var(--lc,var(--accent)) 70%);box-shadow:0 6px 16px color-mix(in srgb,var(--lc,var(--accent)) 45%,transparent)}
+.socials.lk-bubble .soc svg{fill:#fff!important}.socials.lk-bubble .soc .lkMask{background:#fff}
+.socials.lk-outline .soc svg,.socials.lk-neon .soc svg,.socials.lk-hex .soc svg,.socials.lk-bubble .soc svg,.socials.lk-outline .soc .lkMask,.socials.lk-neon .soc .lkMask,.socials.lk-hex .soc .lkMask,.socials.lk-bubble .soc .lkMask,.socials.lk-hex .soc .lkImg,.socials.lk-outline .soc .lkImg{width:24px;height:24px}
+.socials.lk-glass .soc svg,.socials.lk-glass .soc .lkMask,.socials.lk-glass .soc .lkImg{width:30px;height:30px}
+.socials.lk-tiles .soc{width:72px;height:auto;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-decoration:none}
+.socials.lk-tiles .btxt{font-size:10.5px;color:var(--text);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.socials.lk-pill .soc{width:auto;height:auto;display:flex;align-items:center;gap:8px;padding:7px 14px 7px 10px;background:var(--card);border:1px solid var(--line);border-radius:999px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-decoration:none}
+.socials.lk-pill .soc svg,.socials.lk-pill .soc .lkMask,.socials.lk-pill .soc .lkImg,.socials.lk-tiles .soc svg,.socials.lk-tiles .soc .lkMask,.socials.lk-tiles .soc .lkImg{width:22px;height:22px}
+.socials.lk-pill .btxt{font-size:13px;font-weight:700;color:var(--text)}
+.socials.lk-grid2{display:grid!important;grid-template-columns:1fr 1fr;max-width:460px;margin-left:auto;margin-right:auto}
+.socials.lk-grid2 .x{display:none}
+.socials.lk-grid2 .soc{width:auto;height:auto;display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);text-decoration:none;min-width:0}
+.socials.lk-grid2 .soc svg,.socials.lk-grid2 .soc .lkMask,.socials.lk-grid2 .soc .lkImg{width:22px;height:22px;flex:0 0 22px}
+.socials.lk-grid2 .btxt{color:var(--text);font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.socials.lkTxt .tip{display:none}
+.socials.lbg-accent .soc{background:var(--accent)!important;border-color:transparent!important}
+.socials.lbg-accent .soc svg{fill:#111!important}.socials.lbg-accent .soc .lkMask{background:#111!important}.socials.lbg-accent .btxt{color:#111!important}
+.socials.lbg-brand .soc{background:var(--brand,var(--accent))!important;border-color:transparent!important}
+.socials.lbg-brand .soc svg{fill:#fff!important}.socials.lbg-brand .soc .lkMask{background:#fff!important}.socials.lbg-brand .btxt{color:#fff!important}
+.socials.lbg-dark .soc{background:rgba(5,4,10,.82)!important}
+.socials.lbg-none .soc{background:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none}
+/* more hovers */
+.socials.hv-grow .soc:hover{transform:scale(1.25)}
+.socials.hv-flip .soc:hover{transform:perspective(400px) rotateY(180deg);transition:transform .6s}
+.socials.hv-jelly .soc:hover{transform:none;animation:lkJelly .7s}
+.socials.hv-shake .soc:hover{transform:none;animation:lkShake .45s}
+.socials.hv-tilt .soc:hover{transform:rotate(-12deg) scale(1.1)}
+.socials.hv-pulse .soc:hover{transform:none;animation:lkPulse .9s infinite}
+.socials.hv-brand .soc:hover{transform:translateY(-3px)}
+.socials.hv-brand .soc:hover svg{fill:var(--brand,var(--accent))!important}.socials.hv-brand .soc:hover .lkMask{background:var(--brand,var(--accent))!important}
+.socials.hv-float .soc:hover{transform:translateY(-8px);filter:drop-shadow(0 10px 8px rgba(0,0,0,.45))}
+@keyframes lkJelly{0%,100%{transform:scale(1,1)}30%{transform:scale(1.25,.75)}40%{transform:scale(.75,1.25)}50%{transform:scale(1.15,.85)}65%{transform:scale(.95,1.05)}75%{transform:scale(1.05,.95)}}
+@keyframes lkShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px) rotate(-6deg)}40%{transform:translateX(4px) rotate(6deg)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+@keyframes lkPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+/* links moving on their own (icon only, so hover still works) */
+.socials[class*=" ia-"] .soc > :first-child{animation-delay:calc(var(--i,0)*.18s)}
+.socials.ia-float .soc > :first-child{animation:lkIFloat 3s ease-in-out infinite;animation-delay:calc(var(--i,0)*.25s)}
+.socials.ia-wave .soc > :first-child{animation:lkIWave 1.8s ease-in-out infinite;animation-delay:calc(var(--i,0)*.15s)}
+.socials.ia-pulse .soc > :first-child{animation:lkPulse 2s ease-in-out infinite;animation-delay:calc(var(--i,0)*.2s)}
+.socials.ia-breathe .soc > :first-child{animation:lkIBreathe 2.6s ease-in-out infinite;animation-delay:calc(var(--i,0)*.2s)}
+.socials.ia-spin .soc > :first-child{animation:lkISpin 8s linear infinite}
+.socials.ia-swing .soc > :first-child{animation:lkISwing 2.4s ease-in-out infinite;animation-delay:calc(var(--i,0)*.2s)}
+.socials.ia-jelly .soc > :first-child{animation:lkIJelly 4s ease-in-out infinite;animation-delay:calc(var(--i,0)*.3s)}
+.socials.ia-shine .soc > :first-child{animation:lkIShine 3.5s ease-in-out infinite;animation-delay:calc(var(--i,0)*.25s)}
+@keyframes lkIFloat{0%,100%{translate:0 0}50%{translate:0 -5px}}
+@keyframes lkIWave{0%,60%,100%{translate:0 0}30%{translate:0 -7px}}
+@keyframes lkIBreathe{0%,100%{filter:drop-shadow(0 0 2px var(--lc,var(--accent)))}50%{filter:drop-shadow(0 0 12px var(--lc,var(--accent))) drop-shadow(0 0 20px var(--lc,var(--accent)))}}
+@keyframes lkISpin{to{rotate:360deg}}
+@keyframes lkISwing{0%,100%{rotate:-10deg}50%{rotate:10deg}}
+@keyframes lkIJelly{0%,80%,100%{scale:1 1}85%{scale:1.2 .8}90%{scale:.85 1.15}95%{scale:1.05 .95}}
+@keyframes lkIShine{0%,70%,100%{filter:brightness(1)}80%{filter:brightness(1.9) drop-shadow(0 0 8px #fff)}}
+/* thump to the beat (music visualizer) */
+body.vp-name #name,body.vp-all #name{scale:calc(1 + var(--vbeat,0)*.09)}
+body.vp-cards .card,body.vp-all .card{scale:calc(1 + var(--vbeat,0)*.025)}
+body.vp-player .player,body.vp-all .player{scale:calc(1 + var(--vbeat,0)*.04)}
 /* ---------- about cards ---------- */
 #aboutCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 16px}
 #aboutCards .about{display:block;padding:10px 12px;font-size:12.5px}
@@ -469,17 +531,6 @@ body.bgPaused *,body.bgPaused *::before,body.bgPaused *::after{animation-play-st
 #name.nf-typing::after{content:"";display:inline-block;width:.08em;height:.9em;margin-left:.06em;background:var(--accent);vertical-align:-.05em;animation:nfCaret .7s steps(1) infinite}
 @keyframes nfCaret{50%{opacity:0}}
 /* ---------- entry animations (improves the built-in rise) ---------- */
-#profile.ent-fade{transform:none}
-#profile.ent-zoom{transform:scale(.6)}
-#profile.ent-slide{transform:translateX(-60px)}
-#profile.ent-none{opacity:1;transform:none}
-#profile.ent-fade.show,#profile.ent-zoom.show,#profile.ent-slide.show{transform:none}
-#profile.ent-glitch.show{animation:entGlitch .9s steps(2) both}
-@keyframes entGlitch{0%{opacity:0;transform:translateX(-12px) skewX(12deg);filter:hue-rotate(90deg)}30%{opacity:1;transform:translateX(10px) skewX(-8deg)}55%{transform:translateX(-6px);filter:hue-rotate(-60deg)}80%{transform:translateX(3px);filter:none}100%{opacity:1;transform:none}}
-#profile.ent-cards{opacity:1;transform:none}
-#profile.ent-cards > *{opacity:0}
-#profile.ent-cards.show > *{animation:entDrop .6s cubic-bezier(.2,.9,.3,1.2) both;animation-delay:calc(var(--ei,0)*.13s)}
-@keyframes entDrop{from{opacity:0;transform:translateY(-26px) scale(.96)}to{opacity:1;transform:none}}
 /* ---------- visualizer ring + YouTube background ---------- */
 #pCover{box-shadow:0 0 calc(var(--vlvl,0)*26px) calc(var(--vlvl,0)*6px) var(--accent);scale:calc(1 + var(--vlvl,0)*.07)}
 #ytBg{position:fixed;top:50%;left:50%;width:100vw;height:56.25vw;min-height:100vh;min-width:177.78vh;transform:translate(-50%,-50%);border:0;z-index:0;pointer-events:none}
@@ -505,6 +556,8 @@ body.ytbg #bgCanvas,body.ytbg #bgVideo,body.ytbg #bgImage{display:none!important
 #peBox details{border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 9px;margin:6px 0}#peBox summary{cursor:pointer;font-weight:700}
 #peBox input[type=range]{width:100%;accent-color:var(--accent)}#peBox .peHint{color:#aaa;text-align:center;margin:2px 0}
 #peBox .wbtn{display:block;width:100%;margin-top:6px;padding:8px;border-radius:8px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}#peBox .wbtn.go{background:var(--accent);color:#111}
+
+#profile.entJS,#profile.entJS.show{transition:opacity 0s,transform .15s ease-out}
 </style>
 </head>
 <body data-theme="sakura">
@@ -2024,14 +2077,13 @@ async function loadViews(){
   }catch(e){ _views = null; }
   renderViews();
 }
-const VC_EYE = '<svg class="vcEye" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>';   // default view-counter icon (a custom Icon in ✏️ → Site still overrides it)
 function renderViews(){
   let el = $('viewCount');
   const c = SITE.counter || {};
   if(!c.on || _views == null){ if(el) el.remove(); return; }
   if(!el){ el = document.createElement('div'); el.id = 'viewCount'; }
   el.className = 'vc-' + (c.place || 'corner-left');
-  el.innerHTML = `<span class="vcIcon">${c.icon ? String(c.icon).replace(/</g,'&lt;') : VC_EYE}</span><b>${Number(_views).toLocaleString()}</b>${c.label ? `<span>${String(c.label).replace(/</g,'&lt;')}</span>` : ''}`;
+  el.innerHTML = `<span>${c.icon ?? '👁'}</span><b>${Number(_views).toLocaleString()}</b>${c.label ? `<span>${String(c.label).replace(/</g,'&lt;')}</span>` : ''}`;
   if(c.place === 'under-bio'){ const bio = document.querySelector('#profile .bio') || $('jp'); if(bio && el.previousElementSibling !== bio) bio.after(el); }
   else if(el.parentNode !== document.body) document.body.appendChild(el);
 }
@@ -2229,13 +2281,16 @@ function renderLinks(){
   const nav = $('socials'); if(!nav) return;
   const S = SITE.linkStyle || {}, list = currentLinks();
   nav.querySelectorAll('.soc').forEach(a => a.remove());
-  nav.className = 'socials lk-' + (S.style || 'plain') + ' hv-' + (S.hover || 'lift') + (S.label === false ? ' noTip' : '');
+  const TXT = ['buttons','pill','grid2','tiles'].includes(S.style);
+  nav.className = 'socials lk-' + (S.style || 'plain') + ' hv-' + (S.hover || 'lift') + (S.label === false ? ' noTip' : '') + (TXT ? ' lkTxt' : '')
+    + (S.idle ? ' ia-' + S.idle : '') + (S.bg ? ' lbg-' + S.bg : '') + (S.size ? ' lkSized' : '') + (S.orn === false ? ' noOrn' : '');
+  nav.style.setProperty('--lks', (S.size || 30) + 'px'); nav.style.gap = S.gap != null ? S.gap + 'px' : '';
   const sx2 = $('sx2');
   list.forEach(l => {
     const a = document.createElement('a'); a.className = 'soc'; a.href = l.url || '#'; a.target = '_blank'; a.rel = 'noopener';
-    a.setAttribute('aria-label', l.title || ''); a.style.setProperty('--lc', linkColor(l, S));
-    if(l.icon && l.icon.hex) a.style.setProperty('--brand', '#' + l.icon.hex);
-    a.innerHTML = linkIcon(l) + (S.style === 'buttons' ? `<span class="btxt">${escA(l.title)}</span>` : '') + `<span class="tip">${escA(l.label || l.title)}</span>`;
+    a.setAttribute('aria-label', l.title || ''); a.style.setProperty('--lc', linkColor(l, S)); a.style.setProperty('--i', nav.querySelectorAll('.soc').length);
+    { const hx = (l.icon && l.icon.hex) || BRAND_HEX[(l.icon && l.icon.k) || l.type]; if(hx) a.style.setProperty('--brand', '#' + hx); }
+    a.innerHTML = linkIcon(l) + (TXT ? `<span class="btxt">${escA(l.title)}</span>` : '') + `<span class="tip">${escA(l.label || l.title)}</span>`;
     nav.insertBefore(a, sx2);
   });
 }
@@ -2263,11 +2318,49 @@ function nameFx(kind){
 }
 
 /* ---------- entry animation (site-wide) ---------- */
+const ENTRY = {
+  rise:   { f:[{ opacity:0, transform:'translateY(30px) scale(.97)' }, { opacity:1, transform:'none' }], d:1100, e:'cubic-bezier(.2,.8,.2,1)' },
+  fade:   { f:[{ opacity:0 }, { opacity:1 }], d:1200, e:'ease' },
+  zoom:   { f:[{ opacity:0, transform:'scale(.6)' }, { opacity:1, transform:'none' }], d:900, e:'cubic-bezier(.2,.9,.3,1.1)' },
+  zoomout:{ f:[{ opacity:0, transform:'scale(1.4)' }, { opacity:1, transform:'none' }], d:900, e:'cubic-bezier(.2,.8,.2,1)' },
+  slide:  { f:[{ opacity:0, transform:'translateX(-80px)' }, { opacity:1, transform:'none' }], d:900, e:'cubic-bezier(.2,.8,.2,1)' },
+  slider: { f:[{ opacity:0, transform:'translateX(80px)' }, { opacity:1, transform:'none' }], d:900, e:'cubic-bezier(.2,.8,.2,1)' },
+  drop:   { f:[{ opacity:0, transform:'translateY(-120px)' }, { opacity:1, transform:'translateY(8px)', offset:.7 }, { opacity:1, transform:'none' }], d:1000, e:'ease-out' },
+  bounce: { f:[{ opacity:0, transform:'scale(.3)' }, { opacity:1, transform:'scale(1.06)', offset:.55 }, { transform:'scale(.96)', offset:.75 }, { opacity:1, transform:'none' }], d:1000, e:'ease-out' },
+  elastic:{ f:[{ opacity:0, transform:'scaleX(.4) scaleY(1.4)' }, { opacity:1, transform:'scaleX(1.15) scaleY(.88)', offset:.4 }, { transform:'scaleX(.95) scaleY(1.05)', offset:.65 }, { transform:'scaleX(1.02) scaleY(.98)', offset:.85 }, { opacity:1, transform:'none' }], d:1100, e:'ease-out' },
+  flip:   { f:[{ opacity:0, transform:'perspective(900px) rotateX(80deg)' }, { opacity:1, transform:'none' }], d:1000, e:'cubic-bezier(.2,.8,.2,1)' },
+  flipy:  { f:[{ opacity:0, transform:'perspective(900px) rotateY(-90deg)' }, { opacity:1, transform:'none' }], d:1000, e:'cubic-bezier(.2,.8,.2,1)' },
+  spin:   { f:[{ opacity:0, transform:'rotate(-200deg) scale(.3)' }, { opacity:1, transform:'none' }], d:1100, e:'cubic-bezier(.2,.8,.2,1)' },
+  swing:  { f:[{ opacity:0, transform:'perspective(900px) rotateX(-90deg)', transformOrigin:'top' }, { opacity:1, transform:'perspective(900px) rotateX(18deg)', transformOrigin:'top', offset:.55 }, { transform:'perspective(900px) rotateX(-8deg)', transformOrigin:'top', offset:.8 }, { opacity:1, transform:'none', transformOrigin:'top' }], d:1200, e:'ease-out' },
+  unfold: { f:[{ opacity:0, transform:'scaleY(0)', transformOrigin:'top' }, { opacity:1, transform:'none', transformOrigin:'top' }], d:800, e:'cubic-bezier(.2,.8,.2,1)' },
+  blur:   { f:[{ opacity:0, filter:'blur(24px)', transform:'scale(1.05)' }, { opacity:1, filter:'blur(0)', transform:'none' }], d:1200, e:'ease-out' },
+  iris:   { f:[{ clipPath:'circle(0% at 50% 50%)' }, { clipPath:'circle(150% at 50% 50%)' }], d:1100, e:'ease-in-out' },
+  curtain:{ f:[{ clipPath:'inset(0 50% 0 50%)' }, { clipPath:'inset(0 0 0 0)' }], d:1000, e:'cubic-bezier(.6,0,.2,1)' },
+  wipe:   { f:[{ clipPath:'inset(0 0 100% 0)' }, { clipPath:'inset(0 0 0 0)' }], d:1000, e:'cubic-bezier(.6,0,.2,1)' },
+  glitch: { f:[{ opacity:0, transform:'translate(-10px,0) skewX(12deg)', filter:'hue-rotate(90deg)' }, { opacity:1, transform:'translate(8px,-3px)', filter:'invert(.3)', offset:.2 }, { opacity:.4, transform:'translate(-5px,2px) skewX(-8deg)', offset:.4 }, { opacity:1, transform:'translate(3px,0)', filter:'saturate(3)', offset:.6 }, { opacity:.7, transform:'translate(-2px,1px)', offset:.8 }, { opacity:1, transform:'none', filter:'none' }], d:900, e:'steps(1)' },
+  neon:   { f:[{ opacity:0 }, { opacity:1, offset:.1 }, { opacity:0, offset:.2 }, { opacity:1, offset:.3 }, { opacity:.2, offset:.45 }, { opacity:1, offset:.6 }, { opacity:1 }], d:1200, e:'steps(1)' },
+  cards:  { f:[{ opacity:0, transform:'translateY(-40px) scale(.95)' }, { opacity:1, transform:'none' }], d:600, e:'cubic-bezier(.2,.9,.3,1.2)', kids:.13 },
+  cardsup:{ f:[{ opacity:0, transform:'translateY(40px)' }, { opacity:1, transform:'none' }], d:700, e:'cubic-bezier(.2,.8,.2,1)', kids:.12 },
+  cardspop:{ f:[{ opacity:0, transform:'scale(.4)' }, { opacity:1, transform:'scale(1.06)', offset:.7 }, { opacity:1, transform:'none' }], d:600, e:'ease-out', kids:.11 },
+  cardsside:{ f:[{ opacity:0, transform:'translateX(var(--ex))' }, { opacity:1, transform:'none' }], d:700, e:'cubic-bezier(.2,.8,.2,1)', kids:.12, alt:true },
+  cardsflip:{ f:[{ opacity:0, transform:'perspective(700px) rotateX(-90deg)' }, { opacity:1, transform:'none' }], d:700, e:'cubic-bezier(.2,.8,.2,1)', kids:.13 },
+  none:   null
+};
+function playEntry(){
+  const p = $('profile'); if(!p || !p.animate) return;
+  const en = SITE.entry || {}, E = ENTRY[en.style || 'rise'], sp = en.speed || 1;
+  [p, ...p.children].forEach(el => el.getAnimations().forEach(a => { if(a.id === 'entry') a.cancel(); }));
+  if(!E) return;
+  const go = (el, delay, frames) => { const a = el.animate(frames, { duration: E.d * sp, delay, easing: E.e, fill: 'backwards' }); a.id = 'entry'; };
+  if(E.kids) [...p.children].forEach((c, i) => go(c, i * E.kids * 1000 * sp, E.alt ? E.f.map(k => k.transform ? { ...k, transform: k.transform.replace('var(--ex)', (i % 2 ? '' : '-') + '90px') } : k) : E.f));
+  else go(p, 0, E.f);
+}
 function applyEntry(){
-  const p = $('profile'), st = (SITE.entry && SITE.entry.style) || 'rise';
-  p.classList.remove('ent-fade','ent-zoom','ent-slide','ent-glitch','ent-cards','ent-none');
-  if(st !== 'rise') p.classList.add('ent-' + st);
-  [...p.children].forEach((c, i) => c.style.setProperty('--ei', i));
+  const p = $('profile'); if(!p) return;
+  p.classList.add('entJS');
+  if(!p._entObs){ let was = p.classList.contains('show');
+    p._entObs = new MutationObserver(() => { const now = p.classList.contains('show'); if(now && !was) playEntry(); was = now; });
+    p._entObs.observe(p, { attributes: true, attributeFilter: ['class'] }); }
 }
 
 /* ---------- sounds (site-wide) ---------- */
@@ -2324,29 +2417,85 @@ function drawTrail(c){
 }
 
 /* ---------- music visualizer (per theme) ---------- */
-var vizCfg = null, _an = null, _vizData = null;
+var vizCfg = null, _an = null, _vizData = null, _vizTime = null, _peaks = [], _beatAvg = 0;
 function vizHook(){
   if(_an || !vizCfg || !vizCfg.on || audio.paused) return;
   try{ const u = new URL(audio.currentSrc || audio.src, location.href); if(u.origin !== location.origin) return; }catch(e){ return; }
   const c = ac(); if(!c) return;
-  try{ const src = c.createMediaElementSource(audio); _an = c.createAnalyser(); _an.fftSize = 128; _an.smoothingTimeConstant = .8;
-    src.connect(_an); _an.connect(c.destination); _vizData = new Uint8Array(_an.frequencyBinCount); }catch(e){ _an = null; }
+  try{ const src = c.createMediaElementSource(audio); _an = c.createAnalyser(); _an.fftSize = 512; _an.smoothingTimeConstant = .8;
+    src.connect(_an); _an.connect(c.destination); _vizData = new Uint8Array(_an.frequencyBinCount); _vizTime = new Uint8Array(_an.fftSize); }catch(e){ _an = null; }
 }
 audio.addEventListener('play', () => { if(_actx && _actx.state === 'suspended') _actx.resume(); vizHook(); });
 addEventListener('pointerdown', () => { if(vizCfg && vizCfg.on && !audio.paused) vizHook(); }, true);
+function vizOff(){ const cov = $('pCover'); if(cov) cov.style.removeProperty('--vlvl'); document.body.style.removeProperty('--vbeat'); }
 function drawViz(c, W, H){
-  const cov = $('pCover');
-  if(!vizCfg || !vizCfg.on || !_an || audio.paused){ if(cov) cov.style.removeProperty('--vlvl'); return; }
+  const V = vizCfg || {}, cov = $('pCover');
+  if(!V.on || !_an || audio.paused){ vizOff(); return; }
+  _an.smoothingTimeConstant = V.smooth ?? .8;
   _an.getByteFrequencyData(_vizData);
-  const n = _vizData.length, col = vizCfg.color || T.accent, st = vizCfg.style || 'bars';
-  let sum = 0; for(let i = 0; i < n; i++) sum += _vizData[i];
-  if((st === 'ring' || st === 'both') && cov) cov.style.setProperty('--vlvl', (sum / n / 255 * 1.6).toFixed(3));
-  if(st === 'bars' || st === 'both'){
-    const hMax = H * (vizCfg.height ?? .18), bw = W / n;
-    c.fillStyle = col; c.globalAlpha = .75;
-    for(let i = 0; i < n; i++){ const h = Math.max(2, _vizData[i] / 255 * hMax); c.fillRect(i*bw + 1, H - h, bw - 2, h); }
-    c.globalAlpha = 1;
+  const st = V.style || 'bars', sens = V.sens ?? 1, N = Math.max(8, Math.min(160, Math.round(V.count || 48)));
+  const nb = _vizData.length, use = Math.floor(nb * .7), vals = new Array(N);
+  for(let i = 0; i < N; i++){ const a = Math.floor(Math.pow(i / N, 1.7) * use), b = Math.max(a + 1, Math.floor(Math.pow((i + 1) / N, 1.7) * use));
+    let m = 0; for(let k = a; k < b; k++) if(_vizData[k] > m) m = _vizData[k]; vals[i] = Math.min(1, m / 255 * sens); }
+  let sum = 0; for(let i = 0; i < N; i++) sum += vals[i]; const lvl = sum / N;
+  let bass = 0; for(let k = 0; k < 6; k++) bass += _vizData[k]; bass = Math.min(1, bass / 6 / 255 * sens);
+  _beatAvg = _beatAvg * .93 + bass * .07; const beat = Math.max(0, Math.min(1, (bass - _beatAvg) * 5 + bass * .2));
+  // ring around the player picture
+  if(cov){ if(st === 'ring' || st === 'both' || V.ring) cov.style.setProperty('--vlvl', Math.min(1.6, lvl * 1.6).toFixed(3)); else cov.style.removeProperty('--vlvl'); }
+  // beat pulse on the page
+  if(V.pulse && V.pulse !== 'none') document.body.style.setProperty('--vbeat', beat.toFixed(3)); else document.body.style.removeProperty('--vbeat');
+  if(st === 'ring') return;
+  const col = V.color || T.accent, col2 = V.color2 || T.accent2 || col, cm = V.colors || 'one', t = performance.now() / 1000;
+  const hMax = H * (V.height ?? .18), gap = V.gap ?? .25, round = !!V.round, pos = V.pos || 'bottom';
+  c.save(); c.globalAlpha = V.alpha ?? .75;
+  if(V.glow){ c.shadowBlur = V.glow; c.shadowColor = cm === 'one' ? col : (cm === 'theme' ? T.accent : col2); }
+  if(V.pulse === 'bg' || V.pulse === 'all'){ c.save(); c.shadowBlur = 0; c.globalAlpha = beat * .14; c.fillStyle = col; c.fillRect(0, 0, W, H); c.restore(); }
+  let grad = null;
+  if(cm === 'fade' || cm === 'theme'){ grad = c.createLinearGradient(0, 0, W, 0); grad.addColorStop(0, cm === 'theme' ? T.accent : col); grad.addColorStop(1, cm === 'theme' ? (T.accent2 || T.accent) : col2); }
+  const fill = (i, n) => { if(cm === 'rainbow' || cm === 'moving') c.fillStyle = c.strokeStyle = `hsl(${(i / n * 320 + (cm === 'moving' ? t * 60 : 0)) % 360},90%,62%)`; else c.fillStyle = c.strokeStyle = grad || col; };
+  const bar = (x, y, w, h) => { if(round && c.roundRect){ c.beginPath(); c.roundRect(x, y, w, h, Math.min(w / 2, 8)); c.fill(); } else c.fillRect(x, y, w, h); };
+  const peak = (i, v) => { _peaks[i] = Math.max(v, (_peaks[i] || 0) - .012); return _peaks[i]; };
+  const edges = pos === 'both' ? [false, true] : [pos === 'top'];
+  if(st === 'bars' || st === 'both' || st === 'blocks' || st === 'dots'){
+    const bw = W / N, w = Math.max(1, bw * (1 - gap));
+    for(let i = 0; i < N; i++){ fill(i, N); const v = vals[i], h = Math.max(2, v * hMax), x = i * bw + (bw - w) / 2;
+      for(const top of edges){
+        if(st === 'blocks'){ const sh = Math.max(4, w * .5), sg = 3, cnt = Math.round(h / (sh + sg)); for(let k = 0; k < cnt; k++) bar(x, top ? k * (sh + sg) : H - (k + 1) * (sh + sg), w, sh); }
+        else if(st === 'dots'){ const r = Math.max(2, w * .4); c.beginPath(); c.arc(x + w / 2, top ? h : H - h, r, 0, 7); c.fill(); }
+        else bar(x, top ? 0 : H - h, w, h);
+        if(V.peaks){ const p = peak(i, v) * hMax; c.fillRect(x, top ? p + 2 : H - p - 4, w, 2); }
+      } }
+  } else if(st === 'mirror'){
+    const half = N, bw = W / 2 / half, w = Math.max(1, bw * (1 - gap));
+    for(let i = 0; i < half; i++){ fill(i, half); const v = vals[i], h = Math.max(2, v * hMax);
+      for(const top of edges){ const y = top ? 0 : H - h; bar(W / 2 + i * bw + (bw - w) / 2, y, w, h); bar(W / 2 - (i + 1) * bw + (bw - w) / 2, y, w, h);
+        if(V.peaks){ const p = peak(i, v) * hMax, py = top ? p + 2 : H - p - 4; c.fillRect(W / 2 + i * bw, py, w, 2); c.fillRect(W / 2 - (i + 1) * bw, py, w, 2); } } }
+  } else if(st === 'line' || st === 'wave'){
+    let pts = [];
+    if(st === 'wave'){ _an.getByteTimeDomainData(_vizTime); const n = _vizTime.length; for(let k = 0; k < n; k += 4) pts.push([k / (n - 4) * W, (_vizTime[k] - 128) / 128 * sens]); }
+    else for(let i = 0; i < N; i++) pts.push([i / (N - 1) * W, vals[i]]);
+    for(const top of edges){
+      const base = st === 'wave' ? (top ? hMax / 2 : H - hMax / 2) : (top ? 0 : H), dir = top ? 1 : -1;
+      const yOf = v => st === 'wave' ? base + v * hMax / 2 : base + dir * Math.max(2, v * hMax);
+      c.beginPath(); c.moveTo(pts[0][0], yOf(pts[0][1]));
+      for(let k = 1; k < pts.length; k++){ const [x0, v0] = pts[k - 1], [x1, v1] = pts[k]; c.quadraticCurveTo(x0, yOf(v0), (x0 + x1) / 2, (yOf(v0) + yOf(v1)) / 2); }
+      c.lineTo(pts[pts.length - 1][0], yOf(pts[pts.length - 1][1]));
+      fill(0, 1); if(cm === 'rainbow' || cm === 'moving'){ const g = c.createLinearGradient(0, 0, W, 0); for(let k = 0; k <= 6; k++) g.addColorStop(k / 6, `hsl(${(k / 6 * 320 + (cm === 'moving' ? t * 60 : 0)) % 360},90%,62%)`); c.strokeStyle = c.fillStyle = g; }
+      c.lineWidth = V.thick || 3; c.lineJoin = 'round'; c.stroke();
+      if(st === 'line' && V.fillArea !== false){ c.lineTo(W, base); c.lineTo(0, base); c.closePath(); c.globalAlpha *= .35; c.fill(); c.globalAlpha = V.alpha ?? .75; }
+    }
+  } else if(st === 'sides'){
+    const bh = H / N, hh = Math.max(1, bh * (1 - gap)), wMax = W * (V.height ?? .18) * .6;
+    for(let i = 0; i < N; i++){ fill(i, N); const v = vals[N - 1 - i], w = Math.max(2, v * wMax), y = i * bh + (bh - hh) / 2; bar(0, y, w, hh); bar(W - w, y, w, hh); }
+  } else if(st === 'circle'){
+    let cx = W / 2, cy = H / 2;
+    if(V.center === 'player' && cov){ const r = cov.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + r.height / 2; }
+    const R = (V.radius ?? 120) * (1 + beat * .08), len = hMax * .8, M = N * 2, w = Math.max(1.5, 2 * Math.PI * R / M * (1 - gap));
+    c.lineWidth = w; c.lineCap = round ? 'round' : 'butt';
+    for(let i = 0; i < M; i++){ const v = vals[i < N ? i : M - 1 - i], a = i / M * Math.PI * 2 - Math.PI / 2, l = Math.max(2, v * len);
+      fill(i, M); c.beginPath(); c.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R); c.lineTo(cx + Math.cos(a) * (R + l), cy + Math.sin(a) * (R + l)); c.stroke(); }
   }
+  c.restore();
 }
 
 /* ---------- YouTube background (per theme) ---------- */
@@ -2365,6 +2514,7 @@ function applyYT(v){
 function plusApply(key){
   const e = EDITS[key] || {};
   trailCfg = e.trail || null; vizCfg = e.viz || null;
+  ['vp-name','vp-cards','vp-player','vp-char','vp-all','vp-bg'].forEach(k => document.body.classList.remove(k)); if(vizCfg && vizCfg.on && vizCfg.pulse && vizCfg.pulse !== 'none') document.body.classList.add('vp-' + vizCfg.pulse); else vizOff();
   if(vizCfg && vizCfg.on) vizHook();
   applyYT(e.ytBg);
   nameFx((e.look || {}).nameAnim || '');
@@ -2571,7 +2721,7 @@ if(isOwner){
       <hr><b>👁 View counter</b>
       ${chk('counter.on','Show the view counter',false)}
       ${C.on ? `<p>Right now: <b style="display:inline">${_views == null ? '…' : Number(_views).toLocaleString()}</b> views (each visitor counts once every 6 hours; your #owner visits don't count).</p>
-      <label class="ef"><span>Icon</span><input type="text" data-s="counter.icon" value="${esc(C.icon ?? '')}" placeholder="blank = eye icon" maxlength="4"></label>
+      <label class="ef"><span>Icon</span><input type="text" data-s="counter.icon" value="${esc(C.icon ?? '👁')}" maxlength="4"></label>
       <label class="ef"><span>Word after the number</span><input type="text" data-s="counter.label" value="${esc(C.label ?? '')}" placeholder="views" maxlength="20"></label>
       <label class="ef"><span>Where</span><select data-s="counter.place">${Object.entries({ 'corner-left':'Bottom-left corner', 'corner-right':'Bottom-right corner', 'under-bio':'Under the typewriter line' }).map(([k,v]) => `<option value="${k}" ${(C.place || 'corner-left') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>` : ''}
       <hr><b>💬 Discord extras</b>
@@ -2900,9 +3050,14 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       <button class="wbtn go" id="lkAdd">＋ Add a link</button>
       ${pickFor === -1 ? pickerHTML() : ''}
       <hr><b>Look of all links</b>
-      <label class="ef"><span>Style</span><select data-s="linkStyle.style">${Object.entries({ plain:'Plain icons (like now)', round:'Round badges', square:'Square badges', glow:'Glowing icons', buttons:'Full-width buttons with names' }).map(([k,v]) => `<option value="${k}" ${(S.style || 'plain') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="ef"><span>Style</span><select data-s="linkStyle.style">${Object.entries({ plain:'Plain icons (like now)', round:'Round badges', square:'Square badges', outline:'Outlined circles', neon:'Neon outlined squares', hex:'Hexagons', glass:'Big glass tiles', bubble:'Color bubbles', glow:'Glowing icons', tiles:'Tiles with names under', pill:'Pills with names', buttons:'Full-width buttons with names', grid2:'2-column buttons with names' }).map(([k,v]) => `<option value="${k}" ${(S.style || 'plain') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      ${['round','square','outline','neon','hex','glass','bubble','tiles','pill','buttons','grid2'].includes(S.style) ? `<label class="ef"><span>Badge color</span><select data-s="linkStyle.bg">${Object.entries({ '':'See-through card (like now)', accent:'Theme color', brand:'Each brand\'s color', dark:'Dark', none:'No background' }).map(([k,v]) => `<option value="${k}" ${(S.bg || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>` : ''}
+      <label class="ef"><span>Icon size</span><input type="range" data-s="linkStyle.size" min="16" max="56" step="1" value="${S.size ?? 30}"></label>
+      <label class="ef"><span>Space between</span><input type="range" data-s="linkStyle.gap" min="0" max="40" step="1" value="${S.gap ?? 12}"></label>
+      <label class="ef"><span>Moves on its own</span><select data-s="linkStyle.idle">${Object.entries({ '':'Still (like now)', float:'Float (one after another)', wave:'Wave', pulse:'Pulse', breathe:'Glow breathing', spin:'Slow spin', swing:'Swing', jelly:'Jelly now and then', shine:'Shine sweep' }).map(([k,v]) => `<option value="${k}" ${(S.idle || '') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="ef"><span>Little decorations on the ends</span><input type="checkbox" data-s="linkStyle.orn" ${S.orn === false ? '' : 'checked'}></label>
       <label class="ef"><span>Icon color</span><span class="pair"><select data-s="linkStyle.colorMode">${Object.entries({ theme:'Theme color (like now)', brand:'Each brand\'s real color', custom:'Pick a color…' }).map(([k,v]) => `<option value="${k}" ${((S.color && S.color[0] === '#') ? 'custom' : (S.color || 'theme')) === k ? 'selected' : ''}>${v}</option>`).join('')}</select>${S.color && S.color[0] === '#' ? `<input type="color" data-s="linkStyle.color" value="${toHex(S.color)}">` : ''}</span></label>
-      <label class="ef"><span>When you hover</span><select data-s="linkStyle.hover">${Object.entries({ lift:'Lift (like now)', spin:'Spin', bounce:'Bounce', glow:'Glow', none:'Nothing' }).map(([k,v]) => `<option value="${k}" ${(S.hover || 'lift') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+      <label class="ef"><span>When you hover</span><select data-s="linkStyle.hover">${Object.entries({ lift:'Lift (like now)', grow:'Grow', spin:'Spin', flip:'Flip (3D)', bounce:'Bounce', jelly:'Jelly', shake:'Shake', tilt:'Tilt', pulse:'Pulse', glow:'Glow', brand:'Turn brand color', float:'Float up with shadow', none:'Nothing' }).map(([k,v]) => `<option value="${k}" ${(S.hover || 'lift') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
       <label class="ef"><span>Show labels on hover</span><input type="checkbox" data-s="linkStyle.label" ${S.label === false ? '' : 'checked'}></label>
       <button class="wbtn" id="lkReset">↺ Go back to the original links</button>
       <hr><b>📝 About me cards</b>
@@ -2939,10 +3094,27 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
           <label class="ef"><span>How long it lasts</span><input type="range" data-f="trail.spd" data-k="num" min=".4" max="2.5" step=".1" value="${tr.spd ?? 1}"></label>
           <label class="ef"><span>Color</span><input type="color" data-f="trail.color" value="${toHex(tr.color || T.accent)}"></label></div>` : ''}</div>
         <div class="fx ${vz.on ? 'on' : ''}"><label class="fxh"><input type="checkbox" data-f="viz.on" data-k="bool" ${vz.on ? 'checked' : ''}> 🎚️ Music visualizer</label>
-        ${vz.on ? `<div class="fxb"><label class="ef"><span>Style</span><select data-f="viz.style">${Object.entries({ bars:'Bars along the bottom', ring:'Ring around the player picture', both:'Both' }).map(([k,v]) => `<option value="${k}" ${(vz.style || 'bars') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
-          <label class="ef"><span>Bar height</span><input type="range" data-f="viz.height" data-k="num" min=".05" max=".45" step=".01" value="${vz.height ?? .18}"></label>
-          <label class="ef"><span>Color</span><input type="color" data-f="viz.color" value="${toHex(vz.color || T.accent)}"></label>
-          <p>Starts moving once a song is playing.</p></div>` : ''}</div>` + _eff(); };
+        ${vz.on ? (() => { const S2 = (f, opts, val) => `<select data-f="${f}">${Object.entries(opts).map(([k,v]) => `<option value="${k}" ${val === k ? 'selected' : ''}>${v}</option>`).join('')}</select>`, st = vz.style || 'bars', cm = vz.colors || 'one', edge = ['bars','both','mirror','blocks','dots','line','wave'].includes(st), barsy = ['bars','both','mirror','blocks','dots','sides','circle'].includes(st);
+          return `<div class="fxb"><label class="ef"><span>Style</span>${S2('viz.style', { bars:'▮ Bars', mirror:'◧ Mirrored bars (from the middle)', blocks:'▦ Retro blocks (LED)', dots:'• Dots', line:'〰 Smooth line', wave:'∿ Sound wave', sides:'▯ Bars on both sides', circle:'◎ Circle of bars', ring:'○ Ring around the player picture only', both:'Bars + ring' }, st)}</label>
+          ${edge ? `<label class="ef"><span>Where</span>${S2('viz.pos', { bottom:'Bottom', top:'Top', both:'Top and bottom' }, vz.pos || 'bottom')}</label>` : ''}
+          ${st === 'circle' ? `<label class="ef"><span>Circle around</span>${S2('viz.center', { screen:'Middle of the screen', player:'The music player picture' }, vz.center || 'screen')}</label>
+            <label class="ef"><span>Circle size</span><input type="range" data-f="viz.radius" data-k="num" min="30" max="400" step="5" value="${vz.radius ?? 120}"></label>` : ''}
+          ${st !== 'ring' ? `<label class="ef"><span>${st === 'sides' ? 'Bar length' : 'Height'}</span><input type="range" data-f="viz.height" data-k="num" min=".03" max=".6" step=".01" value="${vz.height ?? .18}"></label>` : ''}
+          ${barsy || st === 'line' ? `<label class="ef"><span>How many bars</span><input type="range" data-f="viz.count" data-k="num" min="8" max="160" step="2" value="${vz.count ?? 48}"></label>` : ''}
+          ${barsy ? `<label class="ef"><span>Space between bars</span><input type="range" data-f="viz.gap" data-k="num" min="0" max=".85" step=".05" value="${vz.gap ?? .25}"></label>
+            <label class="ef"><span>Rounded</span><input type="checkbox" data-f="viz.round" data-k="bool" ${vz.round ? 'checked' : ''}></label>` : ''}
+          ${['bars','both','mirror','blocks','dots'].includes(st) ? `<label class="ef"><span>Falling peak caps</span><input type="checkbox" data-f="viz.peaks" data-k="bool" ${vz.peaks ? 'checked' : ''}></label>` : ''}
+          ${st === 'line' || st === 'wave' ? `<label class="ef"><span>Line thickness</span><input type="range" data-f="viz.thick" data-k="num" min="1" max="10" step=".5" value="${vz.thick ?? 3}"></label>` : ''}
+          ${st === 'line' ? `<label class="ef"><span>Fill under the line</span><input type="checkbox" data-f="viz.fillArea" data-k="bool" ${vz.fillArea === false ? '' : 'checked'}></label>` : ''}
+          <label class="ef"><span>Colors</span>${S2('viz.colors', { one:'One color', fade:'Fade between 2 colors', theme:'Theme colors', rainbow:'Rainbow', moving:'Moving rainbow' }, cm)}</label>
+          ${cm === 'one' || cm === 'fade' ? `<label class="ef"><span>Color${cm === 'fade' ? 's' : ''}</span><span class="pair"><input type="color" data-f="viz.color" value="${toHex(vz.color || T.accent)}">${cm === 'fade' ? `<input type="color" data-f="viz.color2" value="${toHex(vz.color2 || T.accent2 || T.accent)}">` : ''}</span></label>` : ''}
+          <label class="ef"><span>See-through</span><input type="range" data-f="viz.alpha" data-k="num" min=".1" max="1" step=".05" value="${vz.alpha ?? .75}"></label>
+          <label class="ef"><span>Glow</span><input type="range" data-f="viz.glow" data-k="num" min="0" max="40" step="1" value="${vz.glow ?? 0}"></label>
+          <label class="ef"><span>Sensitivity</span><input type="range" data-f="viz.sens" data-k="num" min=".4" max="2.5" step=".05" value="${vz.sens ?? 1}"></label>
+          <label class="ef"><span>Smoothness (higher = calmer)</span><input type="range" data-f="viz.smooth" data-k="num" min="0" max=".95" step=".05" value="${vz.smooth ?? .8}"></label>
+          ${st !== 'ring' && st !== 'both' ? `<label class="ef"><span>Also pulse a ring around the player picture</span><input type="checkbox" data-f="viz.ring" data-k="bool" ${vz.ring ? 'checked' : ''}></label>` : ''}
+          <label class="ef"><span>Thump to the beat</span>${S2('viz.pulse', { none:'Nothing', name:'Your name', cards:'The cards', player:'The music player', bg:'Background flash', all:'Everything' }, vz.pulse || 'none')}</label>
+          <p>Starts moving once a song is playing.</p></div>`; })() : ''}</div>` + _eff(); };
     TABS.pictures = function(){
       let h = _pics();
       h = h.replace(/<span class="th"><img src="([^"]*)"><button data-delchar="(\d+)" title="Remove">✕<\/button><\/span>/g,
@@ -2956,7 +3128,9 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       const sndOpts = (val) => Object.keys(SND).map(k => `<option value="${k}" ${val === k ? 'selected' : ''}>${k}</option>`).join('') + (val && /\//.test(val) ? `<option value="${esc(val)}" selected>my sound</option>` : '');
       return _site().replace('<hr><b>🔋 Battery saver</b>', `<hr><b>🎬 Entry animation</b>
         <p>How your page appears after the splash screen.</p>
-        <label class="ef"><span>Style</span><select data-s="entry.style">${Object.entries({ rise:'Rise up (like now)', fade:'Fade in', zoom:'Zoom in', slide:'Slide in', glitch:'Glitch in', cards:'Cards drop in one by one', none:'Appear instantly' }).map(([k,v]) => `<option value="${k}" ${(EN.style || 'rise') === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+        <label class="ef"><span>Style</span><select data-s="entry.style">${[['Whole page',{ rise:'Rise up (like now)', fade:'Fade in', zoom:'Zoom in', zoomout:'Zoom down from big', slide:'Slide in from the left', slider:'Slide in from the right', drop:'Drop from the top', bounce:'Bounce in', elastic:'Jelly / elastic', flip:'Flip down (3D)', flipy:'Turn in (3D)', spin:'Spin in', swing:'Swing down like a sign', unfold:'Unfold', blur:'Blur into focus', iris:'Circle reveal', curtain:'Curtains open', wipe:'Wipe down', glitch:'Glitch in', neon:'Neon flicker on' }],
+          ['One by one',{ cards:'Cards drop in', cardsup:'Cards rise up', cardspop:'Cards pop in', cardsside:'Cards slide in from both sides', cardsflip:'Cards flip in' }], ['',{ none:'Appear instantly' }]].map(([g, o]) => (g ? `<optgroup label="${g}">` : '') + Object.entries(o).map(([k,v]) => `<option value="${k}" ${(EN.style || 'rise') === k ? 'selected' : ''}>${v}</option>`).join('') + (g ? '</optgroup>' : '')).join('')}</select></label>
+        <label class="ef"><span>Speed (lower = faster)</span><input type="range" data-s="entry.speed" min=".4" max="2.5" step=".1" value="${EN.speed ?? 1}"></label>
         <button class="wbtn" id="entPrev">👁 Preview it</button>
         <hr><b>🔊 Sound effects</b>
         <label class="ef"><span>Sounds on</span><input type="checkbox" data-s="sounds.on" ${SS.on ? 'checked' : ''}></label>
@@ -2978,9 +3152,9 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       if(el.dataset.ab != null){ const c = (SW.about || [])[+el.dataset.ab]; c[el.dataset.abp] = el.value; siteChanged(); return; }
     });
     // number-ish site values + link colour mode
-    const _onIn = (el) => { if(['trail.on','viz.on','trail.kind'].includes(el.dataset.f)) setTimeout(render, 30);
+    const _onIn = (el) => { if(['trail.on','viz.on','trail.kind','viz.style','viz.colors','viz.pulse'].includes(el.dataset.f)) setTimeout(render, 30);
       if(el.dataset.s === 'linkStyle.colorMode'){ SW.linkStyle = SW.linkStyle || {}; SW.linkStyle.color = el.value === 'custom' ? '#ffffff' : el.value; delete SW.linkStyle.colorMode; siteChanged(); render(); }
-      if(el.dataset.s === 'sounds.vol' || el.dataset.s === 'viz.height'){ const path = el.dataset.s.split('.'); SW[path[0]][path[1]] = +el.value; } };
+      if(['sounds.vol','viz.height','entry.speed','linkStyle.size','linkStyle.gap'].includes(el.dataset.s)){ const path = el.dataset.s.split('.'); SW[path[0]][path[1]] = +el.value; } };
     $('epBody').addEventListener('change', e => _onIn(e.target));
     $('epBody').addEventListener('click', async e => {
       const b = e.target.closest('button'); if(!b) return;
@@ -3000,7 +3174,7 @@ ${img ? `<meta property="og:image" content="${attr(img)}">\n` : ''}<meta name="t
       if(b.dataset.abdel != null){ SW.about.splice(+b.dataset.abdel, 1); siteChanged(); render(); return; }
       if(b.dataset.abmv){ const A = SW.about, [i, d] = b.dataset.abmv.split(':').map(Number), j = i + d; if(j < 0 || j >= A.length) return; [A[i], A[j]] = [A[j], A[i]]; siteChanged(); render(); return; }
       if(b.dataset.sndprev){ const S = SW.sounds || {}; const was = SITE.sounds; SITE.sounds = { ...S, on: true }; playSnd(b.dataset.sndprev === 'click' ? (S.click || 'pop') : (S.theme || 'whoosh')); SITE.sounds = was; return; }
-      if(b.id === 'entPrev'){ const p = $('profile'); applyEntry(); p.classList.remove('show'); void p.offsetWidth; setTimeout(() => p.classList.add('show'), 60); return; }
+      if(b.id === 'entPrev'){ SITE = SW; playEntry(); return; }
       if(b.dataset.pe){ const [kind, i] = b.dataset.pe.split(':'); openPE(kind, kind === 'deco' ? selDeco : +i); return; }
     });
     // drag to reorder links
