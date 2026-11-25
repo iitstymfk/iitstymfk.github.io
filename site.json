@@ -1,13 +1,6 @@
 {
   "defaultTheme": "dandadan",
-  "songs": [
-    {
-      "title": "Woodward",
-      "artist": "",
-      "src": "music/woodward.mp3",
-      "themes": []
-    }
-  ],
+  "songs": [],
   "themeEdits": {
     "sakura": {
       "effects": {},
