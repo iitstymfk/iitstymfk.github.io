@@ -2090,6 +2090,7 @@ function saveThemeForEveryone(key){
 // load saved edits + the theme everyone should see
 fetch('site.json?v=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json() : null).then(d => {
   if(!d) return;
+  bcTags = d.songThemes || {}; siteSongs = d.songs || [];
   bcTags = d.songThemes || {};
   loadEdits(d); if(window._edSynced) window._edSynced(d);
   const holT = window.SITEF ? loadSite(d) : null;
