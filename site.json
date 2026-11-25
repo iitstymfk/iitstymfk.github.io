@@ -1,6 +1,13 @@
 {
   "defaultTheme": "sakura",
-  "songs": [],
+  "songs": [
+    {
+      "title": "Woodward",
+      "artist": "",
+      "src": "music/woodward.mp3",
+      "themes": []
+    }
+  ],
   "themeEdits": {
     "sakura": {
       "effects": {},

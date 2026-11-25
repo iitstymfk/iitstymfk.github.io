@@ -966,7 +966,7 @@ $('pTrack').onclick = e => { const r = e.currentTarget.getBoundingClientRect(); 
 /* Breakfast Club songs on this phone (same site). Turned on in Breakfast Club → Workout → 🎧 Workout music. Only this phone hears them. */
 let bcSongs = [], bcTags = {};
 const allSongs = () => { const a = [...CONFIG.songs, ...siteSongs, ...localSongs], n = new Set(a.map(s => (s.title || '').toLowerCase())); return a.concat(bcSongs.filter(s => !n.has(s.title.toLowerCase())).map(s => ({ ...s, themes: bcTags[s.title.toLowerCase()] || [] }))); };
-(function(){ let on = false; try{ on = localStorage.getItem('bioWho') === (CONFIG.counterPage || 'iitstymfk'); }catch(e){} if(!on || !window.indexedDB) return;
+(function(){ let on = false; try{ const pg = CONFIG.counterPage || 'iitstymfk', who = localStorage.getItem('bioWho') || ''; on = who === pg || (!who && pg === 'iitstymfk'); }catch(e){} if(!on || !window.indexedDB) return;
   const openDb = n => new Promise(r => { try{ const q = indexedDB.open(n); q.onupgradeneeded = () => { try{ q.transaction.abort(); }catch(e){} r(null); }; q.onsuccess = () => r(q.result); q.onerror = () => r(null); }catch(e){ r(null); } });
   const getAll = (d, st) => new Promise(r => { try{ const q = d.transaction(st, 'readonly').objectStore(st).getAll(); q.onsuccess = () => r(q.result || []); q.onerror = () => r([]); }catch(e){ r([]); } });
   Promise.all([openDb('bc-assets').then(d => d ? getAll(d, 'files') : []), openDb('bcx_music').then(d => d ? getAll(d, 'songs') : [])]).then(([pc, loc]) => {
