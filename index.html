@@ -1047,17 +1047,17 @@ audio.ontimeupdate = () => {
 };
 $('pTrack').onclick = e => { const r = e.currentTarget.getBoundingClientRect(); if(audio.duration) audio.currentTime = (e.clientX-r.left)/r.width*audio.duration; };
 /* Breakfast Club songs on this phone (same site). Turned on in Breakfast Club → Workout → 🎧 Workout music. Only this phone hears them. */
-let bcSongs = [];
-const allSongs = () => { const a = [...CONFIG.songs, ...siteSongs, ...localSongs], n = new Set(a.map(s => (s.title || '').toLowerCase())); return a.concat(bcSongs.filter(s => !n.has(s.title.toLowerCase()))); };
-(function(){ let on = false; try{ on = localStorage.getItem('bioBcMusic') === 'me'; }catch(e){} if(!on || !window.indexedDB) return;
+let bcSongs = [], bcTags = {};
+const allSongs = () => { const a = [...CONFIG.songs, ...siteSongs, ...localSongs], n = new Set(a.map(s => (s.title || '').toLowerCase())); return a.concat(bcSongs.filter(s => !n.has(s.title.toLowerCase())).map(s => ({ ...s, themes: bcTags[s.title.toLowerCase()] || [] }))); };
+(function(){ let on = false; try{ on = localStorage.getItem('bioWho') === (CONFIG.counterPage || 'iitstymfk'); }catch(e){} if(!on || !window.indexedDB) return;
   const openDb = n => new Promise(r => { try{ const q = indexedDB.open(n); q.onupgradeneeded = () => { try{ q.transaction.abort(); }catch(e){} r(null); }; q.onsuccess = () => r(q.result); q.onerror = () => r(null); }catch(e){ r(null); } });
   const getAll = (d, st) => new Promise(r => { try{ const q = d.transaction(st, 'readonly').objectStore(st).getAll(); q.onsuccess = () => r(q.result || []); q.onerror = () => r([]); }catch(e){ r([]); } });
   Promise.all([openDb('bc-assets').then(d => d ? getAll(d, 'files') : []), openDb('bcx_music').then(d => d ? getAll(d, 'songs') : [])]).then(([pc, loc]) => {
     const seen = new Set();
-    const add = (name, blob) => { const k = (name || '').toLowerCase(); if(!blob || !k || seen.has(k)) return; seen.add(k); bcSongs.push({ title: name, artist: '🍳 Breakfast Club', src: URL.createObjectURL(blob), themes: [], bc: true }); };
+    const add = (name, blob) => { const k = (name || '').toLowerCase(); if(!blob || !k || seen.has(k)) return; seen.add(k); bcSongs.push({ title: name, artist: '', src: URL.createObjectURL(blob), bc: true }); };
     pc.filter(x => String(x.k || '').indexOf('|music:') > 0 && /^audio/.test(x.type || (x.blob && x.blob.type) || '')).forEach(x => add(x.k.split('|music:')[1], x.blob));
     loc.forEach(x => add(x.name, x.blob));
-    if(bcSongs.length) setTimeout(rebuildPlaylist, 0);
+    if(bcSongs.length) setTimeout(() => { rebuildPlaylist(); if(typeof renderSongList === 'function') renderSongList(); }, 0);
   });
 })();
 const fitsTheme = (s, k) => !s.themes || !s.themes.length || s.themes.includes(k);
@@ -2436,7 +2436,7 @@ loadServer(); setInterval(loadServer, 120000);
    ===================================================================== */
 fetch('site.json?v=' + Date.now(), {cache:'no-store'}).then(r => r.ok ? r.json() : null).then(d => {
   if(!d) return;
-  siteSongs = d.songs || [];
+  siteSongs = d.songs || []; bcTags = d.songThemes || {};
   loadEdits(d); if(window._edSynced) window._edSynced(d);
   if(isOwner && !saved && savedRaw && THEMES[savedRaw]) saved = savedRaw;
   rebuildPlaylist(); renderSongList();
@@ -2498,10 +2498,11 @@ const chipsHTML = (sel = []) => Object.entries(THEMES).map(([k,v]) =>
 const readChips = el => [...el.querySelectorAll('input:checked')].map(i => i.value);
 function renderSongList(){
   const el = $('mpList'); if(!el) return;
-  const all = [...CONFIG.songs.map(s => ({...s, fixed:true})), ...siteSongs];
+  const n = new Set([...CONFIG.songs, ...siteSongs].map(s => (s.title || '').toLowerCase()));
+  const all = [...CONFIG.songs.map(s => ({...s, fixed:true})), ...siteSongs, ...bcSongs.filter(s => !n.has(s.title.toLowerCase())).map(s => ({ ...s, src: 'bc:' + s.title.toLowerCase(), themes: bcTags[s.title.toLowerCase()] || [], phone: true }))];
   el.innerHTML = all.length ? all.map(s => `<div class="song" data-src="${s.src}">
       <span>♪ ${s.title || s.src}${s.artist ? ' — ' + s.artist : ''}</span>
-      ${s.fixed ? '' : `<button data-act="cover" title="Song picture">🖼</button>${s.cover ? '<button data-act="uncover" title="Remove song picture">🚫</button>' : ''}<button data-act="edit" title="Pick themes">🎨</button><button data-act="del" title="Remove">✕</button>`}
+      ${s.fixed ? '' : s.phone ? `<button data-act="edit" title="Pick themes">🎨</button>` : `<button data-act="cover" title="Song picture">🖼</button>${s.cover ? '<button data-act="uncover" title="Remove song picture">🚫</button>' : ''}<button data-act="edit" title="Pick themes">🎨</button><button data-act="del" title="Remove">✕</button>`}
       <div class="tags">${tagText(s)}</div></div>`).join('')
     : '<p>No songs yet — add one below.</p>';
 }
@@ -2575,7 +2576,8 @@ if(isOwner){
     }
     if(b.dataset.act === 'edit'){
       const open = row.querySelector('.edit'); if(open) return open.remove();
-      const cur = (siteSongs.find(s => s.src === path) || {}).themes || [];
+      const bk = path.indexOf('bc:') === 0 ? path.slice(3) : null;
+      const cur = bk ? (bcTags[bk] || []) : (siteSongs.find(s => s.src === path) || {}).themes || [];
       const ed = document.createElement('div'); ed.className = 'edit';
       ed.innerHTML = `<div class="chips">${chipsHTML(cur)}</div><button class="wbtn go">Save themes</button>`;
       row.appendChild(ed);
@@ -2583,8 +2585,8 @@ if(isOwner){
         if(needKey()) return;
         const sel = readChips(ed);
         try{ status('Saving…');
-          const d = await saveSite(d => { (d.songs || []).forEach(s => { if(s.src === path) s.themes = sel; }); });
-          siteSongs = d.songs; renderSongList(); rebuildPlaylist(); status('✓ Saved. Live in about a minute.');
+          const d = await saveSite(d => { if(bk){ d.songThemes = d.songThemes || {}; d.songThemes[bk] = sel; } else (d.songs || []).forEach(s => { if(s.src === path) s.themes = sel; }); });
+          siteSongs = d.songs; bcTags = d.songThemes || {}; renderSongList(); rebuildPlaylist(); status('✓ Saved. Live in about a minute.');
         }catch(err){ status('Save failed: ' + err.message); }
       };
       return;
