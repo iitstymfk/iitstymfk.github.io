@@ -963,7 +963,20 @@ audio.ontimeupdate = () => {
   $('pFill').style.width = (audio.currentTime / audio.duration * 100 || 0) + '%';
 };
 $('pTrack').onclick = e => { const r = e.currentTarget.getBoundingClientRect(); if(audio.duration) audio.currentTime = (e.clientX-r.left)/r.width*audio.duration; };
-const allSongs = () => [...CONFIG.songs, ...siteSongs, ...localSongs];
+/* Breakfast Club songs on this phone (same site). Turned on in Breakfast Club → Workout → 🎧 Workout music. Only this phone hears them. */
+let bcSongs = [];
+const allSongs = () => { const a = [...CONFIG.songs, ...siteSongs, ...localSongs], n = new Set(a.map(s => (s.title || '').toLowerCase())); return a.concat(bcSongs.filter(s => !n.has(s.title.toLowerCase()))); };
+(function(){ let on = false; try{ on = localStorage.getItem('bioBcMusic') === 'tbc'; }catch(e){} if(!on || !window.indexedDB) return;
+  const openDb = n => new Promise(r => { try{ const q = indexedDB.open(n); q.onupgradeneeded = () => { try{ q.transaction.abort(); }catch(e){} r(null); }; q.onsuccess = () => r(q.result); q.onerror = () => r(null); }catch(e){ r(null); } });
+  const getAll = (d, st) => new Promise(r => { try{ const q = d.transaction(st, 'readonly').objectStore(st).getAll(); q.onsuccess = () => r(q.result || []); q.onerror = () => r([]); }catch(e){ r([]); } });
+  Promise.all([openDb('bc-assets').then(d => d ? getAll(d, 'files') : []), openDb('bcx_music').then(d => d ? getAll(d, 'songs') : [])]).then(([pc, loc]) => {
+    const seen = new Set();
+    const add = (name, blob) => { const k = (name || '').toLowerCase(); if(!blob || !k || seen.has(k)) return; seen.add(k); bcSongs.push({ title: name, artist: '🍳 Breakfast Club', src: URL.createObjectURL(blob), themes: [], bc: true }); };
+    pc.filter(x => String(x.k || '').indexOf('|music:') > 0 && /^audio/.test(x.type || (x.blob && x.blob.type) || '')).forEach(x => add(x.k.split('|music:')[1], x.blob));
+    loc.forEach(x => add(x.name, x.blob));
+    if(bcSongs.length) setTimeout(rebuildPlaylist, 0);
+  });
+})();
 const fitsTheme = (s, k) => !s.themes || !s.themes.length || s.themes.includes(k);
 function rebuildPlaylist(){
   const wasPlaying = !audio.paused, cur = songs[idx];
