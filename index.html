@@ -4150,7 +4150,7 @@ function mcBox(){
         ${v.java ? `<div class="a">Java <code>${escH(v.java)}</code><button data-c="${escH(v.java)}">copy</button></div>` : ''}
         ${v.bedrock ? `<div class="a">Bedrock <code>${escH(v.bedrock.split(':')[0])}</code> port <code>${escH(v.bedrock.split(':')[1] || '19132')}</code><button data-c="${escH(v.bedrock)}">copy</button></div>` : ''}
         ${on && v.players.length ? `<div class="p">🧍 ${v.players.map(escH).join(', ')}</div>` : ''}
-        ${v.start && !stale && v.status === 'offline' ? `<div class="a"><button class="mcGo" data-start="${escH(v.id)}">▶ Start ${escH(v.name)}</button></div>` : ''}
+        ${v.start && !stale && v.status === 'offline' ? `<div class="a"><button class="mcGo" data-start="${escH(v.id)}" data-name="${escH(v.name)}">${v.start === 'approve' ? '🙋 Ask to start ' : '▶ Start '}${escH(v.name)}</button>${v.start === 'approve' ? '<span style="opacity:.75">iitstymfk approves it first</span>' : ''}</div>` : ''}
         ${v.start && stale ? `<div class="p" style="opacity:.7">Start isn't available while the server PC is off.</div>` : ''}</div>`; }).join('') +
     `<div id="mcStartBox" style="display:none;margin-top:10px"><input id="mcCode" type="password" placeholder="Friend code" autocomplete="off"><input id="mcWho" placeholder="Your name (optional)" maxlength="30" value="${escH(jget('thName') || '')}"><div class="thRow"><button class="thBtn2 go" data-go>Start it</button></div></div>
     <div class="thMsg"></div><div class="thRow"><button class="thBtn2" data-x>Close</button></div>`);
@@ -4161,7 +4161,8 @@ function mcBox(){
     try{
       const r = await rpc('mc_start_request', { p_code: code, p_server: sid, p_who: who || null });
       jset('mcCode', code); if(who) jset('thName', who);
-      msg(b, r.already ? 'Already starting! Give it a minute.' : 'Starting! It takes about a minute, then join with the address above. ⛏️');
+      msg(b, r.mode === 'approve' ? (r.already ? 'Already asked - waiting for iitstymfk to approve it.' : 'Request sent! iitstymfk gets a notification and approves it from his PC. Check back in a few minutes.') :
+        (r.already ? 'Already starting! Give it a minute.' : 'Starting! It takes about a minute, then join with the address above. ⛏️'));
       b.querySelector('#mcStartBox').style.display = 'none';
       setTimeout(liveTick, 20000); setTimeout(liveTick, 50000);
     }catch(e){
@@ -4172,7 +4173,7 @@ function mcBox(){
   b.querySelectorAll('[data-start]').forEach(x => x.onclick = () => {
     pick = x.dataset.start; const saved = jget('mcCode');
     if(saved) ask(pick, saved, jget('thName') || '');
-    else { b.querySelector('#mcStartBox').style.display = ''; msg(b, 'Enter the friend code to start ' + x.textContent.replace('▶ Start ', '') + '.'); setTimeout(() => b.querySelector('#mcCode').focus(), 50); }
+    else { b.querySelector('#mcStartBox').style.display = ''; msg(b, 'Enter the friend code for ' + x.dataset.name + '.'); setTimeout(() => b.querySelector('#mcCode').focus(), 50); }
   });
   b.querySelector('[data-go]').onclick = () => { const c = b.querySelector('#mcCode').value.trim(); if(!c) return msg(b, 'Type the friend code.', 1); ask(pick, c, b.querySelector('#mcWho').value.trim()); };
   b.querySelector('#mcCode').onkeydown = e => { if(e.key === 'Enter') b.querySelector('[data-go]').click(); };
