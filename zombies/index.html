@@ -1081,6 +1081,43 @@ function spawnZombie(){
   const z = { m, type, hp: RS.zhp, tilt: rand(-.25, .25), speed: [rand(.85, 1.15), rand(2.2, 2.6), rand(3.3, 3.8)][type], state: 'out', win: w, t: 0, atkT: 0, atkCD: 0, phase: Math.random() * 6, dead: false, groanT: rand(1, 4), wait: rand(-.6, .6) };
   Z.push(z); RS.toSpawn--;
 }
+/* ---------- hellhound rounds: every few rounds the zombies stop and fire dogs come; kill them all for a Max Ammo ---------- */
+const DOGM = { body: mat({ color: 0x1c1410, roughness: .9, emissive: 0x3a1004, emissiveIntensity: .6 }), ember: new THREE.MeshBasicMaterial({ color: 0xff5a10 }), eye: new THREE.MeshBasicMaterial({ color: 0xffd040 }) };
+function dogMesh(){
+  const root = new THREE.Group(); const s = rand(.95, 1.08); root.scale.setScalar(s); const B = new THREE.Group(); B.position.y = .52; root.add(B);
+  const box = (w, h, d, m, p, x, y, z) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); p.add(o); return o; };
+  box(.34, .32, .78, DOGM.body, B, 0, 0, 0); box(.3, .26, .3, DOGM.body, B, 0, .05, .36);
+  for(let i = 0; i < 5; i++) box(.04, .05, .05, DOGM.ember, B, rand(-.12, .12), .16, rand(-.3, .3)); // glowing cracks on the back
+  const headG = new THREE.Group(); headG.position.set(0, .12, .5); B.add(headG); const head = box(.24, .22, .26, DOGM.body, headG, 0, 0, .04);
+  box(.16, .12, .2, DOGM.body, headG, 0, -.04, .22); const jaw = box(.14, .05, .18, DOGM.ember, headG, 0, -.11, .2); box(.06, .1, .06, DOGM.body, headG, -.08, .14, -.02); box(.06, .1, .06, DOGM.body, headG, .08, .14, -.02);
+  for(const sx of [-1, 1]){ box(.04, .03, .02, DOGM.eye, headG, sx * .07, .04, .17); const gl = new THREE.Sprite(ZM.glowRed); gl.scale.setScalar(.1); gl.position.set(sx * .07, .04, .19); headG.add(gl); }
+  const legs = []; for(const [x, z] of [[-.13, .3], [.13, .3], [-.13, -.3], [.13, -.3]]){ const L = new THREE.Group(); L.position.set(x, -.12, z); B.add(L); box(.09, .3, .1, DOGM.body, L, 0, -.15, 0); const K = new THREE.Group(); K.position.y = -.3; L.add(K); box(.07, .26, .08, DOGM.body, K, 0, -.11, .02); legs.push([L, K]); }
+  const tail = new THREE.Group(); tail.position.set(0, .1, -.39); B.add(tail); box(.05, .05, .32, DOGM.body, tail, 0, 0, -.15).rotation.x = .5;
+  const glow = glowSprite(0xff5010, 1.3, .35); glow.position.y = .55; root.add(glow);
+  const sh = new THREE.Mesh(ZG.shadow, ZM.shadow); sh.scale.set(.6, 1, 1.1); sh.position.y = .02; root.add(sh);
+  scene.add(root);
+  return { root, B, head, headG, jaw, legs, tail, glow, s: .7, dog: true };
+}
+const DOGR = { next: 5 + Math.floor(Math.random() * 3), on: false, left: 0, last: null };
+function isDogRound(r){ return MAPD.dogs !== false && r === DOGR.next; }
+function spawnDog(){
+  const open = FLOORS.filter(c => openRooms.has(RID[c[1]][c[0]]) && G[c[1]][c[0]] === '.');
+  let c = null; for(let i = 0; i < 30 && !c; i++){ const t = pick(open); const w = wpos(t[0], t[1]); const d = Math.hypot(w.x - P.pos.x, w.z - P.pos.z); if(d > 5 && d < 16) c = t; } if(!c) c = pick(open);
+  const at = wpos(c[0], c[1]); const m = dogMesh(); m.root.position.copy(at);
+  // lightning strike where it lands
+  boomLight.position.copy(at).setY(2); boomLight.color.set(0x80a0ff); boomLight.intensity = 40; boomT = .2; setTimeout(() => boomLight.color.set(0xff7a20), 260);
+  fx(at.clone().setY(1.4), { add: true, tex: glowTex, color: 0x9ab8ff, life: .35, size: 3, size1: .5 }); for(let i = 0; i < 8; i++) fx(at.clone().setY(rand(.2, 2.8)), { add: true, color: 0xbfd0ff, life: .25, size: .35, size1: .05 });
+  tn({ f: 70, f2: 30, type: 'sawtooth', dur: .9, vol: .2, echo: .5 }); tn({ f: 2400, f2: 300, type: 'square', dur: .12, vol: .06 });
+  const z = { m, type: 3, dog: true, hp: Math.round(RS.zhp * .55), tilt: 0, speed: rand(4.4, 5.2), state: 'in', t: 0, atkT: 0, atkCD: .6, phase: Math.random() * 6, dead: false, groanT: rand(.5, 2), wait: 0 };
+  Z.push(z); RS.toSpawn--;
+}
+function animDog(z, dt, moving){
+  const m = z.m; z.phase += dt * (moving ? 15 : 3); const ph = z.phase, a = moving ? .75 : .05;
+  m.legs.forEach(([L, K], i) => { const o = (i === 0 || i === 3) ? 0 : Math.PI; L.rotation.x = Math.sin(ph + o) * a; K.rotation.x = Math.max(0, Math.sin(ph + o + 1.2)) * a * 1.2; });
+  m.B.position.y = .52 + Math.abs(Math.sin(ph)) * (moving ? .05 : .01); m.tail.rotation.y = Math.sin(ph * .7) * .4;
+  m.jaw.position.y = -.11 - (z.atkT > 0 ? .06 : Math.max(0, Math.sin(ph * .5)) * .02); m.glow.material.opacity = .28 + Math.sin(now * 9 + z.phase) * .08;
+}
+function dogGrowl(z){ if(!AC || !opts.vol) return; const d = z.m.root.position.distanceTo(P.pos); if(d > 20) return; const v = .12 * (1 - d / 20); tn({ f: rand(55, 75), f2: rand(40, 50), type: 'sawtooth', dur: rand(.4, .8), vol: v }); if(Math.random() < .4) tn({ f: rand(400, 600), f2: rand(250, 350), type: 'square', dur: .12, vol: v * .5, at: .05 }); }
 const tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3();
 function los(a, b){ const d = tmpV.subVectors(b, a); const L = d.length(); if(L < .01) return true; d.divideScalar(L); return gridRay(a, d, L) >= L - .05; }
 function pushOut(pos, r){
@@ -1163,6 +1200,7 @@ function animSkel(z, dt, moving){
   m.mixer.update(dt);
 }
 function animZombie(z, dt, moving){
+  if(z.dog) return animDog(z, dt, moving);
   if(z.m.skinned) return animSkel(z, dt, moving);
   const m = z.m; z.phase += dt * (moving ? (z.type ? 2.6 + z.speed * 1.5 : 4.2 * z.speed) : 1.5);
   const ph = z.phase, sw = Math.sin(ph), amp = moving ? (z.type ? .85 : .45) : .06;
@@ -1186,13 +1224,18 @@ function updZombies(dt){
       if(z.t > 2.6) p.y -= dt * .45; if(z.t > 4){ scene.remove(m.root); Z.splice(i, 1); }
       continue;
     }
+    if(z.dead && z.dog){
+      if(!z.burst){ z.burst = true; const at = p.clone().setY(.6); for(let k = 0; k < 14; k++) fx(at, { add: true, color: pick([0xff5a10, 0xffa030, 0xff2a00]), v: new THREE.Vector3(rand(-3,3), rand(1,5), rand(-3,3)), g: 6, life: rand(.3, .7), size: .18, size1: .02 }); fx(at, { add: true, tex: glowTex, color: 0xff6a20, life: .4, size: .8, size1: 2.6 }); tn({ f: 140, f2: 50, type: 'sawtooth', dur: .5, vol: .14 }); }
+      z.t += dt; m.root.scale.setScalar(Math.max(.01, 1 - z.t * 4)); if(z.t > .3){ scene.remove(m.root); Z.splice(i, 1); }
+      continue;
+    }
     if(z.dead){
       z.t += dt; const k = Math.min(1, z.t / .55);
       m.hips.rotation.x = -k * 1.5; m.spine.rotation.x = .2 - k * .3; m.hips.position.y = .88 - k * .62; m.armL.rotation.x = m.armR.rotation.x = -2.6 * k; m.knL.rotation.x = m.knR.rotation.x = k * .8;
       if(z.t > 2.5) p.y -= dt * .45; if(z.t > 4){ scene.remove(m.root); Z.splice(i, 1); }
       continue;
     }
-    z.groanT -= dt; if(z.groanT <= 0){ groan(z); z.groanT = rand(2.5, 6); }
+    z.groanT -= dt; if(z.groanT <= 0){ if(z.dog){ dogGrowl(z); z.groanT = rand(1, 2.5); } else { groan(z); z.groanT = rand(2.5, 6); } }
     let moving = true;
     if(z.state === 'out'){
       const target = z.win.sill.clone().addScaledVector(z.win.t, z.wait);
@@ -1214,7 +1257,7 @@ function updZombies(dt){
       const tg = zTarget(z);
       const dP = Math.hypot(P.pos.x - p.x, P.pos.z - p.z);
       if(dP > .85 && !P.down) moveToward(z, tg, z.speed * (z.atkT > 0 ? .3 : 1), dt); else { moving = false; z.m.root.rotation.y = Math.atan2(P.pos.x - p.x, P.pos.z - p.z); }
-      if(dP < 1.15 && z.atkCD <= 0 && !P.down){ z.atkT = .45; z.swipeStart = true; z.atkCD = 1.15; z.swipe = true; }
+      if(dP < (z.dog ? 1.0 : 1.15) && z.atkCD <= 0 && !P.down){ z.atkT = z.dog ? .25 : .45; z.swipeStart = true; z.atkCD = z.dog ? .75 : 1.15; z.swipe = true; }
       // separation
       for(const o of Z){ if(o === z || o.dead || o.state !== 'in') continue; const op = o.m.root.position; const dx = p.x - op.x, dz = p.z - op.z, d = Math.hypot(dx, dz); if(d < .55 && d > 1e-4){ const push = (.55 - d) * .5; p.x += dx / d * push; p.z += dz / d * push; } }
       pushOut(p, .28);
@@ -1222,7 +1265,7 @@ function updZombies(dt){
       const pdx = P.pos.x - p.x, pdz = P.pos.z - p.z, pd = Math.hypot(pdx, pdz); if(pd < .58 && pd > 1e-4){ P.pos.x += pdx / pd * (.58 - pd); P.pos.z += pdz / pd * (.58 - pd); pushOut(P.pos, .3); }
     }
     if(z.atkCD > 0) z.atkCD -= dt;
-    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; const near = z.state === 'tear' ? Math.hypot(P.pos.x - z.win.inside.x, P.pos.z - z.win.inside.z) < 1.7 : Math.hypot(P.pos.x - p.x, P.pos.z - p.z) < 1.45; if(near) hurtPlayer(50); } }
+    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; const near = z.state === 'tear' ? Math.hypot(P.pos.x - z.win.inside.x, P.pos.z - z.win.inside.z) < 1.7 : Math.hypot(P.pos.x - p.x, P.pos.z - p.z) < 1.45; if(near) hurtPlayer(z.dog ? 34 : 50); } }
     animZombie(z, dt, moving);
   }
 }
@@ -1241,7 +1284,8 @@ function killZombie(z, head, kind){
   questKill(z);
   floorBlood(z.m.root.position, 1.2);
   addPoints(kind === 'knife' ? 130 : kind === 'boom' ? 50 : head ? 100 : 60); hitmark(true); SND.kill(head);
-  if(kind !== 'nuke' && RS.drops < 4 && Math.random() < .03 && z.state === 'in') spawnPU(z.m.root.position);
+  if(z.dog) DOGR.last = z.m.root.position.clone();
+  if(!z.dog && kind !== 'nuke' && RS.drops < 4 && Math.random() < .03 && z.state === 'in') spawnPU(z.m.root.position);
 }
 
 /* ================= shooting ================= */
@@ -1366,8 +1410,8 @@ const PU_DEF = {
 };
 const PU_TEX = {}; for(const k in PU_DEF) PU_TEX[k] = textTex([{ t: PU_DEF[k].glyph, font: PU_DEF[k].font, color: '#eaffd8', glow: '#40ff40', y: 66 }], 128, 128);
 const PUS = [];
-function spawnPU(at){
-  RS.drops++; const k = pick(Object.keys(PU_DEF));
+function spawnPU(at, force, free){
+  if(!free) RS.drops++; const k = force || pick(Object.keys(PU_DEF));
   const g = new THREE.Group(); g.position.set(at.x, 1.0, at.z); scene.add(g);
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: PU_TEX[k], transparent: true, depthWrite: false })); s.scale.setScalar(.75); g.add(s);
   const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0x40ff40, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .6 })); gl.scale.setScalar(1.6); g.add(gl);
@@ -1488,6 +1532,7 @@ function startGame(){
 }
 function startRound(r){
   RS.round = r; RS.toSpawn = zCount(r); RS.zhp = zHealth(r); RS.spawnT = 1.5; RS.drops = 0; RS.repairPts = 0; RS.breakT = 0;
+  DOGR.on = isDogRound(r); if(DOGR.on){ RS.toSpawn = Math.min(24, 6 + Math.round(r * .9)); RS.spawnT = 3.5; DOGR.next = r + 4 + Math.floor(Math.random() * 2); scene.fog.color.set(0x2a0c04); ann('HELLHOUND ROUND', '#ff5a20'); tn({ f: 50, f2: 35, type: 'sawtooth', dur: 3.5, vol: .16, echo: .6 }); }
   if(r > 1) P.nades = Math.min(4, P.nades + 2); hudGun();
   drawRound(r); SND.roundStart();
 }
@@ -1593,8 +1638,9 @@ function update(dt){
   else if(RS.round > 0){
     const alive = Z.filter(z => !z.dead).length;
     RS.spawnT -= dt;
-    if(RS.toSpawn > 0 && alive < maxAlive() && RS.spawnT <= 0){ spawnZombie(); RS.spawnT = Math.max(.35, 2 - RS.round * .15) * rand(.7, 1.3); }
-    if(RS.toSpawn <= 0 && alive === 0){ RS.breakT = 9; SND.roundEnd(); }
+    if(DOGR.on){ if(RS.toSpawn > 0 && alive < 8 && RS.spawnT <= 0){ spawnDog(); RS.spawnT = rand(.8, 1.8); } }
+    else if(RS.toSpawn > 0 && alive < maxAlive() && RS.spawnT <= 0){ spawnZombie(); RS.spawnT = Math.max(.35, 2 - RS.round * .15) * rand(.7, 1.3); }
+    if(RS.toSpawn <= 0 && alive === 0){ RS.breakT = 9; SND.roundEnd(); if(DOGR.on){ DOGR.on = false; scene.fog.color.set(0x06080c); spawnPU(DOGR.last || P.pos, 'ammo', true); } }
   }
   updZombies(dt); updProj(dt); updPU(dt); updBox(dt); updUpg(dt); updQuest(dt); updFires(dt); updFX(dt);
   // doors sliding away
@@ -1681,6 +1727,7 @@ const SPN = MAPD.spawn || { x: 1, z: 1 };
 const nextToWall = ([x, z]) => [[1,0],[-1,0],[0,1],[0,-1]].some(([dx, dz]) => { const c = G[z + dz] && G[z + dz][x + dx]; return c === '#'; });
 const freeCell = ([x, z]) => G[z][x] === '.' && Math.hypot(x - SPN.x, z - SPN.z) > 3;
 const usedCells = new Set(); const take = c => { usedCells.add(c[0] + ',' + c[1]); return c; };
+for(const o of [...(MAPD.wallbuys || []), ...BOXLOCS, ...(POWER ? [POWER] : []), ...(UPG.on ? [UPG] : []), ...Object.values(PERKS).filter(p => p.placed), ...(MAPD.barrels || []).map(b => ({ x: b[0], z: b[1] }))]) usedCells.add(o.x + ',' + o.z);
 // pick spread-out spots: one per room where possible (rooms other than the start room first)
 function pickSpots(n, filt){
   const byRoom = {}; for(const c of FLOORS){ if(!freeCell(c) || usedCells.has(c[0] + ',' + c[1]) || (filt && !filt(c))) continue; const r = RID[c[1]][c[0]]; (byRoom[r] = byRoom[r] || []).push(c); }
@@ -1830,7 +1877,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 </body>
