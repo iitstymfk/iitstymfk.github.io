@@ -31,6 +31,8 @@ canvas#c{position:fixed;inset:0;width:100vw;height:100vh;display:block}
 .tal i{display:inline-block;width:.11em;height:.8em;background:currentColor;margin:0 .06em;border-radius:.04em;transform:rotate(3deg);box-shadow:inherit}
 .tal i:nth-child(2){transform:rotate(-2deg) translateY(.03em)}.tal i:nth-child(3){transform:rotate(5deg)}
 .tal i.sl{position:absolute;left:-.12em;top:.32em;width:1.15em;height:.1em;transform:rotate(-24deg);margin:0}
+#parts{position:absolute;left:calc(28px + env(safe-area-inset-left));bottom:158px;display:flex;gap:6px;align-items:center;font:600 13px Oswald,sans-serif;color:#ffd84a;text-shadow:0 1px 3px #000}#parts span{display:flex;gap:4px;align-items:center;margin-right:8px}#parts i{font-style:normal;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:#0008;border:1px solid #ffd84a55;font-size:17px}#parts i.no{opacity:.28;filter:grayscale(1)}
+body.touch #parts{left:calc(66px + env(safe-area-inset-left));top:116px;bottom:auto}
 #perks{position:absolute;left:calc(28px + env(safe-area-inset-left));bottom:118px;display:flex;gap:6px}
 #perks i{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-size:18px;box-shadow:0 0 10px currentColor,inset 0 0 0 2px rgba(255,255,255,.25)}
 #right{position:absolute;right:calc(26px + env(safe-area-inset-right));bottom:18px;text-align:right}
@@ -120,7 +122,7 @@ body.touch h1{font-size:46px}body.touch h1 span{font-size:60px}
   <div id="cross"><i></i><i></i><i></i><i></i></div>
   <div id="hitm"></div>
   <div id="round"></div>
-  <div id="perks"></div>
+  <div id="perks"></div><div id="parts"></div>
   <div id="right"><div id="pts"><div id="ptsPop"></div><span id="ptsN">500</span></div>
     <div id="gunName"></div><div id="ammo"><b id="mag">8</b> / <span id="res">80</span></div><div id="nades"></div></div>
   <div id="prompt"></div>
@@ -629,6 +631,7 @@ const W = {
   lmg:     { name: 'Brute LMG', up: 'Iron Maiden', model: 'lmg', dmg: 85, head: 2.5, rpm: 650, auto: true, mag: 100, res: 400, reload: 4.2, spread: .036, ads: .012, kick: .018, slow: .88, box: 1 },
   sniper:  { name: 'Vulture .50', up: 'Eagle Eye', model: 'sniper', dmg: 650, head: 5, rpm: 55, auto: false, mag: 5, res: 40, reload: 3, spread: .07, ads: 0, kick: .12, pierce: 5, scope: 1, box: 1 },
   revolver:{ name: 'Python .357', up: 'Cobra Venom', model: 'revolver', dmg: 200, head: 3, rpm: 160, auto: false, mag: 6, res: 66, reload: 2.4, spread: .016, ads: .003, kick: .06, pierce: 2, box: 1 },
+  ray:     { name: 'Ray Gun', up: 'Ray Gun Mk II', model: 'plasma', dmg: 2000, head: 1, rpm: 190, auto: false, mag: 20, res: 160, reload: 2.6, spread: .008, ads: .003, kick: .05, proj: 1, splash: 3.2, wonder: 1, pcol: 0xff3020, pcolUp: 0xff40c0, tint: 0xff2a1a },
   plasma:  { name: 'Plasma Pistol', up: 'Nova Cannon', model: 'plasma', dmg: 1100, head: 1, rpm: 220, auto: false, mag: 20, res: 160, reload: 2.4, spread: .01, ads: .004, kick: .04, proj: 1, splash: 2.3, box: .45 },
 };
 const WALL = { rifle: 500, smg: 1000, ar: 1400, shotgun: 1500, revolver: 1200, lmg: 2500, sniper: 2000 };
@@ -653,6 +656,7 @@ const VM = {
 };
 function bx(p, w, h, d, m, x, y, z, rx = 0){ const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.rotation.x = rx; p.add(o); return o; }
 function cy(p, r, l, m, x, y, z, r2){ const g = new THREE.CylinderGeometry(r2 == null ? r : r2, r, l, 12); g.rotateX(Math.PI/2); const o = new THREE.Mesh(g, m); o.position.set(x, y, z); p.add(o); return o; }
+function tintGun(m, col){ const c = new THREE.Color(col); m.traverse(o => { if(o.isMesh && o.material){ o.material = o.material.clone(); o.material.color = o.material.color.clone().lerp(c, .55); o.material.emissive = c.clone(); o.material.emissiveIntensity = .35; } }); return m; }
 function buildGun(model, up, hands = true){
   const A = ASSETS.guns[model], meta = GUNMETA[model];
   if(A && meta){
@@ -698,7 +702,7 @@ let curModel = null;
 function setVM(){
   if(curModel){ vmGunHolder.remove(curModel); disposeTree(curModel); curModel = null; }
   const g = P.guns[P.gi]; if(!g) return;
-  curModel = buildGun(W[g.k].model, g.up); vmGunHolder.add(curModel);
+  curModel = buildGun(W[g.k].model, g.up); if(W[g.k].tint && !g.up) tintGun(curModel, W[g.k].tint); vmGunHolder.add(curModel);
 }
 
 /* ---------- first-person arms (PSX First Person Arms by DrillImpact, free) ---------- */
@@ -895,8 +899,8 @@ if(POWER){
   const lever = new THREE.Group(); lever.position.set(0, 0, .1); g.add(lever); bx(lever, .08, .5, .08, M.dark, 0, .2, 0); bx(lever, .22, .08, .1, VM.red, 0, .45, 0);
   lever.rotation.x = .9; POWER.lever = lever;
   const lab = new THREE.Mesh(new THREE.PlaneGeometry(.8, .22), new THREE.MeshBasicMaterial({ map: textTex([{ t: '⚡ POWER', font: '700 40px Oswald', color: '#ffd84a', y: 32 }], 256, 64, { bg: '#1a1a1a' }) })); lab.position.set(0, .48, .08); g.add(lab);
-  INTER.push({ pos: c.clone().add(new THREE.Vector3(-ws[0] * .6, 0, -ws[1] * .6)), r: 2.2, prompt(){ return power ? null : [`Press <b>${KEY}</b> to turn on the power`, 0]; },
-    use(){ if(power) return; power = true; POWER.lever.rotation.x = -.9; SND.powerOn(); setBulbColors(); perkSigns(); hemi.intensity = .9; scene.fog.density = .042; ann('POWER ON', '#ffd84a'); flashScreen(.25); } });
+  INTER.push({ pos: c.clone().add(new THREE.Vector3(-ws[0] * .6, 0, -ws[1] * .6)), r: 2.2, prompt(){ if(power) return null; if(PARTS.on && !PARTS.built) return PARTS.have < PARTS.list.length ? [`The power switch is missing parts (${PARTS.have}/${PARTS.list.length}). Search the map!`, 0, true] : [`Press <b>${KEY}</b> to build the power switch`, 0]; return [`Press <b>${KEY}</b> to turn on the power`, 0]; },
+    use(){ if(power) return; if(PARTS.on && !PARTS.built){ if(PARTS.have < PARTS.list.length) return; PARTS.built = true; POWER.lever.visible = true; SND.buy(); hudParts(); ann('SWITCH BUILT', '#ffd84a'); return; } power = true; POWER.lever.rotation.x = -.9; SND.powerOn(); setBulbColors(); perkSigns(); hemi.intensity = .9; scene.fog.density = .042; ann('POWER ON', '#ffd84a'); flashScreen(.25); } });
 }
 // mystery box
 const BOXLOCS = (MAPD.box || []).map(b => ({ x: b.x, z: b.z, face: b.face || openSide(b.x, b.z) }));
@@ -930,7 +934,7 @@ INTER.push(BOX.inter); placeBox(Math.floor(Math.random() * Math.max(1, BOXLOCS.l
 function clearDisp(){ while(BOX.disp.children.length){ const c = BOX.disp.children[0]; BOX.disp.remove(c); disposeTree(c); c.traverse(o => { if(o.material && o.material !== VM.green && o.material !== VM.red) o.material.dispose?.(); }); } }
 function showDisp(k){ clearDisp(); if(k === 'bear'){ const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex([{ t: '🧸', font: '90px serif', y: 64 }], 128, 128), transparent: true })); s.scale.setScalar(.6); BOX.disp.add(s); return; }
   const m = buildGun(W[k].model, false, false); m.rotation.y = Math.PI / 2; m.scale.setScalar(m.userData.real ? .75 / m.userData.len : 1.6); if(m.userData.real) m.children[0].position.z = 0; m.traverse(o => { if(o.material) o.material = o.material.clone(); if(o.material && o.material.emissive){ o.material.emissive.set(0x3a2a10); o.material.emissiveIntensity = .5; } }); BOX.disp.add(m); }
-function boxPool(){ const own = P.guns.map(g => g.k); const pool = []; for(const k in W){ if(own.includes(k) || k === 'pistol') continue; const w = k === 'plasma' ? .45 : (W[k].box ? 1 : .8); pool.push([k, w]); } return pool; }
+function boxPool(){ const own = P.guns.map(g => g.k); const pool = []; for(const k in W){ if(own.includes(k) || k === 'pistol') continue; const w = W[k].wonder ? (EGG.boost ? .3 : .03) : k === 'plasma' ? .45 : (W[k].box ? 1 : .8); pool.push([k, w]); } return pool; }
 function boxRoll(){ const pool = boxPool(); let s = pool.reduce((a, b) => a + b[1], 0) * Math.random(); for(const [k, w] of pool){ s -= w; if(s <= 0) return k; } return pool[0][0]; }
 function updBox(dt){
   BOX.t += dt; const lidOpen = BOX.state === 'spin' || BOX.state === 'offer' || BOX.state === 'bear';
@@ -954,7 +958,7 @@ function updBox(dt){
 // upgrade machine
 const UPG = { x: MAPD.upg ? MAPD.upg.x : -1, z: MAPD.upg ? MAPD.upg.z : -1, face: MAPD.upg ? (MAPD.upg.face || openSide(MAPD.upg.x, MAPD.upg.z)) : [0, 1], state: 'idle', t: 0, gun: null, on: !!MAPD.upg };
 {
-  if(UPG.on) markM(UPG.x, UPG.z); const c = UPG.on ? wpos(UPG.x, UPG.z) : new THREE.Vector3(-999, -50, -999); const g = new THREE.Group(); g.position.copy(c); g.rotation.y = Math.atan2(UPG.face[0], UPG.face[1]); level.add(g); g.visible = UPG.on;
+  if(UPG.on) markM(UPG.x, UPG.z); const c = UPG.on ? wpos(UPG.x, UPG.z) : new THREE.Vector3(-999, -50, -999); const g = new THREE.Group(); g.position.copy(c); g.rotation.y = Math.atan2(UPG.face[0], UPG.face[1]); level.add(g); g.visible = UPG.on; UPG.g = g;
   bx(g, 1.4, 1.6, 1.0, M.metal, 0, .8, 0); bx(g, 1.5, .2, 1.1, M.dark, 0, 1.7, 0);
   const pm = new THREE.MeshStandardMaterial({ color: 0x2a0a4a, emissive: 0x8a2be2, emissiveIntensity: .15 }); UPG.pm = pm;
   bx(g, 1.0, .5, .05, pm, 0, 1.05, .52); bx(g, .05, 1.2, .9, pm, .72, .8, 0); bx(g, .05, 1.2, .9, pm, -.72, .8, 0);
@@ -962,20 +966,22 @@ const UPG = { x: MAPD.upg ? MAPD.upg.x : -1, z: MAPD.upg ? MAPD.upg.z : -1, face
   UPG.glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xa040ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 })); UPG.glow.scale.set(3, 2.6, 1); UPG.glow.position.set(0, 1.1, .6); g.add(UPG.glow);
   UPG.disp = new THREE.Group(); UPG.disp.position.set(0, 1.0, .75); g.add(UPG.disp);
   INTER.push({ pos: c.clone().add(new THREE.Vector3(UPG.face[0] * 1.1, 1.4, UPG.face[1] * 1.1)), r: 2.3, prompt(){
+      if(UPG.broken) return UPARTS.have < UPARTS.list.length ? [`The Upgrade machine is broken: missing parts (${UPARTS.have}/${UPARTS.list.length})`, 0, true] : [`Press <b>${KEY}</b> to repair the Upgrade machine`, 0];
       if(!power) return ['You need to turn on the power first', 0, true];
       if(UPG.state === 'ready') return [`Press <b>${KEY}</b> to take ${W[UPG.gun.k].up}`, 0];
       if(UPG.state !== 'idle') return null;
       const g = P.guns[P.gi]; if(!g || P.reloadT > 0) return null; if(g.up) return ['This weapon is already upgraded', 0, true];
       return [`Press <b>${KEY}</b> to upgrade ${W[g.k].name}`, 5000]; },
-    use(){ if(!power) return;
+    use(){ if(UPG.broken){ if(UPARTS.have < UPARTS.list.length) return; UPG.broken = false; UPARTS.built = true; UPG.sign.visible = true; SND.buy(); hudParts(); ann('UPGRADE MACHINE REPAIRED', '#b04dff'); return; }
+      if(!power) return;
       if(UPG.state === 'ready'){ const g = UPG.gun; UPG.gun = null; UPG.state = 'idle'; while(UPG.disp.children.length) UPG.disp.remove(UPG.disp.children[0]); giveGun(g); SND.buy(); return; }
       if(UPG.state !== 'idle') return; const g = P.guns[P.gi]; if(!g || g.up) return; if(!spend(5000)) return;
       P.guns.splice(P.gi, 1); P.gi = 0; setVM(); hudGun(); UPG.gun = newGun(g.k, true); UPG.state = 'work'; UPG.t = 0; SND.upgrade();
       const m = buildGun(W[g.k].model, false, false); m.rotation.y = Math.PI / 2; if(m.userData.real){ m.scale.setScalar(.7 / m.userData.len); m.children[0].position.z = 0; } UPG.disp.add(m); } });
 }
 function updUpg(dt){
-  UPG.t += dt; UPG.pm.emissiveIntensity = power ? (UPG.state === 'work' ? 1 + Math.sin(now * 20) * .5 : .7) : .1;
-  UPG.glow.material.opacity = power ? (UPG.state === 'work' ? .7 : .25) : 0; UPG.sign.material.color.setScalar(power ? 1 : .25);
+  const pw = power && !UPG.broken; UPG.t += dt; UPG.pm.emissiveIntensity = pw ? (UPG.state === 'work' ? 1 + Math.sin(now * 20) * .5 : .7) : .1;
+  UPG.glow.material.opacity = pw ? (UPG.state === 'work' ? .7 : .25) : 0; UPG.sign.material.color.setScalar(pw ? 1 : .25);
   if(UPG.state === 'work'){ UPG.disp.position.z = .75 - Math.min(1, UPG.t / 1) * .9; if(UPG.t > 3.3){ UPG.state = 'ready'; UPG.t = 0; while(UPG.disp.children.length) UPG.disp.remove(UPG.disp.children[0]); const m = buildGun(W[UPG.gun.k].model, true, false); m.rotation.y = Math.PI / 2; if(m.userData.real){ m.scale.setScalar(.7 / m.userData.len); m.children[0].position.z = 0; } UPG.disp.add(m); } }
   else if(UPG.state === 'ready'){ UPG.disp.position.z = Math.min(.75, -.15 + UPG.t * 2); UPG.disp.rotation.y = Math.sin(now * 2) * .3; if(UPG.t > 15){ UPG.state = 'idle'; UPG.gun = null; while(UPG.disp.children.length) UPG.disp.remove(UPG.disp.children[0]); msg('You left your weapon too long and lost it'); } }
 }
@@ -1232,6 +1238,7 @@ function hurtZombie(z, dmg, head, kind, at){
 function killZombie(z, head, kind){
   z.dead = true; z.t = 0; STATS.kills++; if(head){ STATS.heads++; const hp = new THREE.Vector3(); z.m.head.getWorldPosition(hp); z.headless = true; if(z.m.headBone) z.m.headBone.scale.setScalar(.001); else z.m.head.visible = false; bloodBurst(hp, 16, true); }
   if(z.win && z.win.tearer === z) z.win.tearer = null;
+  questKill(z);
   floorBlood(z.m.root.position, 1.2);
   addPoints(kind === 'knife' ? 130 : kind === 'boom' ? 50 : head ? 100 : 60); hitmark(true); SND.kill(head);
   if(kind !== 'nuke' && RS.drops < 4 && Math.random() < .03 && z.state === 'in') spawnPU(z.m.root.position);
@@ -1267,6 +1274,7 @@ function hitscan(o, d, dmg, headMult, pierce, kind){
     let tb = rayCyl(o, d, p.x, p.z, .3 * s, p.y + .05, p.y + 1.5 * s);
     const t = Math.min(th, tb); if(t < wallT) hits.push({ z, t, head: th <= tb });
   }
+  questRay(o, d, wallT);
   hits.sort((a, b) => a.t - b.t);
   let n = 0, k = 1;
   for(const h of hits){ if(n >= pierce) break; const at = o.clone().addScaledVector(d, h.t); hurtZombie(h.z, dmg * k * (h.head ? headMult : 1), h.head, kind, at); n++; k *= .75; }
@@ -1283,8 +1291,8 @@ function fireGun(){
   const spread = (P.ads > .6 ? d.ads : d.spread) * (P.moving > .2 ? 1.5 : 1) * (d.scope && P.ads < .9 ? 3 : 1);
   if(d.proj){
     const v = fwd.clone().multiplyScalar(g.up ? 46 : 38);
-    const s = sprite(glowTex, g.up ? 0xc060ff : 0x60ff60, true); s.scale.setScalar(g.up ? .7 : .5); s.position.copy(o).addScaledVector(fwd, .6);
-    PROJ.push({ s, v, life: 2, kind: 'plasma', dmg: st.dmg, r: d.splash * (g.up ? 1.4 : 1) });
+    const pc = d.pcol ? (g.up ? d.pcolUp : d.pcol) : (g.up ? 0xc060ff : 0x60ff60); const s = sprite(glowTex, pc, true); s.scale.setScalar(g.up ? .7 : .5); s.position.copy(o).addScaledVector(fwd, .6);
+    PROJ.push({ s, v, life: 2, kind: 'plasma', dmg: st.dmg, r: d.splash * (g.up ? 1.4 : 1), col: d.pcol ? pc : null });
   } else {
     const pellets = d.pellets || 1;
     for(let i = 0; i < pellets; i++){
@@ -1315,10 +1323,10 @@ function throwNade(){
     PROJ.push({ s: m, v: f.multiplyScalar(13).add(new THREE.Vector3(0, 3.5, 0)), life: 2.3, kind: 'nade', dmg: 300 + RS.round * 60, r: 4.2 }); SND.nadeOut();
   }, 220);
 }
-function explode(pos, r, dmg, kind, selfDmg){
+function explode(pos, r, dmg, kind, selfDmg, col){
   SND.boom(); boomLight.position.copy(pos).setY(1); boomLight.intensity = 30; boomT = .25;
-  for(let i = 0; i < 14; i++) fx(pos, { add: true, color: kind === 'plasma' ? 0x70ff70 : 0xffa030, v: new THREE.Vector3(rand(-5,5), rand(1, 6), rand(-5,5)), g: 8, life: rand(.3, .6), size: .14, size1: .02 });
-  fx(pos, { add: true, tex: glowTex, color: kind === 'plasma' ? 0x60ff60 : 0xff8a30, life: .3, size: 1, size1: r * 1.4 });
+  for(let i = 0; i < 14; i++) fx(pos, { add: true, color: col || (kind === 'plasma' ? 0x70ff70 : 0xffa030), v: new THREE.Vector3(rand(-5,5), rand(1, 6), rand(-5,5)), g: 8, life: rand(.3, .6), size: .14, size1: .02 });
+  fx(pos, { add: true, tex: glowTex, color: col || (kind === 'plasma' ? 0x60ff60 : 0xff8a30), life: .3, size: 1, size1: r * 1.4 });
   for(let i = 0; i < 6; i++) fx(pos.clone().add(new THREE.Vector3(rand(-.6,.6), rand(0,.6), rand(-.6,.6))), { tex: smokeTex, color: 0x3a3a3a, life: rand(1, 1.8), size: .6, size1: 2.2, op: .7, v: new THREE.Vector3(rand(-.4,.4), rand(.3,.8), rand(-.4,.4)) });
   for(const z of Z){ if(z.dead) continue; const zp = z.m.root.position; const d = Math.hypot(zp.x - pos.x, zp.z - pos.z); if(d < r && Math.abs(zp.y + .9 - pos.y) < 2.2){ hurtZombie(z, dmg * (1 - d / r * .6), false, 'boom', zp.clone().setY(1)); } }
   const pd = P.pos.distanceTo(new THREE.Vector3(pos.x, 0, pos.z)); if(pd < 7) P.shake = Math.max(P.shake, (1 - pd / 7) * .6);
@@ -1342,7 +1350,8 @@ function updProj(dt){
       if(!hit) for(const z of Z){ if(z.dead) continue; const zp = z.m.root.position; if(Math.hypot(zp.x - pos.x, zp.z - pos.z) < .45 && pos.y > zp.y && pos.y < zp.y + 1.8){ hit = true; break; } }
       pos.addScaledVector(dir, Math.min(wt, L));
       if(Math.random() < .6) fx(pos, { add: true, color: p.s.material.color.getHex(), life: .25, size: .2, size1: .02 });
-      if(hit || p.life <= 0){ explode(pos.clone(), p.r, p.dmg, 'plasma', 0); scene.remove(p.s); p.s.material.dispose(); PROJ.splice(i, 1); }
+      if(!hit && questProjHit(pos)) hit = true;
+      if(hit || p.life <= 0){ explode(pos.clone(), p.r, p.dmg, 'plasma', 0, p.col); scene.remove(p.s); p.s.material.dispose(); PROJ.splice(i, 1); }
     }
   }
 }
@@ -1587,7 +1596,7 @@ function update(dt){
     if(RS.toSpawn > 0 && alive < maxAlive() && RS.spawnT <= 0){ spawnZombie(); RS.spawnT = Math.max(.35, 2 - RS.round * .15) * rand(.7, 1.3); }
     if(RS.toSpawn <= 0 && alive === 0){ RS.breakT = 9; SND.roundEnd(); }
   }
-  updZombies(dt); updProj(dt); updPU(dt); updBox(dt); updUpg(dt); updFires(dt); updFX(dt);
+  updZombies(dt); updProj(dt); updPU(dt); updBox(dt); updUpg(dt); updQuest(dt); updFires(dt); updFX(dt);
   // doors sliding away
   for(const k in DOORS){ const D = DOORS[k]; if(D.open && D.mesh){ D.anim += dt; D.mesh.position.y = D.anim * D.anim * 3; if(D.anim > 1.6){ level.remove(D.mesh); D.mesh = null; } } }
   // flicker
@@ -1666,6 +1675,118 @@ function autoPerf(rdt){
 
 /* ================= props from the model packs ================= */
 const FIRES = [];
+/* ================= power parts, Easter eggs, wonder weapon ================= */
+const shuffle = a => { for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const SPN = MAPD.spawn || { x: 1, z: 1 };
+const nextToWall = ([x, z]) => [[1,0],[-1,0],[0,1],[0,-1]].some(([dx, dz]) => { const c = G[z + dz] && G[z + dz][x + dx]; return c === '#'; });
+const freeCell = ([x, z]) => G[z][x] === '.' && Math.hypot(x - SPN.x, z - SPN.z) > 3;
+const usedCells = new Set(); const take = c => { usedCells.add(c[0] + ',' + c[1]); return c; };
+// pick spread-out spots: one per room where possible (rooms other than the start room first)
+function pickSpots(n, filt){
+  const byRoom = {}; for(const c of FLOORS){ if(!freeCell(c) || usedCells.has(c[0] + ',' + c[1]) || (filt && !filt(c))) continue; const r = RID[c[1]][c[0]]; (byRoom[r] = byRoom[r] || []).push(c); }
+  const rooms = shuffle(Object.keys(byRoom).map(Number)).sort((a, b) => (a === 0) - (b === 0)); const out = [];
+  for(let i = 0; out.length < n && i < n * 4; i++){ const r = rooms[i % rooms.length]; if(r == null) break; const list = byRoom[r]; if(!list || !list.length) continue; out.push(take(list.splice(Math.floor(Math.random() * list.length), 1)[0])); }
+  return out;
+}
+function glowSprite(col, sc, op){ const g = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: op })); g.scale.setScalar(sc); return g; }
+// ---- parts to find: the power switch and the Upgrade machine both start broken ----
+const PARTMODELS = {
+  fuse(g){ cy(g, .05, .16, mat({ color: 0xd8c890, roughness: .4, metalness: .2 }), 0, .1, 0); cy(g, .055, .03, M.metal, 0, .1, .08); cy(g, .055, .03, M.metal, 0, .1, -.08); },
+  handle(g){ bx(g, .06, .06, .42, M.dark, 0, .06, 0); bx(g, .16, .07, .08, VM.red, 0, .06, .2); },
+  spool(g){ const t = new THREE.Mesh(new THREE.TorusGeometry(.11, .045, 8, 16), mat({ color: 0xb0602a, roughness: .5, metalness: .6 })); t.rotation.x = Math.PI / 2; t.position.y = .06; g.add(t); cy(g, .05, .1, M.dark, 0, .06, 0); },
+  core(g){ cy(g, .07, .22, mat({ color: 0x2a0a4a, emissive: 0xa040ff, emissiveIntensity: .8 }), 0, .12, 0); cy(g, .085, .04, M.metal, 0, .12, .12); cy(g, .085, .04, M.metal, 0, .12, -.12); },
+  gear(g){ const t = new THREE.Mesh(new THREE.TorusGeometry(.12, .035, 6, 12), M.metal); t.rotation.x = Math.PI / 2; t.position.y = .04; g.add(t); for(let i = 0; i < 8; i++){ const a = i / 8 * Math.PI * 2; bx(g, .05, .05, .05, M.metal, Math.cos(a) * .16, .04, Math.sin(a) * .16); } },
+  tube(g){ cy(g, .045, .2, mat({ color: 0xffe0b0, emissive: 0xffa040, emissiveIntensity: .6, transparent: true, opacity: .8 }), 0, .14, 0); cy(g, .055, .06, M.dark, 0, .03, 0); },
+};
+function makePartSet(on, label, col, kinds){
+  const S = { on, label, list: [], have: 0, built: false };
+  if(!on) return S;
+  const spots = pickSpots(kinds.length, nextToWall);
+  kinds.forEach((kd, i) => {
+    const c = spots[i] || pickSpots(1)[0]; if(!c) return;
+    const g = new THREE.Group(); g.position.copy(wpos(c[0], c[1], .05)); level.add(g); PARTMODELS[kd.m](g);
+    g.rotation.y = Math.random() * 6; const gl = glowSprite(col, 1.1, .5); gl.position.y = .25; g.add(gl);
+    const P1 = { ...kd, g, gl, got: false, c }; S.list.push(P1);
+    INTER.push({ pos: wpos(c[0], c[1], .8), r: 1.8, prompt(){ return P1.got ? null : [`Press <b>${KEY}</b> to pick up the ${P1.n} <small style="opacity:.7">(${label})</small>`, 0]; },
+      use(){ if(P1.got) return; P1.got = true; S.have++; level.remove(g); SND.buy(); hudParts(); msg(`Got the ${P1.n} (${S.have}/${S.list.length} ${label} parts)` + (S.have === S.list.length ? ` — go build the ${label}!` : '')); } });
+  });
+  return S;
+}
+const PARTS = makePartSet(!!(MAPD.parts && POWER), 'power switch', 0xffd84a, [ { n: 'Fuse', ic: '🔌', m: 'fuse' }, { n: 'Lever Handle', ic: '🔧', m: 'handle' }, { n: 'Cable Spool', ic: '🧵', m: 'spool' } ]);
+const UPARTS = makePartSet(!!((MAPD.upgParts ?? MAPD.parts) && UPG.on), 'Upgrade machine', 0xb04dff, [ { n: 'Power Core', ic: '🔋', m: 'core' }, { n: 'Drive Gear', ic: '⚙️', m: 'gear' }, { n: 'Vacuum Tube', ic: '💡', m: 'tube' } ]);
+if(PARTS.on) POWER.lever.visible = false;
+if(UPARTS.on){ UPG.g.visible = true; UPG.broken = true; UPG.sign.visible = false; }
+function hudParts(){ const e = $('#parts'); if(!e) return; const row = (S, ic) => (!S.on || S.built || !S.list.length) ? '' : `<span>${ic} ${S.list.map(p => `<i class="${p.got ? '' : 'no'}" title="${p.n}">${p.ic}</i>`).join('')}</span>`; e.innerHTML = row(PARTS, '⚡') + row(UPARTS, '⬆'); }
+// ---- Easter eggs ----
+const EGG = { on: MAPD.eggs !== false, skulls: [], shot: 0, chest: null, souls: 0, need: 12, done: false, bears: [], squeezed: 0, song: false, boost: false };
+const skullTex = textTex([{ t: '💀', font: '86px serif', y: 64 }], 128, 128);
+if(EGG.on){
+  // 1) three glowing skulls hidden high on walls - shoot them
+  for(const c of pickSpots(3, nextToWall)){
+    const [dx, dz] = wallSide(c[0], c[1]); const p = wpos(c[0], c[1], rand(2.25, 2.7)); p.x += dx * (CELL / 2 - .12); p.z += dz * (CELL / 2 - .12);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: skullTex, color: 0xa8ffb0, transparent: true, depthWrite: false })); sp.scale.setScalar(.32); sp.position.copy(p); level.add(sp);
+    const gl = glowSprite(0x40ff80, .7, .25); gl.position.copy(p); level.add(gl);
+    EGG.skulls.push({ p, sp, gl, hit: false });
+  }
+  // 3) three teddy bears tucked away - squeeze them all
+  for(const c of pickSpots(3, nextToWall)){
+    const g = new THREE.Group(); g.position.copy(wpos(c[0], c[1])); g.rotation.y = rand(0, 6); level.add(g);
+    const fur = mat({ color: 0x7a4a26, roughness: 1 }), dk = mat({ color: 0x2a160a, roughness: 1 });
+    const sph = (r, m, x, y, z) => { const o = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), m); o.position.set(x, y, z); g.add(o); return o; };
+    sph(.13, fur, 0, .13, 0); sph(.095, fur, 0, .31, 0); sph(.04, fur, -.075, .39, 0); sph(.04, fur, .075, .39, 0); sph(.045, fur, -.12, .16, .03); sph(.045, fur, .12, .16, .03); sph(.05, fur, -.06, .03, .07); sph(.05, fur, .06, .03, .07);
+    const eyeM = new THREE.MeshBasicMaterial({ color: 0x111111 }); sph(.014, eyeM, -.03, .33, .085); sph(.014, eyeM, .03, .33, .085); sph(.025, dk, 0, .29, .09);
+    const B1 = { g, eyeM, done: false };
+    EGG.bears.push(B1);
+    INTER.push({ pos: wpos(c[0], c[1], .6), r: 1.5, prompt(){ return B1.done ? null : [`Press <b>${KEY}</b> to squeeze the teddy`, 0]; },
+      use(){ if(B1.done) return; B1.done = true; EGG.squeezed++; eyeM.color.set(0xff2020); tn({ f: 900, f2: 1300, type: 'square', dur: .12, vol: .12 }); tn({ f: 1200, f2: 700, type: 'square', dur: .14, vol: .1, at: .14 });
+        if(EGG.squeezed === EGG.bears.length) teddySong(); } });
+  }
+}
+function teddySong(){
+  EGG.song = true; EGG.boost = true; ann('♪ SECRET SONG ♪', '#ff6ad5');
+  const mel = [220, 261.6, 329.6, 311.1, 329.6, 392, 349.2, 329.6, 293.7, 261.6, 246.9, 261.6, 220, 0, 220, 261.6, 329.6, 440, 415.3, 392, 349.2, 329.6, 293.7, 329.6, 220];
+  const bass = [110, 110, 87.3, 87.3, 98, 98, 82.4, 82.4]; const beat = .42;
+  for(let rep = 0; rep < 2; rep++){ const o = rep * mel.length * beat;
+    mel.forEach((f, i) => { if(f) tn({ f, type: 'triangle', dur: beat * .9, vol: .16, at: o + i * beat, echo: .3 }); });
+    for(let i = 0; i < mel.length; i += 2) tn({ f: bass[(i / 2) % bass.length], type: 'sawtooth', dur: beat * 1.8, vol: .07, at: o + i * beat }); }
+  setTimeout(() => { const own = new Set(P.perks); const opts2 = Object.keys(PERKS).filter(k => PERKS[k].placed && !own.has(k)); if(opts2.length && P.perks.length < 4 && !P.down){ const k = pick(opts2); P.drinkT = 1.6; P.drinkPerk = k; SND.drink(); msg('The teddies gave you ' + PERKS[k].name + '! The box feels lucky now…'); } else { P.points += 2500; hudPts(); msg('The teddies gave you 2500 points! The box feels lucky now…'); } }, 1500);
+}
+function skullHit(S){
+  if(S.hit) return; S.hit = true; EGG.shot++; level.remove(S.sp); level.remove(S.gl);
+  for(let i = 0; i < 10; i++) fx(S.p, { add: true, color: 0x50ff80, v: new THREE.Vector3(rand(-2,2), rand(-1,2), rand(-2,2)), life: .6, size: .12, size1: .02 });
+  tn({ f: 160, f2: 60, type: 'sawtooth', dur: .6, vol: .14, echo: .4 });
+  if(EGG.shot === EGG.skulls.length){ EGG.boost = true; spawnChest(); }
+  else msg(`A skull shatters… (${EGG.shot}/${EGG.skulls.length})`);
+}
+function questRay(o, d, wallT){ if(!EGG.on) return; for(const S of EGG.skulls){ if(S.hit) continue; const t = raySphere(o, d, S.p, .26); if(t < wallT + .3 && t < 80) skullHit(S); } }
+function questProjHit(pos){ if(!EGG.on) return false; for(const S of EGG.skulls){ if(!S.hit && pos.distanceTo(S.p) < .45){ skullHit(S); return true; } } return false; }
+// 2) the soul chest: feed it zombie souls, get the wonder weapon
+function spawnChest(){
+  const opts3 = FLOORS.filter(c => openRooms.has(RID[c[1]][c[0]]) && G[c[1]][c[0]] === '.' && nextToWall(c) && Math.hypot(wpos(c[0], c[1]).x - P.pos.x, wpos(c[0], c[1]).z - P.pos.z) > 4);
+  const c = pick(opts3.length ? opts3 : FLOORS); const g = new THREE.Group(); g.position.copy(wpos(c[0], c[1])); const f = openSide(c[0], c[1]); g.rotation.y = Math.atan2(f[0], f[1]); level.add(g);
+  const cm = mat({ color: 0x1a2a1a, roughness: .6, metalness: .4, emissive: 0x20ff60, emissiveIntensity: .25 });
+  bx(g, 1.0, .5, .6, cm, 0, .25, 0); const lid = new THREE.Group(); lid.position.set(0, .5, -.3); g.add(lid); bx(lid, 1.0, .1, .6, cm, 0, .05, .3);
+  const sk = new THREE.Sprite(new THREE.SpriteMaterial({ map: skullTex, color: 0x90ffa0, transparent: true, depthWrite: false })); sk.scale.setScalar(.35); sk.position.set(0, .3, .32); g.add(sk);
+  const gl = glowSprite(0x40ff80, 2.2, .35); gl.position.y = .6; g.add(gl);
+  EGG.chest = { g, lid, gl, pos: g.position.clone(), open: false, taken: false };
+  ann('FEED THE SOUL CHEST', '#5aff8a'); msg(`A soul chest appeared in the ${ROOM_NAMES[RID[c[1]][c[0]]]}. Kill zombies near it.`);
+  tn({ f: 80, f2: 40, type: 'sawtooth', dur: 2.5, vol: .16, echo: .6 });
+  INTER.push({ pos: g.position.clone().setY(1), r: 2.2, prompt(){ const C = EGG.chest; if(!C.open) return [`The soul chest hungers (${EGG.souls}/${EGG.need} souls)`, 0, true]; if(C.taken) return null; return [`Press <b>${KEY}</b> to take the Ray Gun`, 0]; },
+    use(){ const C = EGG.chest; if(!C.open || C.taken) return; C.taken = true; giveGun(newGun('ray')); SND.buy(); ann('RAY GUN', '#ff4a3a'); level.remove(C.g); } });
+}
+function questKill(z){
+  const C = EGG.chest; if(!C || C.open) return; const zp = z.m.root.position; if(Math.hypot(zp.x - C.pos.x, zp.z - C.pos.z) > 7) return;
+  EGG.souls++; const from = zp.clone().setY(1.2); for(let i = 0; i < 6; i++){ const t = i / 6; fx(from.clone().lerp(C.pos.clone().setY(.6), t), { add: true, color: 0x50ff80, life: .5 + t * .3, size: .25, size1: .05 }); }
+  tn({ f: 600, f2: 300, type: 'sine', dur: .25, vol: .1 });
+  if(EGG.souls >= EGG.need){ C.open = true; EGG.done = true; ann('THE CHEST IS FULL', '#5aff8a'); SND.boxSpin && SND.boxSpin(); const m = tintGun(buildGun('plasma', false, false), W.ray.tint); m.rotation.y = Math.PI / 2; if(m.userData.real){ m.scale.setScalar(.6 / m.userData.len); m.children[0].position.z = 0; } m.position.y = .85; C.g.add(m); C.gun = m; }
+}
+function updQuest(dt){
+  for(const p of [...PARTS.list, ...UPARTS.list]){ if(p.got) continue; p.gl.material.opacity = .35 + Math.sin(now * 3 + p.c[0]) * .2; }
+  for(const S of EGG.skulls){ if(S.hit) continue; S.gl.material.opacity = .15 + Math.sin(now * 2.3 + S.p.x) * .1; }
+  const C = EGG.chest; if(C && !C.taken){ C.gl.material.opacity = .3 + Math.sin(now * 4) * .12 + (C.open ? .3 : 0); C.lid.rotation.x += ((C.open ? -1.4 : 0) - C.lid.rotation.x) * Math.min(1, dt * 4); if(C.gun) C.gun.rotation.y += dt; }
+}
+hudParts();
+
 function decorate(){
   if(!ASSETS.barrel) return;
   for(const [x, z, fire] of (MAPD.barrels || [])){
@@ -1709,7 +1830,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 </body>
