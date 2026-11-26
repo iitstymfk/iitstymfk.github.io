@@ -541,10 +541,10 @@ function buildGun(model, up, hands = true){
       cy(g, .03, .1, dk, 0, .02, -.27, .02); bx(g, .045, .12, .06, dk, 0, -.08, .04, .2); bx(g, .01, .1, .06, up ? VM.red : VM.green, 0, .09, -.06); muzzle.set(0, .02, -.33); break; }
   }
   if(hands){
-    bx(g, .075, .085, .1, VM.glove, .005, grip.y - .005, grip.z + .01);
-    const sl = bx(g, .085, .085, .4, VM.sleeve, .03, grip.y - .1, grip.z + .25, .35); sl.rotation.y = -.15;
-    if(fore){ bx(g, .085, .07, .09, VM.glove, -.01, fore.y, fore.z); const s2 = bx(g, .085, .085, .45, VM.sleeve, -.14, fore.y - .12, fore.z + .2, .3); s2.rotation.y = .5; }
-    else { bx(g, .07, .08, .09, VM.glove, -.04, grip.y - .01, grip.z + .02); const s2 = bx(g, .085, .085, .4, VM.sleeve, -.14, grip.y - .12, grip.z + .25, .35); s2.rotation.y = .35; }
+    bx(g, .068, .08, .09, VM.glove, .004, grip.y - .005, grip.z + .01);
+    bx(g, .075, .075, .32, VM.sleeve, .02, grip.y - .14, grip.z + .11, .95);
+    if(fore){ bx(g, .075, .065, .085, VM.glove, -.012, fore.y, fore.z); const s2 = bx(g, .075, .075, .34, VM.sleeve, -.07, fore.y - .14, fore.z + .11, .95); s2.rotation.y = .45; }
+    else { bx(g, .06, .075, .08, VM.glove, -.045, grip.y - .01, grip.z + .015); const s2 = bx(g, .075, .075, .32, VM.sleeve, -.09, grip.y - .15, grip.z + .1, .95); s2.rotation.y = .5; }
   }
   g.userData.muzzle = muzzle;
   return g;
