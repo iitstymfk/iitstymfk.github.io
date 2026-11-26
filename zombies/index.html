@@ -777,7 +777,7 @@ function setupArms(){
     const kb = new THREE.Group(); { bx(kb, .022, .028, .11, VM.dark, 0, 0, 0); bx(kb, .05, .012, .012, VM.metal, 0, 0, -.06); const bl = bx(kb, .006, .032, .19, VM.blade, 0, .004, -.16); }
     kb.scale.setScalar(.8); kb.visible = false; B['handR'].add(kb);
     Object.assign(ARMS, { ok: true, root, holder, mixer, A, B, kb, mode: 'hold', kAlt: false,
-      rOff: new THREE.Euler(0, 0, 0), lOff: new THREE.Euler(0, 0, 0), kbPos: new THREE.Vector3(-.02, .085, 0), kbRot: new THREE.Euler(0, Math.PI, 0), knifeOff: new THREE.Vector3(-.17, .07, -.04), holdOff: new THREE.Vector3(0, -.14, .06), poleL: new THREE.Vector3(-.35, -1, .25), poleR: new THREE.Vector3(.45, -1, .2),
+      rOff: new THREE.Euler(0, 0, 0), lOff: new THREE.Euler(0, 0, 0), kbPos: new THREE.Vector3(-.02, .085, 0), kbRot: new THREE.Euler(0, Math.PI, 0), knifeOff: new THREE.Vector3(-.17, .07, -.04), holdOff: new THREE.Vector3(0, -.14, .06), holdOffLong: new THREE.Vector3(0, -.04, .02), poleL: new THREE.Vector3(-.35, -1, .25), poleR: new THREE.Vector3(.45, -1, .2),
       grip: { y: -.22, z: .3, zs: .3 }, hip: new THREE.Vector3(.09, -.075, -.38), hipLong: new THREE.Vector3(.08, -.08, -.3),
       lFixP: ARMS_basis([.9, .25, .3], [.5, -.7, -.5]), pistolL: new THREE.Vector3(-.03, .012, -.04),
       lFix: (() => { const Y = new THREE.Vector3(.5, .1, -.9).normalize(), X = new THREE.Vector3(.3, 1, 0).normalize(); X.sub(Y.clone().multiplyScalar(X.dot(Y))).normalize(); return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, X.clone().cross(Y))); })(), fore: { y: -.2, z: .42 }, wristBack: .07 });
@@ -812,7 +812,7 @@ function updArms(dt, gunShown){
   if(!holder.visible) return;
   if(knifing && ARMS.mode !== 'knife'){ ARMS.mode = 'knife'; ARMS.kAlt = !ARMS.kAlt; const a = ARMS.kAlt ? A.k1 : A.k2; a.reset().setEffectiveTimeScale(a.getClip().duration / .5).play(); A.hold.crossFadeTo(a, .06, false); }
   if(!knifing && ARMS.mode === 'knife'){ ARMS.mode = 'hold'; A.hold.reset().play(); for(const k of ['k1', 'k2']){ A[k].fadeOut(.1); } }
-  holder.position.lerp(knifing ? ARMS.knifeOff : ARMS.holdOff, Math.min(1, dt * 20)); mixer.update(dt); holder.updateMatrixWorld(true);
+  const gk = P.guns[P.gi], longG = gk && GUNMETA[W[gk.k].model] && GUNMETA[W[gk.k].model].len >= .3; holder.position.lerp(knifing ? ARMS.knifeOff : longG ? ARMS.holdOffLong : ARMS.holdOff, Math.min(1, dt * 20)); mixer.update(dt); holder.updateMatrixWorld(true);
   kb.visible = knifing; if(knifing){ kb.position.copy(ARMS.kbPos); kb.rotation.copy(ARMS.kbRot); return; }
   // hold the gun: right hand on the grip, left hand on the fore-end (or cupping a pistol)
   if(ARMS.noIK) return;
