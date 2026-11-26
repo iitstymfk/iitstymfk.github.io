@@ -511,16 +511,16 @@ function newGun(k, up = false){ const g = { k, up, next: 0 }; const s = gs(g); g
 
 /* ---------- weapon models (viewmodel + display) ---------- */
 const VM = {
-  metal: new THREE.MeshStandardMaterial({ color: 0x2c3036, metalness: .75, roughness: .35 }),
-  dark: new THREE.MeshStandardMaterial({ color: 0x141518, metalness: .5, roughness: .55 }),
+  metal: new THREE.MeshStandardMaterial({ color: 0x4a4f57, metalness: .35, roughness: .38 }),
+  dark: new THREE.MeshStandardMaterial({ color: 0x24262b, metalness: .25, roughness: .55 }),
   wood: new THREE.MeshStandardMaterial({ color: 0x6b4022, metalness: 0, roughness: .6, map: TEX.wood }),
   glove: new THREE.MeshStandardMaterial({ color: 0x24211d, roughness: .9 }),
   sleeve: new THREE.MeshStandardMaterial({ color: 0x3b4430, roughness: .95 }),
-  up: new THREE.MeshStandardMaterial({ color: 0x3a1460, emissive: 0x6a1ab8, emissiveIntensity: .55, metalness: .7, roughness: .3 }),
+  up: new THREE.MeshStandardMaterial({ color: 0x5a2490, emissive: 0x6a1ab8, emissiveIntensity: .55, metalness: .35, roughness: .3 }),
   upD: new THREE.MeshStandardMaterial({ color: 0x1a0a2e, emissive: 0x2e0a5a, emissiveIntensity: .5, metalness: .6, roughness: .4 }),
   green: new THREE.MeshStandardMaterial({ color: 0x40ff60, emissive: 0x30ff50, emissiveIntensity: 1.5 }),
   red: new THREE.MeshStandardMaterial({ color: 0xff3030, emissive: 0xff2020, emissiveIntensity: 1.2 }),
-  blade: new THREE.MeshStandardMaterial({ color: 0xc8ccd0, metalness: .9, roughness: .2 }),
+  blade: new THREE.MeshStandardMaterial({ color: 0xd8dce0, metalness: .4, roughness: .2 }),
 };
 function bx(p, w, h, d, m, x, y, z, rx = 0){ const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.rotation.x = rx; p.add(o); return o; }
 function cy(p, r, l, m, x, y, z, r2){ const g = new THREE.CylinderGeometry(r2 == null ? r : r2, r, l, 12); g.rotateX(Math.PI/2); const o = new THREE.Mesh(g, m); o.position.set(x, y, z); p.add(o); return o; }
