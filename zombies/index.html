@@ -711,6 +711,7 @@ function updArms(dt, gunShown){
   mixer.update(dt); holder.updateMatrixWorld(true);
   kb.visible = knifing; if(knifing){ kb.position.copy(ARMS.kbPos); kb.rotation.copy(ARMS.kbRot); return; }
   // hold the gun: right hand on the grip, left hand on the fore-end (or cupping a pistol)
+  if(ARMS.noIK) return;
   const gp = gunPt('grip'), fp = gunPt('fore'); if(!gp || !fp) return;
   vmRoot.updateMatrixWorld(true);
   const rq = B['handR'].getWorldQuaternion(new THREE.Quaternion()), lq = B['handL'].getWorldQuaternion(new THREE.Quaternion());
