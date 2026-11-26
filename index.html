@@ -4175,6 +4175,17 @@ css.textContent = `
 #thRoom video{width:100%;height:100%;object-fit:contain;background:#000}
 #thRoom .tap{position:absolute;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);font-size:18px;cursor:pointer}
 #thRoom .tap.on{display:grid}
+#thRoom .vote{position:absolute;inset:50px 0 0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow:auto;gap:10px;padding:12px;background:rgba(5,3,10,.88);backdrop-filter:blur(6px);text-align:center}
+#thRoom .vote h4{margin:0;font-size:18px;color:var(--accent)}
+#thRoom .vote .vt{font-size:13px;opacity:.8}
+#thRoom .vote .vo{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:720px}
+#thRoom .vote .vc{width:clamp(84px,24vw,130px);display:flex;flex-direction:column;gap:6px;align-items:stretch;padding:6px;border-radius:12px;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#eee;font:inherit;cursor:pointer}
+#thRoom .vote .vc.mine{border-color:var(--accent);box-shadow:0 0 16px color-mix(in srgb,var(--accent) 45%,transparent)}
+#thRoom .vote .vc i{display:block;height:clamp(90px,24vh,190px);border-radius:8px;background:#111 center/cover no-repeat}
+#thRoom .vote .vc span{font-size:12px;line-height:1.25;overflow-wrap:anywhere}
+#thRoom .vote .vc b{font-size:13px}
+#thRoom .vote .vc .now{font-size:11px;padding:4px;border-radius:7px;border:0;background:var(--accent);color:#111;font-weight:600;cursor:pointer}
+.vDraft{display:flex;flex-direction:column;gap:6px;margin:8px 0}.vDraft div{display:flex;gap:8px;align-items:center;font-size:13px}.vDraft div span{flex:1;min-width:0;overflow-wrap:anywhere}
 #thRoom .wait{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:20px;background:#000 center/contain no-repeat}
 #thRoom .wait.on{display:grid}
 #thRoom .wait div{background:rgba(0,0,0,.65);padding:14px 18px;border-radius:12px}
@@ -4208,11 +4219,11 @@ async function checkOpen(){
   try{ const s = await rpc('theater_status'); isOpen = !!(s && s.open); }catch(e){ return; }
   btn.classList.toggle('live', isOpen);
   btn.style.display = (isOpen || isOwner) && !th.on ? 'grid' : 'none';
-  reqBtn.classList.toggle('shift', btn.style.display === 'grid'); reqBtn.style.display = th.on ? 'none' : 'grid';
+  reqBtn.classList.toggle('shift', btn.style.display === 'grid'); reqBtn.style.display = isOpen && !th.on ? 'grid' : 'none';
 }
-/* ---------- 🍿 requests: friends ask for a movie or show; it shows up on the PC Dashboard ---------- */
+/* ---------- 🍿 requests: friends ask for a movie or show (only while the theater is open); it shows up on the PC Dashboard ---------- */
 const reqBtn = document.createElement('button');
-reqBtn.id = 'reqBtn'; reqBtn.className = 'cornerBtn'; reqBtn.textContent = '🍿'; reqBtn.title = 'Request a movie or show'; reqBtn.setAttribute('aria-label', 'Request a movie or show');
+reqBtn.style.display = 'none'; reqBtn.id = 'reqBtn'; reqBtn.className = 'cornerBtn'; reqBtn.textContent = '🍿'; reqBtn.title = 'Request a movie or show'; reqBtn.setAttribute('aria-label', 'Request a movie or show');
 document.body.appendChild(reqBtn);
 reqBtn.onclick = () => requestBox();
 const RQS = { new: '🆕 asked', getting: '⏳ getting it', added: '✅ added', no: '🚫 not getting' };
@@ -4449,7 +4460,7 @@ async function enter(r, host, name){
   try{ if(!audio.paused) audio.pause(); }catch(e){} _wasPlaying = false;
   const el = document.createElement('div'); el.id = 'thRoom';
   el.innerHTML = `<div class="hd"><b>🎬 ${escH(r.title || (r.item && r.item.Name) || 'Theater')}</b><span class="cnt">👥 1</span>
-      ${host ? '<button data-k="change" title="Change movie">🎞</button><button data-k="end" title="End for everyone">⏹ End</button>' : ''}<button data-k="x" title="Leave">✕</button></div>
+      ${host ? '<button data-k="vote" title="Let everyone vote">🗳</button><button data-k="change" title="Change movie">🎞</button><button data-k="end" title="End for everyone">⏹ End</button>' : ''}<button data-k="x" title="Leave">✕</button></div>
     <div class="main"><div class="scr"><video playsinline ${host ? 'controls' : ''}></video>
       <div class="wait ${host ? '' : 'on'}" style="${r.poster ? `background-image:url('${escH(r.poster)}')` : ''}"><div>🍿 Waiting for the host to press play…</div></div>
       <div class="tap">▶ Tap to start watching</div></div>
@@ -4468,6 +4479,7 @@ async function enter(r, host, name){
       case 'x': leave(); break;
       case 'end': if(confirm('End the theater for everyone and hide 🎬 again?')) endTheater(); break;
       case 'change': picker(it => { closeModal(); changeItem(slim(it), jfImg(it, 300)); }); break;
+      case 'vote': voteSetup(); break;
       case 'mute': v.muted = !v.muted; k.textContent = v.muted ? '🔇' : '🔊'; break;
       case 'sync': send('hello', {}); if(th.lastState) applyState(th.lastState); break;
       case 'fs': { const t = el.querySelector('.scr'), rq = t.requestFullscreen || t.webkitRequestFullscreen; if(document.fullscreenElement) document.exitFullscreen(); else if(rq) rq.call(t); else if(v.webkitEnterFullscreen) v.webkitEnterFullscreen(); break; }
@@ -4493,10 +4505,14 @@ async function enter(r, host, name){
     th.sb = th.sb || supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false } });
     const ch = th.ch = th.sb.channel('theater-' + th.room, { config: { broadcast: { self: false }, presence: { key: th.me } } });
     ch.on('broadcast', { event: 'state' }, ({ payload }) => applyState(payload))
-      .on('broadcast', { event: 'hello' }, () => { if(th.host) send('state', stateNow()); })
+      .on('broadcast', { event: 'hello' }, () => { if(th.host){ send('state', stateNow()); if(th.vote) send('vote', votePub()); } })
       .on('broadcast', { event: 'chat' }, ({ payload: p }) => log(`<div><b>${escH(String(p.n || 'Guest').slice(0, 24))}:</b> ${escH(String(p.m || '').slice(0, 300))}</div>`))
       .on('broadcast', { event: 'react' }, ({ payload: p }) => { if(REACTS.includes(p.e)) fly(p.e); })
       .on('broadcast', { event: 'load' }, ({ payload: p }) => { if(th.host || !p.item) return; sys('🎞 Now playing: ' + p.item.Name); const w = q('#thRoom .wait'); if(w){ w.style.backgroundImage = p.poster ? `url('${p.poster}')` : ''; } loadItem(p.item, 0); })
+      .on('broadcast', { event: 'vote' }, ({ payload: p }) => { if(!th.host) showVote(p); })
+      .on('broadcast', { event: 'tally' }, ({ payload: p }) => { if(!th.host && th.vote && p.id === th.vote.id){ th.vote.counts = p.counts; drawVote(); } })
+      .on('broadcast', { event: 'voteEnd' }, ({ payload: p }) => { if(th.host) return; closeVote(); if(p && p.win) sys('🗳 The vote picked: ' + p.win); else sys('🗳 Vote cancelled'); })
+      .on('broadcast', { event: 'ballot' }, ({ payload: p }) => { if(th.host) castBallot(p); })
       .on('broadcast', { event: 'end' }, () => { if(th.host) return; leave(true); toast('🎬 The host ended the theater'); isOpen = false; checkOpen(); })
       .on('presence', { event: 'sync' }, () => { const st = ch.presenceState(), n = Object.keys(st).length; const c = q('#thRoom .hd .cnt'); if(c) c.textContent = '👥 ' + n; })
       .on('presence', { event: 'join' }, ({ newPresences }) => (newPresences || []).forEach(p => { if(p.key !== th.me && p.n) sys(p.n + ' joined'); }))
@@ -4504,8 +4520,70 @@ async function enter(r, host, name){
       .subscribe(st => { if(st === 'SUBSCRIBED'){ ch.track({ n: th.name, host: th.host }); if(!th.host) send('hello', {}); } else if(st === 'CHANNEL_ERROR') sys('⚠️ Lost the connection to the room — retrying…'); });
   }catch(e){ sys('⚠️ Couldn\'t connect the room (' + e.message + '). The video still plays, but won\'t follow the host.'); }
 }
+/* ---------- 🗳 vote: host lines up 2-4 picks with a countdown; everyone taps one; the winner plays. Host can still start any pick (or anything) instantly ---------- */
+function voteSetup(){
+  const d = th.voteDraft = th.voteDraft || { opts: [], secs: 60 };
+  const b = modal(`<h3>🗳 Movie vote</h3><p>Pick 2 to 4 options. Everyone in the room votes, and the winner starts when the timer runs out. You can still start any of them right away.</p>
+    <div class="vDraft">${d.opts.map((o, i) => `<div>🎞<span>${escH(o.item.Name)}</span><button class="thBtn2" data-rm="${i}" style="flex:0 0 auto">✕</button></div>`).join('') || '<div style="opacity:.7">No options yet.</div>'}</div>
+    ${d.opts.length < 4 ? '<button class="thBtn2" data-add style="width:100%">＋ Add an option</button>' : ''}
+    <div class="thRow"><span style="align-self:center;font-size:13px;opacity:.8">Timer</span>${[30, 60, 120, 300].map(t => `<button class="thBtn2${d.secs === t ? ' go' : ''}" data-t="${t}" style="flex:0 0 auto">${t < 60 ? t + 's' : t / 60 + ' min'}</button>`).join('')}</div>
+    <div class="thRow"><button class="thBtn2" data-x>Cancel</button><button class="thBtn2 go" data-go ${d.opts.length < 2 ? 'disabled style="opacity:.5"' : ''}>Start vote</button></div><div class="thMsg"></div>`);
+  b.querySelector('[data-x]').onclick = closeModal;
+  b.querySelectorAll('[data-rm]').forEach(x => x.onclick = () => { d.opts.splice(+x.dataset.rm, 1); voteSetup(); });
+  b.querySelectorAll('[data-t]').forEach(x => x.onclick = () => { d.secs = +x.dataset.t; voteSetup(); });
+  const add = b.querySelector('[data-add]'); if(add) add.onclick = () => picker(it => { if(!d.opts.some(o => o.item.Id === it.Id)) d.opts.push({ item: slim(it), poster: jfImg(it, 300) }); voteSetup(); });
+  b.querySelector('[data-go]').onclick = () => { if(d.opts.length < 2) return msg(b, 'Add at least 2 options.', 1); closeModal(); startVote(d.opts.slice(), d.secs); th.voteDraft = null; };
+}
+const votePub = () => ({ id: th.vote.id, ends: th.vote.ends, opts: th.vote.opts.map(o => ({ name: o.item.Name, poster: o.poster })), counts: th.vote.counts });
+function startVote(opts, secs){
+  th.vote = { id: Math.random().toString(36).slice(2, 9), ends: Date.now() + secs * 1000, opts, counts: opts.map(() => 0), ballots: {}, mine: -1 };
+  send('vote', votePub()); sys('🗳 Vote started (' + (secs < 60 ? secs + ' s' : secs / 60 + ' min') + ')');
+  drawVote(); th.voteT = setInterval(voteTick, 1000);
+}
+function showVote(p){
+  if(!p || !p.opts) return;
+  if(!th.vote || th.vote.id !== p.id){ th.vote = { id: p.id, ends: p.ends, opts: p.opts.map(o => ({ item: { Name: o.name }, poster: o.poster })), counts: p.counts || p.opts.map(() => 0), mine: -1 }; sys('🗳 Vote for what to watch next!'); }
+  else th.vote.counts = p.counts || th.vote.counts;
+  clearInterval(th.voteT); th.voteT = setInterval(voteTick, 1000); drawVote();
+}
+function castBallot(p){   // host only: one vote per person, they can switch
+  const V = th.vote; if(!V || p.id !== V.id || !(p.i >= 0 && p.i < V.opts.length)) return;
+  V.ballots[String(p.who).slice(0, 40)] = p.i;
+  V.counts = V.opts.map((_, i) => Object.values(V.ballots).filter(x => x === i).length);
+  send('tally', { id: V.id, counts: V.counts }); drawVote();
+}
+function voteTick(){
+  const V = th.vote; if(!V){ clearInterval(th.voteT); return; }
+  const left = Math.max(0, Math.ceil((V.ends - Date.now()) / 1000)), t = q('#thRoom .vote .vt b'); if(t) t.textContent = left >= 60 ? Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0') : left + 's';
+  if(left > 0 || !th.host) return;
+  const max = Math.max(...V.counts), top = V.counts.map((c, i) => c === max ? i : -1).filter(i => i >= 0);
+  finishVote(top[Math.floor(Math.random() * top.length)]);
+}
+function finishVote(i){   // host: play option i (or cancel with -1)
+  const V = th.vote; if(!V) return; const o = V.opts[i];
+  send('voteEnd', { id: V.id, win: o ? o.item.Name : '' }); closeVote();
+  if(o){ sys('🗳 Winner: ' + o.item.Name); changeItem(o.item, o.poster); } else sys('🗳 Vote cancelled');
+}
+function closeVote(){ clearInterval(th.voteT); th.voteT = null; th.vote = null; const e = q('#thRoom > .vote'); if(e) e.remove(); }
+function drawVote(){
+  const V = th.vote, scr = q('#thRoom'); if(!V || !scr) return;
+  let el = scr.querySelector(':scope > .vote'); if(!el){ el = document.createElement('div'); el.className = 'vote'; scr.appendChild(el); }
+  el.innerHTML = `<h4>🗳 What should we watch?</h4><div class="vt">Voting ends in <b>…</b>${th.host ? '' : ' · tap to vote (you can switch)'}</div>
+    <div class="vo">${V.opts.map((o, i) => `<div class="vc${V.mine === i ? ' mine' : ''}" data-v="${i}"><i style="${o.poster ? `background-image:url('${escH(o.poster)}')` : ''}"></i><span>${escH(o.item.Name)}</span><b>${V.counts[i] || 0} vote${(V.counts[i] || 0) === 1 ? '' : 's'}</b>${th.host ? `<button class="now" data-now="${i}">▶ Play now</button>` : ''}</div>`).join('')}</div>
+    ${th.host ? '<div class="thRow"><button class="thBtn2" data-vx>Cancel vote</button></div>' : ''}`;
+  el.onclick = e => {
+    e.stopPropagation();
+    const now = e.target.closest('[data-now]'); if(now) return finishVote(+now.dataset.now);
+    if(e.target.closest('[data-vx]')) return finishVote(-1);
+    const c = e.target.closest('[data-v]'); if(!c) return;
+    V.mine = +c.dataset.v;
+    if(th.host) castBallot({ id: V.id, i: V.mine, who: th.me }); else { send('ballot', { id: V.id, i: V.mine, who: th.me }); drawVote(); }
+  };
+  voteTick();
+}
 function escKey(e){ if(e.key === 'Escape' && th.on && !q('#thModal') && !document.fullscreenElement) leave(); }
 async function changeItem(it, poster){
+  if(th.vote && th.host){ send('voteEnd', { id: th.vote.id, win: it.Name }); closeVote(); }
   try{
     const H = jget('thHost') || {};
     await authCall({ action: 'theater', session: getSess(), open: true, keepCode: true, code: '', title: it.Name, poster, item: it, jfBase: JF_PUB, jfToken: th.tok });
@@ -4518,7 +4596,7 @@ async function endTheater(){
   send('end', {}); jset('thHost', null); isOpen = false; leave(true); toast('🎬 Theater closed'); checkOpen();
 }
 function leave(quiet){
-  if(!th.on) return; th.on = false; clearInterval(th.tick); th.tick = null;
+  if(!th.on) return; th.on = false; clearInterval(th.tick); th.tick = null; closeVote();
   try{ th.hls && th.hls.destroy(); }catch(e){} th.hls = null;
   try{ th.v.pause(); th.v.removeAttribute('src'); th.v.load(); }catch(e){} th.v = null;
   try{ if(th.ch){ th.ch.untrack(); th.sb.removeChannel(th.ch); } }catch(e){} th.ch = null;
