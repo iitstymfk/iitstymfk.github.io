@@ -4141,8 +4141,8 @@ const copyTxt = (t, b) => { const done = () => { if(b){ const o = b.textContent;
   (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(done, () => { prompt('Copy this:', t); }); };
 function mcBox(){
   if(!MC) return;
-  const S = MC.data.servers || [], stale = MC.age_s > 180;
-  const b = modal(`<h3>⛏️ Minecraft servers</h3><p>${stale ? 'The server PC is off right now, so everything shows offline.' : 'Live from the server PC.'}</p>` +
+  const S = MC.data.servers || [], stale = MC.age_s > 180, busy = !stale && MC.data.busy;
+  const b = modal(`<h3>⛏️ Minecraft servers</h3><p>${stale ? 'The server PC is off right now, so everything shows offline.' : busy ? '⏳ The server PC is busy right now (' + escH(busy) + '), so servers can\'t be started. Try again later.' : 'Live from the server PC.'}</p>` +
     S.map(v => { const on = !stale && v.status === 'online';
       const how = v.bedrock ? `Java ${escH(v.version)} or Bedrock (console/phone), no mods needed` : (v.note ? escH(v.note) : `PC only · ${escH(v.type)} ${escH(v.version)}`);
       return `<div class="mcS"><div class="h"><i style="width:9px;height:9px;border-radius:50%;background:${on ? '#23a55a' : (!stale && v.status === 'starting' ? '#f0b232' : '#80848e')}"></i>${escH(v.name)}<small>${on ? v.players.length + '/' + v.max + ' online' : (!stale && v.status === 'starting' ? 'starting…' : 'offline')}</small></div>
@@ -4150,7 +4150,7 @@ function mcBox(){
         ${v.java ? `<div class="a">Java <code>${escH(v.java)}</code><button data-c="${escH(v.java)}">copy</button></div>` : ''}
         ${v.bedrock ? `<div class="a">Bedrock <code>${escH(v.bedrock.split(':')[0])}</code> port <code>${escH(v.bedrock.split(':')[1] || '19132')}</code><button data-c="${escH(v.bedrock)}">copy</button></div>` : ''}
         ${on && v.players.length ? `<div class="p">🧍 ${v.players.map(escH).join(', ')}</div>` : ''}
-        ${v.start && !stale && v.status === 'offline' ? `<div class="a"><button class="mcGo" data-start="${escH(v.id)}" data-name="${escH(v.name)}">${v.start === 'approve' ? '🙋 Ask to start ' : '▶ Start '}${escH(v.name)}</button>${v.start === 'approve' ? '<span style="opacity:.75">iitstymfk approves it first</span>' : ''}</div>` : ''}
+        ${v.start && !stale && !busy && v.status === 'offline' ? `<div class="a"><button class="mcGo" data-start="${escH(v.id)}" data-name="${escH(v.name)}">${v.start === 'approve' ? '🙋 Ask to start ' : '▶ Start '}${escH(v.name)}</button>${v.start === 'approve' ? '<span style="opacity:.75">iitstymfk approves it first</span>' : ''}</div>` : ''}
         ${v.start && stale ? `<div class="p" style="opacity:.7">Start isn't available while the server PC is off.</div>` : ''}</div>`; }).join('') +
     `<div id="mcStartBox" style="display:none;margin-top:10px"><input id="mcCode" type="password" placeholder="Friend code" autocomplete="off"><input id="mcWho" placeholder="Your name (optional)" maxlength="30" value="${escH(jget('thName') || '')}"><div class="thRow"><button class="thBtn2 go" data-go>Start it</button></div></div>
     <div class="thMsg"></div><div class="thRow"><button class="thBtn2" data-x>Close</button></div>`);
