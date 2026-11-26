@@ -211,7 +211,7 @@ async function loadAssets(onProg){
   const jobs = [], total = Object.keys(GUNMETA).length + 5; let done = 0; const tick = () => onProg && onProg(++done, total);
   for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh && o.material){ o.castShadow = false; const m = o.material; m.vertexColors = false; if(m.name === 'gunmetal'){ m.roughness = .5; m.metalness = .5; } m.envMapIntensity = .55; m.needsUpdate = true; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
   jobs.push(load('assets/arms/arms_rig.glb').then(g => { ASSETS.arms = g; }).catch(e => console.warn('arms', e)).finally(tick));
-  jobs.push(load('assets/zombie/prisoner.glb').then(g => { prepPrisoner(g); ASSETS.zombie2 = g; }).catch(e => console.warn('prisoner', e)).finally(tick));
+  jobs.push(load('assets/zombie/prisoner2.glb').then(g => { prepPrisoner(g); ASSETS.zombie2 = g; }).catch(e => console.warn('prisoner', e)).finally(tick));
   jobs.push(load('assets/zombie/skeleton-zombie.glb').then(g => { ASSETS.zombie = g; }).catch(e => console.warn('zombie', e)).finally(tick));
   jobs.push(load('assets/scifi/Prop_Grenade.gltf').then(g => { ASSETS.grenade = g.scene; }).catch(() => {}).finally(tick));
   jobs.push(load('assets/scifi/Prop_Barrel1.gltf').then(g => { ASSETS.barrel = g.scene; }).catch(() => {}).finally(tick));
