@@ -203,11 +203,12 @@ async function rpc(fn, args){
 const KEY = isTouch ? 'USE' : 'F';
 /* ---------- 3D models (loaded at start; the game falls back to the built-in shapes if any fail) ---------- */
 const GUNMETA = {"pistol":{"len":0.215,"h":0.136,"my":0.046},"revolver":{"len":0.27,"h":0.161,"my":0.059},"shotgun":{"len":0.62,"h":0.225,"my":0.071},"smg":{"len":0.62,"h":0.226,"my":0.049},"ar":{"len":0.86,"h":0.308,"my":0.055},"rifle":{"len":0.92,"h":0.243,"my":0.057},"lmg":{"len":0.98,"h":0.323,"my":0.043},"sniper":{"len":1.2,"h":0.223,"my":0.035},"plasma":{"len":0.24,"h":0.137,"my":0.041}};
-const ASSETS = { guns: {}, zombie: null, grenade: null, barrel: null, ready: false };
+const ASSETS = { guns: {}, zombie: null, grenade: null, barrel: null, arms: null, ready: false };
 async function loadAssets(onProg){
   const L = new GLTFLoader(); const load = u => new Promise((res, rej) => L.load(u, res, undefined, rej));
-  const jobs = [], total = Object.keys(GUNMETA).length + 3; let done = 0; const tick = () => onProg && onProg(++done, total);
+  const jobs = [], total = Object.keys(GUNMETA).length + 4; let done = 0; const tick = () => onProg && onProg(++done, total);
   for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh && o.material){ o.castShadow = false; const m = o.material; m.vertexColors = false; if(m.name === 'gunmetal'){ m.roughness = .5; m.metalness = .5; } m.envMapIntensity = .55; m.needsUpdate = true; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
+  jobs.push(load('assets/arms/arms_rig.glb').then(g => { ASSETS.arms = g; }).catch(e => console.warn('arms', e)).finally(tick));
   jobs.push(load('assets/zombie/skeleton-zombie.glb').then(g => { ASSETS.zombie = g; }).catch(e => console.warn('zombie', e)).finally(tick));
   jobs.push(load('assets/scifi/Prop_Grenade.gltf').then(g => { ASSETS.grenade = g.scene; }).catch(() => {}).finally(tick));
   jobs.push(load('assets/scifi/Prop_Barrel1.gltf').then(g => { ASSETS.barrel = g.scene; }).catch(() => {}).finally(tick));
@@ -649,6 +650,75 @@ function setVM(){
   if(curModel){ vmGunHolder.remove(curModel); disposeTree(curModel); curModel = null; }
   const g = P.guns[P.gi]; if(!g) return;
   curModel = buildGun(W[g.k].model, g.up); vmGunHolder.add(curModel);
+}
+
+/* ---------- first-person arms (PSX First Person Arms by DrillImpact, free) ---------- */
+const ARMS = { ok: false, on: true };
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion();
+function setupArms(){
+  const G = ASSETS.arms; if(!G) return;
+  try{
+    const root = G.scene, tex = new THREE.TextureLoader().load('assets/arms/gloves.jpg'); tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = false;
+    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: .82, metalness: 0, envMapIntensity: .4 });
+    root.traverse(o => { if(o.isMesh){ if(o.name !== 'ArmsMesh' && !(o.parent && o.parent.name === 'ArmsMesh')){ o.visible = false; return; } o.material = mat; o.frustumCulled = false; o.castShadow = false; } });
+    const B = {}; root.traverse(o => { if(o.isBone) B[o.name] = o; });
+    if(!B['hand.R'] || !B['camera']) return;
+    const holder = new THREE.Group(); vmScene.add(holder); root.rotation.y = Math.PI; holder.add(root);
+    const mixer = new THREE.AnimationMixer(root), C = n => G.animations.find(a => a.name === n);
+    const fg = C('finger_gun_idle'), gd = C('guard_idle');
+    const hold = new THREE.AnimationClip('hold', fg.duration, [...fg.tracks.filter(t => !/\.L\./.test(t.name)), ...gd.tracks.filter(t => /\.L\./.test(t.name) && /^(f_|thumb|palm)/.test(t.name))]);
+    const A = { hold: mixer.clipAction(hold), k1: mixer.clipAction(C('knife_hit_01')), k2: mixer.clipAction(C('knife_hit_02')), kd: mixer.clipAction(C('knife_draw')) };
+    for(const k of ['k1', 'k2', 'kd']){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
+    A.hold.play(); mixer.update(0); root.updateMatrixWorld(true);
+    const cw = B['camera'].getWorldPosition(new THREE.Vector3()); root.position.sub(cw);
+    holder.scale.setScalar(.85);
+    // knife blade held in the right hand
+    const kb = new THREE.Group(); { bx(kb, .022, .028, .11, VM.dark, 0, 0, 0); bx(kb, .05, .012, .012, VM.metal, 0, 0, -.06); const bl = bx(kb, .006, .032, .19, VM.blade, 0, .004, -.16); }
+    kb.visible = false; B['hand.R'].add(kb);
+    Object.assign(ARMS, { ok: true, root, holder, mixer, A, B, kb, mode: 'hold', kAlt: false,
+      rOff: new THREE.Euler(0, 0, 0), lOff: new THREE.Euler(0, 0, 0), kbPos: new THREE.Vector3(0, .1, .02), kbRot: new THREE.Euler(-Math.PI / 2, 0, 0),
+      grip: { y: -.22, z: .3, zs: .3 }, fore: { y: -.05, z: .62 }, wristBack: .07 });
+  }catch(e){ console.warn('arms setup', e); ARMS.ok = false; }
+}
+function setWorldQuat(bone, q){ bone.parent.getWorldQuaternion(_q3); bone.quaternion.copy(_q3.invert().multiply(q)); bone.updateMatrixWorld(true); }
+function aimBone(bone, childW, targetW){
+  const bp = bone.getWorldPosition(_v1); const cur = _v2.copy(childW).sub(bp).normalize(), want = _v3.copy(targetW).sub(bp).normalize();
+  _q1.setFromUnitVectors(cur, want); bone.getWorldQuaternion(_q2); setWorldQuat(bone, _q1.multiply(_q2).clone());
+}
+function ik2(up, fore, hand, T, pole){
+  up.updateMatrixWorld(true);
+  const S = up.getWorldPosition(new THREE.Vector3()), Eo = fore.getWorldPosition(new THREE.Vector3()), Ho = hand.getWorldPosition(new THREE.Vector3());
+  const l1 = S.distanceTo(Eo), l2 = Eo.distanceTo(Ho); const dir = T.clone().sub(S); let d = dir.length(); dir.normalize(); d = clamp(d, Math.abs(l1 - l2) + 1e-3, (l1 + l2) * .999);
+  const a = (l1 * l1 - l2 * l2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+  const pv = pole.clone().sub(S); pv.addScaledVector(dir, -pv.dot(dir)); if(pv.lengthSq() < 1e-8) pv.set(0, -1, 0); pv.normalize();
+  const E = S.clone().addScaledVector(dir, a).addScaledVector(pv, h);
+  aimBone(up, Eo, E); aimBone(fore, hand.getWorldPosition(new THREE.Vector3()), S.clone().addScaledVector(dir, d));
+}
+function gunPt(which){
+  const g = P.guns[P.gi], meta = g && GUNMETA[W[g.k].model]; if(!meta || !curModel) return null;
+  const rear = meta.len < .3 ? .07 : .12, Q = which === 'grip' ? ARMS.grip : ARMS.fore;
+  const z = rear - meta.len * (which === 'grip' ? (meta.len < .3 ? Q.zs : Q.z * (meta.len > .9 ? .8 : 1)) : (meta.len < .3 ? .15 : Q.z * (meta.len > .9 ? .75 : 1)));
+  const y = which === 'grip' ? -meta.my + meta.h * Q.y : -meta.my + meta.h * Q.y - (meta.len < .3 ? .05 : 0);
+  return curModel.localToWorld(new THREE.Vector3(0, y, which === 'grip' ? z : z));
+}
+function updArms(dt, gunShown){
+  if(!ARMS.ok) return; const { A, B, mixer, holder, kb } = ARMS;
+  const knifing = P.knifeT > 0;
+  holder.visible = ARMS.on && (knifing || gunShown);
+  if(!holder.visible) return;
+  if(knifing && ARMS.mode !== 'knife'){ ARMS.mode = 'knife'; ARMS.kAlt = !ARMS.kAlt; const a = ARMS.kAlt ? A.k1 : A.k2; a.reset().setEffectiveTimeScale(a.getClip().duration / .5).play(); A.hold.crossFadeTo(a, .06, false); }
+  if(!knifing && ARMS.mode === 'knife'){ ARMS.mode = 'hold'; A.hold.reset().play(); for(const k of ['k1', 'k2']){ A[k].fadeOut(.1); } }
+  mixer.update(dt); holder.updateMatrixWorld(true);
+  kb.visible = knifing; if(knifing){ kb.position.copy(ARMS.kbPos); kb.rotation.copy(ARMS.kbRot); return; }
+  // hold the gun: right hand on the grip, left hand on the fore-end (or cupping a pistol)
+  const gp = gunPt('grip'), fp = gunPt('fore'); if(!gp || !fp) return;
+  vmRoot.updateMatrixWorld(true);
+  const rq = B['hand.R'].getWorldQuaternion(new THREE.Quaternion()), lq = B['hand.L'].getWorldQuaternion(new THREE.Quaternion());
+  const gq = vmRoot.quaternion.clone();
+  const rW = gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.rOff)).multiply(rq), lW = gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.lOff)).multiply(lq);
+  const rT = gp.clone().addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(rW), -ARMS.wristBack), lT = fp.clone().addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(lW), -ARMS.wristBack);
+  ik2(B['upper_arm.R'], B['forearm.R'], B['hand.R'], rT, new THREE.Vector3(.6, -.6, .2)); setWorldQuat(B['hand.R'], rW);
+  ik2(B['upper_arm.L'], B['forearm.L'], B['hand.L'], lT, new THREE.Vector3(-.6, -.6, .2)); setWorldQuat(B['hand.L'], lW);
 }
 
 /* ================= interactables & features ================= */
@@ -1489,11 +1559,12 @@ function updVM(dt){
   if(muzzleT > 0 && curModel){ const mp = curModel.userData.muzzle.clone(); curModel.localToWorld(mp); muzzleSprite.position.copy(mp); muzzleSprite.visible = true; muzzleSprite.material.rotation = Math.random() * 6; muzzleSprite.scale.setScalar(rand(.12, .2) * (g && W[g.k].model === 'shotgun' ? 1.5 : 1)); muzzleSprite.material.color.set(g && g.up ? 0xc070ff : (g && W[g.k].proj ? 0x60ff60 : 0xffc070)).multiplyScalar(POST ? 2.2 : 1); vmFlash.intensity = 4; }
   else { muzzleSprite.visible = false; vmFlash.intensity = 0; }
   // knife & grenade
-  knife.visible = P.knifeT > 0;
+  knife.visible = P.knifeT > 0 && !(ARMS.ok && ARMS.on);
   if(P.knifeT > 0){ const k = 1 - P.knifeT / .5; knife.position.set(.3 - k * .5, -.15 + Math.sin(k * Math.PI) * .06, -.35 - Math.sin(k * Math.PI) * .12); knife.rotation.set(-.2, .9 - k * 1.8, -.3); }
   nadeVM.visible = P.nadeT > 0; if(P.nadeT > 0){ const k = 1 - P.nadeT / .55; nadeVM.position.set(.18, -.16 + k * .1, -.35 - k * .3); }
   // drink bottle (reuse grenade model tinted by perk color)
   vmHemi.intensity = power ? 1.25 : 1.0;
+  updArms(dt, vmGunHolder.visible && !!g && !(P.drinkT > 0 || P.nadeT > 0 || P.down));
 }
 
 /* ================= render loop ================= */
@@ -1567,7 +1638,7 @@ $('#help').innerHTML = (isTouch
   + '<br><br>Zombies break in through the windows. Every hit is +10 points, kills are +60 (headshots +100, knife +130). Spend points on guns from the walls, the <b>?</b> box (950), doors to new rooms, and perk machines. Turn on the <b>power</b> in the Generator Room to use perks and the <b>Upgrade</b> machine in the Lab (5000). Zombies sometimes drop power-ups: Max Ammo, Insta-Kill, Double Points, Kaboom and Carpenter.';
 $('#play').onclick = () => { if(!ASSETS.ready && !$('#play').dataset.force) return; startGame(); };
 $('#play').disabled = true; $('#play').textContent = 'LOADING…';
-loadAssets((n, t) => { $('#play').textContent = `LOADING ${Math.round(n / t * 100)}%`; }).then(() => { decorate(); $('#play').disabled = false; $('#play').textContent = 'PLAY'; });
+loadAssets((n, t) => { $('#play').textContent = `LOADING ${Math.round(n / t * 100)}%`; }).then(() => { setupArms(); decorate(); $('#play').disabled = false; $('#play').textContent = 'PLAY'; });
 setTimeout(() => { if(!ASSETS.ready){ $('#play').dataset.force = 1; $('#play').disabled = false; $('#play').textContent = 'PLAY'; } }, 25000);
 $('#nm').addEventListener('keydown', e => { if(e.key === 'Enter') startGame(); });
 function checkRotate(){ $('#rotate').style.display = (isTouch && innerHeight > innerWidth && G_STATE === 'play') ? 'grid' : 'none'; }
@@ -1575,7 +1646,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { ARMS, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 </body>

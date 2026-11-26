@@ -5,3 +5,6 @@
 - `guns/ar.glb`, `guns/rifle.glb`: from "All The Assault Rifles (Too Scale)" (itch.io). Materials added.
 - `guns/smg.glb` (Kriss Vector), `guns/lmg.glb` (AA-12 drum), `guns/sniper.glb` (AWM): from "Guns_Pack" (itch.io).
 - `guns/plasma.glb`: Gun_Pistol from the Quaternius Sci-Fi Essentials Kit (CC0).
+
+## First-person arms
+- **PSX First Person Arms** by DrillImpact (free, itch.io: https://drillimpact.itch.io/psx-first-person-arms-free). Rigged arms with knife and hand animations; used for the hands holding every gun and the knife swing.
