@@ -666,7 +666,8 @@ function setupArms(){
     const holder = new THREE.Group(); vmScene.add(holder); root.rotation.y = Math.PI; holder.add(root);
     const mixer = new THREE.AnimationMixer(root), C = n => G.animations.find(a => a.name === n);
     const fg = C('finger_gun_idle'), gd = C('guard_idle');
-    const hold = new THREE.AnimationClip('hold', fg.duration, [...fg.tracks.filter(t => !/L\.(quaternion|position|scale)$/.test(t.name)), ...gd.tracks.filter(t => /L\.(quaternion|position|scale)$/.test(t.name) && /^(f_|thumb|palm)/.test(t.name))]);
+    const FING = t => /^(f_|thumb|palm)/.test(t.name);
+    const hold = new THREE.AnimationClip('hold', fg.duration, [...fg.tracks.filter(t => !FING(t)), ...gd.tracks.filter(FING)]);
     const A = { hold: mixer.clipAction(hold), k1: mixer.clipAction(C('knife_hit_01')), k2: mixer.clipAction(C('knife_hit_02')), kd: mixer.clipAction(C('knife_draw')) };
     for(const k of ['k1', 'k2', 'kd']){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
     A.hold.play(); mixer.update(0); root.updateMatrixWorld(true);
