@@ -997,6 +997,7 @@ function skelZombie(type){
   const mat = type === 2 ? ZVAR.red : pick(ZVAR); let headBone = null;
   model.traverse(o => { if(o.isMesh){ if(/^Icosphere/i.test(o.name)) o.visible = false; else { o.material = mat; o.castShadow = SHADOWS; o.frustumCulled = false; } } if(o.isBone && o.name === 'Head') headBone = o; });
   const head = new THREE.Object3D(); head.position.set(0, .1, 0); (headBone || model).add(head);
+  for(const sx of [-1, 1]){ const gl = new THREE.Sprite(type > 1 ? ZM.glowRed : ZM.glow); gl.scale.setScalar(.07); gl.position.set(sx * .035, 0, .1); head.add(gl); }
   const mixer = new THREE.AnimationMixer(model), A = {};
   for(const c of ASSETS.zombie.animations) A[c.name.replace(/^Zombie/, '').toLowerCase()] = mixer.clipAction(c);
   for(const k of ['swipe', 'die', 'stumble', 'bite']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
@@ -1471,7 +1472,7 @@ function update(dt){
 }
 function updVM(dt){
   const g = P.guns[P.gi]; const a = P.ads;
-  const RM = curModel && curModel.userData.real; const hip = RM ? new THREE.Vector3(.14, -.15, -.34) : new THREE.Vector3(.15, -.17, -.5), ads = RM ? new THREE.Vector3(0, -(curModel.userData.sight + .006), -.2) : new THREE.Vector3(0, -.098, -.36);
+  const RM = curModel && curModel.userData.real; const hip = RM ? new THREE.Vector3(.12, -.135, -.33) : new THREE.Vector3(.15, -.17, -.5), ads = RM ? new THREE.Vector3(0, -(curModel.userData.sight + .006), -.2) : new THREE.Vector3(0, -.098, -.36);
   const pos = hip.lerp(ads, a);
   const bobA = P.sprint ? 2.2 : 1;
   pos.x += Math.cos(P.step * .5) * .012 * P.moving * bobA * (1 - a * .8); pos.y += Math.abs(Math.sin(P.step * .5)) * .014 * P.moving * bobA * (1 - a * .8);
@@ -1572,7 +1573,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 </body>
