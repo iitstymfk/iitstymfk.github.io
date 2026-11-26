@@ -240,7 +240,7 @@ if(POST){
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
   vmPass = new RenderPass(vmScene, vmCam); vmPass.clear = false; vmPass.clearDepth = true; composer.addPass(vmPass);
-  bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .7, .55, .85); composer.addPass(bloomPass);
+  bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .65, .5, .93); composer.addPass(bloomPass);
   composer.addPass(new OutputPass());
   gradePass = new ShaderPass({ uniforms: { tDiffuse: { value: null }, time: { value: 0 }, vig: { value: 1.15 }, grain: { value: .045 }, hurt: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -415,7 +415,7 @@ const level = new THREE.Group(); scene.add(level);
 
 /* ---------- lights ---------- */
 const hemi = new THREE.HemisphereLight(0x6070a0, 0x2a1c12, 0.75); scene.add(hemi);
-const flashlight = new THREE.SpotLight(0xfff1d6, LQ ? 30 : 36, 28, 0.5, 0.7, 1.6); camera.add(flashlight); flashlight.position.set(0.15, -0.1, 0); flashlight.target.position.set(0, 0, -5); camera.add(flashlight.target);
+const flashlight = new THREE.SpotLight(0xfff1d6, LQ ? 24 : 28, 28, 0.5, 0.7, 1.7); camera.add(flashlight); flashlight.position.set(0.15, -0.1, 0); flashlight.target.position.set(0, 0, -5); camera.add(flashlight.target);
 const muzzleLight = new THREE.PointLight(0xffa040, 0, 9, 1.6); scene.add(muzzleLight);
 const boomLight = new THREE.PointLight(0xff7a20, 0, 14, 1.4); scene.add(boomLight);
 const BULBS = [];
@@ -894,8 +894,8 @@ const ZVAR = [];
 function zombieVariants(){
   if(ZVAR.length || !ASSETS.zombie) return;
   let base = null; ASSETS.zombie.scene.traverse(o => { if(o.isMesh && !/^Icosphere/i.test(o.name)) base = base || o.material; });
-  for(const c of [[1, 1, 1], [.82, .95, .78], [1.05, .82, .78], [.78, .8, .9], [.95, .9, .75]]){ const m = base.clone(); m.color.setRGB(...c); ZVAR.push(m); }
-  const red = base.clone(); red.color.setRGB(1.1, .7, .62); red.emissive = new THREE.Color(0x200000); ZVAR.red = red;
+  for(const c of [[.62, .6, .55], [.5, .58, .46], [.64, .5, .46], [.48, .5, .56], [.6, .55, .44]]){ const m = base.clone(); m.color.setRGB(...c); m.emissive = new THREE.Color(0); m.roughness = Math.max(m.roughness, .75); m.metalness = 0; ZVAR.push(m); }
+  const red = base.clone(); red.color.setRGB(.7, .38, .34); red.emissive = new THREE.Color(0x140000); red.roughness = .8; red.metalness = 0; ZVAR.red = red;
 }
 function zombieMesh(type){
   if(ASSETS.zombie) return skelZombie(type);
