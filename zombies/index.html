@@ -362,8 +362,8 @@ const level = new THREE.Group(); scene.add(level);
 }
 
 /* ---------- lights ---------- */
-const hemi = new THREE.HemisphereLight(0x6070a0, 0x1a120c, 0.22); scene.add(hemi);
-const flashlight = new THREE.SpotLight(0xfff1d6, LQ ? 18 : 26, 26, 0.48, 0.65, 1.4); camera.add(flashlight); flashlight.position.set(0.15, -0.1, 0); flashlight.target.position.set(0, 0, -5); camera.add(flashlight.target);
+const hemi = new THREE.HemisphereLight(0x6070a0, 0x2a1c12, 0.55); scene.add(hemi);
+const flashlight = new THREE.SpotLight(0xfff1d6, LQ ? 45 : 60, 28, 0.5, 0.65, 1.3); camera.add(flashlight); flashlight.position.set(0.15, -0.1, 0); flashlight.target.position.set(0, 0, -5); camera.add(flashlight.target);
 const muzzleLight = new THREE.PointLight(0xffa040, 0, 9, 1.6); scene.add(muzzleLight);
 const boomLight = new THREE.PointLight(0xff7a20, 0, 14, 1.4); scene.add(boomLight);
 const BULBS = [];
@@ -380,7 +380,7 @@ const BULBS = [];
     level.add(g); BULBS.push({ room, light: l, bulb: bm, glow, flick: Math.random() * 10 });
   }
 }
-function bulbBase(b){ if(power) return LQ ? 14 : 9; return b.room === 0 ? (LQ ? 10 : 7) : 1.2; }
+function bulbBase(b){ if(power) return LQ ? 60 : 38; return b.room === 0 ? (LQ ? 45 : 30) : 4; }
 function setBulbColors(){ for(const b of BULBS){ const lit = power || b.room === 0; b.light.color.set(lit ? 0xffb873 : 0xff2a14); b.bulb.color.set(lit ? 0xffd9a0 : 0x661008); b.glow.material.color.set(lit ? 0xffb060 : 0xff2010); } }
 setBulbColors();
 
@@ -675,7 +675,7 @@ const POWER = { x: 30, z: 19 };
   lever.rotation.x = .9; POWER.lever = lever;
   const lab = new THREE.Mesh(new THREE.PlaneGeometry(.8, .22), new THREE.MeshBasicMaterial({ map: textTex([{ t: '⚡ POWER', font: '700 40px Oswald', color: '#ffd84a', y: 32 }], 256, 64, { bg: '#1a1a1a' }) })); lab.position.set(0, .48, .08); g.add(lab);
   INTER.push({ pos: c.clone().add(new THREE.Vector3(-.6, 0, 0)), r: 2.2, prompt(){ return power ? null : [`Press <b>${KEY}</b> to turn on the power`, 0]; },
-    use(){ if(power) return; power = true; POWER.lever.rotation.x = -.9; SND.powerOn(); setBulbColors(); perkSigns(); hemi.intensity = .42; scene.fog.density = .042; ann('POWER ON', '#ffd84a'); flashScreen(.25); } });
+    use(){ if(power) return; power = true; POWER.lever.rotation.x = -.9; SND.powerOn(); setBulbColors(); perkSigns(); hemi.intensity = .9; scene.fog.density = .042; ann('POWER ON', '#ffd84a'); flashScreen(.25); } });
 }
 // mystery box
 const BOXLOCS = [ { x: 7, z: 1, face: [0, 1] }, { x: 24, z: 20, face: [0, -1] }, { x: 27, z: 9, face: [0, -1] } ];
@@ -1367,7 +1367,8 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { P, Z, RS, W, startRound, get state(){ return G_STATE; } };
+window.__iz = { P, Z, RS, W, BOX, UPG, DOORS, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+  tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } renderer.clear(); renderer.render(scene, camera); renderer.clearDepth(); renderer.render(vmScene, vmCam); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 </body>
 </html>
