@@ -779,7 +779,7 @@ function setupArms(){
     Object.assign(ARMS, { ok: true, root, holder, mixer, A, B, kb, mode: 'hold', kAlt: false,
       rOff: new THREE.Euler(0, 0, 0), lOff: new THREE.Euler(0, 0, 0), kbPos: new THREE.Vector3(-.02, .085, 0), kbRot: new THREE.Euler(0, Math.PI, 0), knifeOff: new THREE.Vector3(-.17, .07, -.04), holdOff: new THREE.Vector3(0, -.14, .06), poleL: new THREE.Vector3(-.35, -1, .25), poleR: new THREE.Vector3(.45, -1, .2),
       grip: { y: -.22, z: .3, zs: .3 }, hip: new THREE.Vector3(.09, -.075, -.38), hipLong: new THREE.Vector3(.08, -.08, -.3),
-      lFixP: ARMS_basis([.85, .15, .35], [.45, -.75, -.45]), pistolL: new THREE.Vector3(-.035, -.005, -.03),
+      lFixP: ARMS_basis([.9, .25, .3], [.5, -.7, -.5]), pistolL: new THREE.Vector3(-.03, .012, -.04),
       lFix: (() => { const Y = new THREE.Vector3(.5, .1, -.9).normalize(), X = new THREE.Vector3(.3, 1, 0).normalize(); X.sub(Y.clone().multiplyScalar(X.dot(Y))).normalize(); return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, X.clone().cross(Y))); })(), fore: { y: -.2, z: .42 }, wristBack: .07 });
   }catch(e){ console.warn('arms setup', e); ARMS.ok = false; }
 }
