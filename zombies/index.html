@@ -717,7 +717,8 @@ function updArms(dt, gunShown){
   vmRoot.updateMatrixWorld(true);
   const rq = B['handR'].getWorldQuaternion(new THREE.Quaternion()), lq = B['handL'].getWorldQuaternion(new THREE.Quaternion());
   const gq = vmRoot.quaternion.clone();
-  const rW = gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.rOff)).multiply(rq), lW = gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.lOff)).multiply(lq);
+  const g0 = P.guns[P.gi], long = g0 && GUNMETA[W[g0.k].model] && GUNMETA[W[g0.k].model].len >= .3;
+  const rW = gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.rOff)).multiply(rq), lW = long && ARMS.lFix ? gq.clone().multiply(ARMS.lFix) : gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.lOff)).multiply(lq);
   const rT = gp.clone().addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(rW), -ARMS.wristBack), lT = fp.clone().addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(lW), -ARMS.wristBack);
   ik2(B['upper_armR'], B['forearmR'], B['handR'], rT, new THREE.Vector3(.6, -.6, .2)); setWorldQuat(B['handR'], rW);
   ik2(B['upper_armL'], B['forearmL'], B['handL'], lT, new THREE.Vector3(-.6, -.6, .2)); setWorldQuat(B['handL'], lW);
