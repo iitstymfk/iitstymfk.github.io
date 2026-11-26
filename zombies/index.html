@@ -219,7 +219,7 @@ async function loadAssets(onProg){
 }
 // the prisoner zombie (Mixamo): remove forward root motion, size him like the other zombies, and map his animations to ours
 function prepPrisoner(g){
-  for(const c of g.animations){ for(const t of c.tracks){ if(/Hips\.position$/.test(t.name)){ const v = t.values; const x0 = v[0], y0 = v[1]; for(let i = 0; i < v.length; i += 3){ v[i] = x0; v[i + 1] = y0; } } } }
+  for(const c of g.animations){ for(const t of c.tracks){ if(/Hips\.position$/.test(t.name)){ const v = t.values; const x0 = v[0], y0 = v[1]; const hz = { run: -96, scream: -97, bite: -97, crawl: -30, crawlrun: -34 }[c.name]; for(let i = 0; i < v.length; i += 3){ v[i] = x0; v[i + 1] = y0; if(hz != null) v[i + 2] = hz + (c.name === 'run' ? Math.sin(i / 3 * .8) * 3 : 0); } } } }
   g.scene.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g.scene); const h = b.max.y - b.min.y; g.fit = h > 0 ? 1.82 / Math.max(h, 1.7) : 1;
   g.scene.traverse(o => { if(o.isMesh){ o.frustumCulled = false; o.castShadow = SHADOWS; const m = o.material; if(m){ m.roughness = .9; m.metalness = 0; m.envMapIntensity = .3; m.color && m.color.multiplyScalar(.85); } } });
 }
@@ -1126,6 +1126,7 @@ function spawnZombie(){
   const m = zombieMesh(type);
   const pos = w.spawn.clone().addScaledVector(w.t, rand(-2, 2)); m.root.position.copy(pos);
   const z = { m, type, hp: RS.zhp, tilt: rand(-.25, .25), speed: [rand(.85, 1.15), rand(2.2, 2.6), rand(3.3, 3.8)][type], state: 'out', win: w, t: 0, atkT: 0, atkCD: 0, phase: Math.random() * 6, dead: false, groanT: rand(1, 4), wait: rand(-.6, .6) };
+  if(r >= 8 && m.prisoner && !type && Math.random() < .07){ z.crawl = 2; z.speed = rand(1.7, 2); }
   Z.push(z); RS.toSpawn--;
 }
 /* ---------- hellhound rounds: every few rounds the zombies stop and fire dogs come; kill them all for a Max Ammo ---------- */
@@ -1219,19 +1220,19 @@ function prisonerZombie(type){
   const model = SkeletonUtils.clone(G2.scene); model.scale.multiplyScalar(G2.fit); root.add(model); model.position.z = -.2; // he leans forward; centre his body over the hitbox let headBone = null;
   model.traverse(o => { if(o.isBone && /Head$/.test(o.name) && !headBone) headBone = o; });
   const head = new THREE.Object3D(); head.position.set(0, 10, 4); (headBone || model).add(head);
-  for(const sx of [-1, 1]){ const gl = new THREE.Sprite(ZM.glow); gl.scale.setScalar(4.5); gl.position.set(sx * 3.2, 0, 6); head.add(gl); }
+  for(const sx of [-1, 1]){ const gl = new THREE.Sprite(type > 1 ? ZM.glowRed : ZM.glow); gl.scale.setScalar(4.5); gl.position.set(sx * 3.2, 0, 6); head.add(gl); }
   const mixer = new THREE.AnimationMixer(model), A = {}, C = n => G2.animations.find(a => a.name === n);
-  const map = { walk: 'walk', run: 'walk', swipe: 'attack', bite: 'attack', die: Math.random() < .5 ? 'death' : 'dying', stumble: 'hit', idle: 'idle' };
+  const map = { walk: 'walk', run: 'run', swipe: 'attack', bite: 'bite', die: Math.random() < .5 ? 'death' : 'dying', stumble: 'hit', idle: 'idle', crawl: 'crawl', crawlrun: 'crawlrun', scream: 'scream' };
   for(const k in map){ const c = C(map[k]); if(c) A[k] = mixer.clipAction(c); }
-  for(const k of ['swipe', 'die', 'stumble', 'bite']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
+  for(const k of ['swipe', 'die', 'stumble', 'bite', 'scream']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
   const sh = new THREE.Mesh(ZG.shadow, ZM.shadow); sh.scale.setScalar(.9); sh.position.y = .02; root.add(sh);
   scene.add(root);
-  const m = { root, head, headBone, mixer, A, s, skinned: true, cur: null, walkRef: .35, prisoner: true };
+  const m = { root, head, headBone, mixer, A, s, skinned: true, cur: null, walkRef: .35, runRef: 2.6, prisoner: true };
   zPlay(m, 'walk', 0); if(m.cur) m.cur.time = Math.random() * m.cur.getClip().duration;
   return m;
 }
 function skelZombie(type){
-  if(type === 0 && ASSETS.zombie2 && Math.random() < .55) return prisonerZombie(type);
+  if(ASSETS.zombie2 && Math.random() < .55) return prisonerZombie(type);
   zombieVariants();
   const root = new THREE.Group(); const s = rand(.93, 1.07) * (type === 2 ? 1.04 : 1); root.scale.setScalar(s);
   const model = SkeletonUtils.clone(ASSETS.zombie.scene); root.add(model);
@@ -1259,7 +1260,9 @@ function animSkel(z, dt, moving){
   const m = z.m;
   if(z.atkT > 0 && z.swipeStart){ z.swipeStart = false; m.A.swipe.reset(); zPlay(m, 'swipe', .12, 2.1); m.cur = m.A.swipe; }
   else if(m.cur === m.A.swipe && m.A.swipe.isRunning() && m.A.swipe.time < m.A.swipe.getClip().duration * .62){ /* let the swipe finish */ }
-  else if(z.type){ zPlay(m, 'run', .25, moving ? z.speed / 1.62 : .3); if(m.cur === m.A.run) m.cur.timeScale = moving ? z.speed / 1.62 : .3; }
+  else if(z.screamT > 0 && m.A.scream){ zPlay(m, 'scream', .2, 1); }
+  else if(z.crawl && m.A.crawl){ const k = z.crawl === 2 ? 'crawlrun' : 'crawl'; zPlay(m, k, .3, 1); if(m.cur === m.A[k]) m.cur.timeScale = moving ? (z.crawl === 2 ? z.speed / 1.6 : z.speed / .45) : .2; }
+  else if(z.type){ const rr = m.runRef || 1.62; zPlay(m, 'run', .25, moving ? z.speed / rr : .3); if(m.cur === m.A.run) m.cur.timeScale = moving ? z.speed / rr : .3; }
   else { zPlay(m, 'walk', .25, 1); if(m.cur === m.A.walk) m.cur.timeScale = moving ? z.speed / (m.walkRef || .5) : .35; }
   m.mixer.update(dt);
 }
@@ -1318,11 +1321,12 @@ function updZombies(dt){
     } else if(z.state === 'climb'){
       z.t += dt / .9; const k = Math.min(1, z.t);
       p.lerpVectors(z.from, z.win.inside, k); p.y = Math.sin(k * Math.PI) * .55;
-      if(k >= 1){ p.y = 0; z.state = 'in'; if(z.win.tearer === z) z.win.tearer = null; }
+      if(k >= 1){ p.y = 0; z.state = 'in'; if(z.win.tearer === z) z.win.tearer = null; if(z.m.A && z.m.A.scream && !z.type && Math.random() < .18){ z.screamT = 2.3; sfx('zatk', .7, p, .85); } }
     } else {
       const tg = zTarget(z);
       const dP = Math.hypot(P.pos.x - p.x, P.pos.z - p.z);
-      if(dP > .85 && !P.down) moveToward(z, tg, z.speed * (z.atkT > 0 ? .3 : 1), dt); else { moving = false; z.m.root.rotation.y = Math.atan2(P.pos.x - p.x, P.pos.z - p.z); }
+      if(z.screamT > 0){ z.screamT -= dt; moving = false; z.m.root.rotation.y = Math.atan2(P.pos.x - p.x, P.pos.z - p.z); }
+      else if(dP > .85 && !P.down) moveToward(z, tg, z.speed * (z.atkT > 0 ? .3 : 1), dt); else { moving = false; z.m.root.rotation.y = Math.atan2(P.pos.x - p.x, P.pos.z - p.z); }
       if(dP < (z.dog ? 1.0 : 1.15) && z.atkCD <= 0 && !P.down){ z.atkT = z.dog ? .25 : .45; z.swipeStart = true; if(!z.dog && Math.random() < .6) sfx('zatk', .6, p); z.atkCD = z.dog ? .75 : 1.15; z.swipe = true; }
       // separation
       for(const o of Z){ if(o === z || o.dead || o.state !== 'in') continue; const op = o.m.root.position; const dx = p.x - op.x, dz = p.z - op.z, d = Math.hypot(dx, dz); if(d < .55 && d > 1e-4){ const push = (.55 - d) * .5; p.x += dx / d * push; p.z += dz / d * push; } }
@@ -1342,6 +1346,7 @@ function hurtZombie(z, dmg, head, kind, at){
   z.hp -= dmg; STATS.hits++;
   if(at) bloodBurst(at, head ? 10 : 6, head);
   if(z.hp <= 0){ killZombie(z, head, kind); return true; }
+  if(kind === 'boom' && !z.crawl && !z.dog && z.m.A && z.m.A.crawl && z.state === 'in' && Math.random() < .4){ z.crawl = 1; z.speed = Math.min(z.speed, .75); }
   if(kind !== 'boom') addPoints(10); hitmark(false); SND.hit(); if(!z.dog && Math.random() < .22) sfx('zpain', .45, z.m.root.position);
   return false;
 }
@@ -1382,7 +1387,7 @@ function hitscan(o, d, dmg, headMult, pierce, kind){
     if(z.dead) continue; const p = z.m.root.position; const s = z.m.s;
     z.m.head.getWorldPosition(hp);
     let th = !z.headless ? raySphere(o, d, hp, .17 * s) : Infinity;
-    let tb = rayCyl(o, d, p.x, p.z, .3 * s, p.y + .05, p.y + 1.5 * s);
+    let tb = rayCyl(o, d, p.x, p.z, .3 * s, p.y + .05, p.y + (z.crawl ? .6 : 1.5) * s);
     const t = Math.min(th, tb); if(t < wallT) hits.push({ z, t, head: th <= tb });
   }
   questRay(o, d, wallT);
@@ -1392,7 +1397,7 @@ function hitscan(o, d, dmg, headMult, pierce, kind){
   if(n < pierce || !hits.length){ if(wallT < 70){ const pt = o.clone().addScaledVector(d, wallT - .02); sparks(pt, nrm); } }
 }
 /* ---------- wonder weapon effects ---------- */
-function zombiesOnRay(o, d, maxT){ const out = []; for(const z of Z){ if(z.dead) continue; const p = z.m.root.position; const s = z.m.s; z.m.head.getWorldPosition(hp); const th = !z.headless ? raySphere(o, d, hp, .17 * s) : Infinity; const tb = rayCyl(o, d, p.x, p.z, .3 * s, p.y + .05, p.y + 1.5 * s); const t = Math.min(th, tb); if(t < maxT) out.push({ z, t, head: th <= tb }); } return out.sort((a, b) => a.t - b.t); }
+function zombiesOnRay(o, d, maxT){ const out = []; for(const z of Z){ if(z.dead) continue; const p = z.m.root.position; const s = z.m.s; z.m.head.getWorldPosition(hp); const th = !z.headless ? raySphere(o, d, hp, .17 * s) : Infinity; const tb = rayCyl(o, d, p.x, p.z, .3 * s, p.y + .05, p.y + (z.crawl ? .6 : 1.5) * s); const t = Math.min(th, tb); if(t < maxT) out.push({ z, t, head: th <= tb }); } return out.sort((a, b) => a.t - b.t); }
 function beamFx(a, b, col, n = 10, size = .14){ for(let i = 0; i <= n; i++){ const p = a.clone().lerp(b, i / n); fx(p, { add: true, color: col, life: .12 + Math.random() * .1, size, size1: size * .2 }); } }
 function radBeam(o, d, dmg, w, up){
   const wallT = gridRay(o, d, 70); questRay(o, d, wallT); const hits = zombiesOnRay(o, d, wallT); const end = o.clone().addScaledVector(d, Math.min(wallT, hits.length ? 70 : wallT));
