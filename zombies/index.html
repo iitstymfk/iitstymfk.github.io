@@ -662,11 +662,11 @@ function setupArms(){
     const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: .82, metalness: 0, envMapIntensity: .4 });
     root.traverse(o => { if(o.isMesh){ if(o.name !== 'ArmsMesh' && !(o.parent && o.parent.name === 'ArmsMesh')){ o.visible = false; return; } o.material = mat; o.frustumCulled = false; o.castShadow = false; } });
     const B = {}; root.traverse(o => { if(o.isBone) B[o.name] = o; });
-    if(!B['hand.R'] || !B['camera']) return;
+    if(!B['handR'] || !B['camera']) return;
     const holder = new THREE.Group(); vmScene.add(holder); root.rotation.y = Math.PI; holder.add(root);
     const mixer = new THREE.AnimationMixer(root), C = n => G.animations.find(a => a.name === n);
     const fg = C('finger_gun_idle'), gd = C('guard_idle');
-    const hold = new THREE.AnimationClip('hold', fg.duration, [...fg.tracks.filter(t => !/\.L\./.test(t.name)), ...gd.tracks.filter(t => /\.L\./.test(t.name) && /^(f_|thumb|palm)/.test(t.name))]);
+    const hold = new THREE.AnimationClip('hold', fg.duration, [...fg.tracks.filter(t => !/L\.(quaternion|position|scale)$/.test(t.name)), ...gd.tracks.filter(t => /L\.(quaternion|position|scale)$/.test(t.name) && /^(f_|thumb|palm)/.test(t.name))]);
     const A = { hold: mixer.clipAction(hold), k1: mixer.clipAction(C('knife_hit_01')), k2: mixer.clipAction(C('knife_hit_02')), kd: mixer.clipAction(C('knife_draw')) };
     for(const k of ['k1', 'k2', 'kd']){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
     A.hold.play(); mixer.update(0); root.updateMatrixWorld(true);
@@ -674,7 +674,7 @@ function setupArms(){
     holder.scale.setScalar(.85);
     // knife blade held in the right hand
     const kb = new THREE.Group(); { bx(kb, .022, .028, .11, VM.dark, 0, 0, 0); bx(kb, .05, .012, .012, VM.metal, 0, 0, -.06); const bl = bx(kb, .006, .032, .19, VM.blade, 0, .004, -.16); }
-    kb.visible = false; B['hand.R'].add(kb);
+    kb.visible = false; B['handR'].add(kb);
     Object.assign(ARMS, { ok: true, root, holder, mixer, A, B, kb, mode: 'hold', kAlt: false,
       rOff: new THREE.Euler(0, 0, 0), lOff: new THREE.Euler(0, 0, 0), kbPos: new THREE.Vector3(0, .1, .02), kbRot: new THREE.Euler(-Math.PI / 2, 0, 0),
       grip: { y: -.22, z: .3, zs: .3 }, fore: { y: -.05, z: .62 }, wristBack: .07 });
@@ -713,12 +713,12 @@ function updArms(dt, gunShown){
   // hold the gun: right hand on the grip, left hand on the fore-end (or cupping a pistol)
   const gp = gunPt('grip'), fp = gunPt('fore'); if(!gp || !fp) return;
   vmRoot.updateMatrixWorld(true);
-  const rq = B['hand.R'].getWorldQuaternion(new THREE.Quaternion()), lq = B['hand.L'].getWorldQuaternion(new THREE.Quaternion());
+  const rq = B['handR'].getWorldQuaternion(new THREE.Quaternion()), lq = B['handL'].getWorldQuaternion(new THREE.Quaternion());
   const gq = vmRoot.quaternion.clone();
   const rW = gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.rOff)).multiply(rq), lW = gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.lOff)).multiply(lq);
   const rT = gp.clone().addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(rW), -ARMS.wristBack), lT = fp.clone().addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(lW), -ARMS.wristBack);
-  ik2(B['upper_arm.R'], B['forearm.R'], B['hand.R'], rT, new THREE.Vector3(.6, -.6, .2)); setWorldQuat(B['hand.R'], rW);
-  ik2(B['upper_arm.L'], B['forearm.L'], B['hand.L'], lT, new THREE.Vector3(-.6, -.6, .2)); setWorldQuat(B['hand.L'], lW);
+  ik2(B['upper_armR'], B['forearmR'], B['handR'], rT, new THREE.Vector3(.6, -.6, .2)); setWorldQuat(B['handR'], rW);
+  ik2(B['upper_armL'], B['forearmL'], B['handL'], lT, new THREE.Vector3(-.6, -.6, .2)); setWorldQuat(B['handL'], lW);
 }
 
 /* ================= interactables & features ================= */
