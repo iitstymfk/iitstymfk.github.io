@@ -219,7 +219,7 @@ async function loadAssets(onProg){
 }
 // the prisoner zombie (Mixamo): remove forward root motion, size him like the other zombies, and map his animations to ours
 function prepPrisoner(g){
-  for(const c of g.animations){ for(const t of c.tracks){ if(/Hips\.position$/.test(t.name)){ const v = t.values; const x0 = v[0], z0 = v[2]; for(let i = 0; i < v.length; i += 3){ v[i] = x0; v[i + 2] = z0; } } } }
+  for(const c of g.animations){ for(const t of c.tracks){ if(/Hips\.position$/.test(t.name)){ const v = t.values; const x0 = v[0], y0 = v[1]; for(let i = 0; i < v.length; i += 3){ v[i] = x0; v[i + 1] = y0; } } } }
   g.scene.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g.scene); const h = b.max.y - b.min.y; g.fit = h > 0 ? 1.82 / Math.max(h, 1.7) : 1;
   g.scene.traverse(o => { if(o.isMesh){ o.frustumCulled = false; o.castShadow = SHADOWS; const m = o.material; if(m){ m.roughness = .9; m.metalness = 0; m.envMapIntensity = .3; m.color && m.color.multiplyScalar(.85); } } });
 }
@@ -800,7 +800,7 @@ function gunPt(which){
   const g = P.guns[P.gi], meta = g && GUNMETA[W[g.k].model]; if(!meta || !curModel) return null;
   const rear = meta.len < .3 ? .07 : .12, Q = which === 'grip' ? ARMS.grip : ARMS.fore;
   const z = rear - meta.len * (which === 'grip' ? (meta.len < .3 ? Q.zs : Q.z * (meta.len > .9 ? .8 : 1)) : (meta.len < .3 ? .15 : Q.z * (meta.len > .9 ? .75 : 1)));
-  const y = which === 'grip' ? -meta.my + meta.h * Q.y : -meta.my + meta.h * Q.y - (meta.len < .3 ? .05 : 0);
+  const y = which === 'grip' ? -meta.my + meta.h * Q.y : meta.len < .3 ? -meta.my - meta.h * .05 - .05 : -meta.my + meta.h * Q.y;
   return curModel.localToWorld(new THREE.Vector3(0, y, which === 'grip' ? z : z));
 }
 function updArms(dt, gunShown){
@@ -1226,7 +1226,7 @@ function prisonerZombie(type){
   for(const k of ['swipe', 'die', 'stumble', 'bite']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
   const sh = new THREE.Mesh(ZG.shadow, ZM.shadow); sh.scale.setScalar(.9); sh.position.y = .02; root.add(sh);
   scene.add(root);
-  const m = { root, head, headBone, mixer, A, s, skinned: true, cur: null, walkRef: .75, prisoner: true };
+  const m = { root, head, headBone, mixer, A, s, skinned: true, cur: null, walkRef: .35, prisoner: true };
   zPlay(m, 'walk', 0); if(m.cur) m.cur.time = Math.random() * m.cur.getClip().duration;
   return m;
 }
