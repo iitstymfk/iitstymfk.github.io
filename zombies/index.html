@@ -631,7 +631,10 @@ const W = {
   lmg:     { name: 'Brute LMG', up: 'Iron Maiden', model: 'lmg', dmg: 85, head: 2.5, rpm: 650, auto: true, mag: 100, res: 400, reload: 4.2, spread: .036, ads: .012, kick: .018, slow: .88, box: 1 },
   sniper:  { name: 'Vulture .50', up: 'Eagle Eye', model: 'sniper', dmg: 650, head: 5, rpm: 55, auto: false, mag: 5, res: 40, reload: 3, spread: .07, ads: 0, kick: .12, pierce: 5, scope: 1, box: 1 },
   revolver:{ name: 'Python .357', up: 'Cobra Venom', model: 'revolver', dmg: 200, head: 3, rpm: 160, auto: false, mag: 6, res: 66, reload: 2.4, spread: .016, ads: .003, kick: .06, pierce: 2, box: 1 },
-  ray:     { name: 'Ray Gun', up: 'Ray Gun Mk II', model: 'plasma', dmg: 2000, head: 1, rpm: 190, auto: false, mag: 20, res: 160, reload: 2.6, spread: .008, ads: .003, kick: .05, proj: 1, splash: 3.2, wonder: 1, pcol: 0xff3020, pcolUp: 0xff40c0, tint: 0xff2a1a },
+  ray:     { name: 'Ray Gun', up: 'Ray Gun Mk II', model: 'plasma', dmg: 2000, head: 1, rpm: 190, auto: false, mag: 20, res: 160, reload: 2.6, spread: .008, ads: .003, kick: .05, proj: 1, splash: 3.2, rare: .22, pcol: 0xff3020, pcolUp: 0xff40c0, tint: 0xff2a1a },
+  frost:   { name: 'Frost Howl', up: 'Blizzard Howl', model: 'revolver', dmg: 900, head: 1, rpm: 110, auto: false, mag: 8, res: 64, reload: 2.4, spread: .01, ads: .004, kick: .06, proj: 1, splash: 4, egg: 1, fx: 'frost', pcol: 0x9ae6ff, pcolUp: 0xd0f4ff, tint: 0x7fd8ff },
+  rad:     { name: 'Rad Gun', up: 'Gamma Burst', model: 'plasma', dmg: 260, head: 1.5, rpm: 260, auto: false, mag: 24, res: 192, reload: 2.2, spread: .006, ads: .002, kick: .035, pierce: 12, egg: 1, fx: 'rad', tint: 0x5aff5a },
+  storm:   { name: 'Storm Caller', up: 'Thunder King', model: 'smg', dmg: 700, head: 1, rpm: 140, auto: false, mag: 12, res: 96, reload: 2.3, spread: .01, ads: .004, kick: .05, egg: 1, fx: 'storm', tint: 0xc07a38 },
   plasma:  { name: 'Plasma Pistol', up: 'Nova Cannon', model: 'plasma', dmg: 1100, head: 1, rpm: 220, auto: false, mag: 20, res: 160, reload: 2.4, spread: .01, ads: .004, kick: .04, proj: 1, splash: 2.3, box: .45 },
 };
 const WALL = { rifle: 500, smg: 1000, ar: 1400, shotgun: 1500, revolver: 1200, lmg: 2500, sniper: 2000 };
@@ -657,6 +660,28 @@ const VM = {
 function bx(p, w, h, d, m, x, y, z, rx = 0){ const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.rotation.x = rx; p.add(o); return o; }
 function cy(p, r, l, m, x, y, z, r2){ const g = new THREE.CylinderGeometry(r2 == null ? r : r2, r, l, 12); g.rotateX(Math.PI/2); const o = new THREE.Mesh(g, m); o.position.set(x, y, z); p.add(o); return o; }
 function tintGun(m, col){ const c = new THREE.Color(col); m.traverse(o => { if(o.isMesh && o.material){ o.material = o.material.clone(); o.material.color = o.material.color.clone().lerp(c, .55); o.material.emissive = c.clone(); o.material.emissiveIntensity = .35; } }); return m; }
+function gunModel(k, up, hands = true){
+  const d = W[k], m = buildGun(d.model, up, hands); if(d.tint && (!up || d.egg)) tintGun(m, up && d.egg ? new THREE.Color(d.tint).lerp(new THREE.Color(0xffffff), .35).getHex() : d.tint);
+  if(!d.fx) return m;
+  const mz = m.userData.muzzle ? m.userData.muzzle.clone() : new THREE.Vector3(0, 0, -.3), len = m.userData.len || .3;
+  const glow = (c, i) => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: i, roughness: .3, metalness: .2 });
+  if(d.fx === 'frost'){ // ice crystals growing along the barrel
+    const ice = new THREE.MeshStandardMaterial({ color: 0xbfeeff, emissive: 0x5ac8ff, emissiveIntensity: .7, roughness: .1, metalness: 0, transparent: true, opacity: .85 });
+    for(let i = 0; i < 5; i++){ const c = new THREE.Mesh(new THREE.ConeGeometry(.012 + i % 2 * .006, .05 + (i % 3) * .02, 5), ice); c.position.set((i % 2 ? .012 : -.012), .03 + (i % 3) * .006, mz.z * (.3 + i * .14)); c.rotation.set(rand(-.4, .4), 0, (i % 2 ? -.5 : .5)); m.add(c); }
+    const tip = new THREE.Mesh(new THREE.IcosahedronGeometry(.022, 0), ice); tip.position.copy(mz); m.add(tip);
+  } else if(d.fx === 'rad'){ // retro atomic ray gun: dish emitter, rings and a glowing tube
+    const dish = new THREE.Mesh(new THREE.ConeGeometry(.05, .045, 18, 1, true), new THREE.MeshStandardMaterial({ color: 0x9aa0a6, metalness: .8, roughness: .3, side: THREE.DoubleSide })); dish.rotation.x = -Math.PI / 2; dish.position.copy(mz).add(new THREE.Vector3(0, 0, -.01)); m.add(dish);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(.014, 10, 8), glow(0x6aff4a, 2.2)); core.position.copy(mz).add(new THREE.Vector3(0, 0, .005)); m.add(core);
+    for(let i = 0; i < 3; i++){ const r = new THREE.Mesh(new THREE.TorusGeometry(.03 - i * .004, .006, 6, 16), new THREE.MeshStandardMaterial({ color: 0xb08030, metalness: .8, roughness: .35 })); r.position.set(0, 0, mz.z * (.45 + i * .17)); m.add(r); }
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(.011, .011, len * .45, 10), glow(0x4aff3a, 1.4)); tube.rotation.x = Math.PI / 2; tube.position.set(0, .034, mz.z * .5); m.add(tube);
+  } else if(d.fx === 'storm'){ // copper coils crackling with blue light
+    const cu = new THREE.MeshStandardMaterial({ color: 0xc07a38, metalness: .9, roughness: .3 });
+    for(let i = 0; i < 4; i++){ const r = new THREE.Mesh(new THREE.TorusGeometry(.032, .007, 6, 16), cu); r.position.set(0, .005, mz.z * (.35 + i * .13)); m.add(r); }
+    const orb = new THREE.Mesh(new THREE.SphereGeometry(.024, 12, 10), glow(0x7ab8ff, 2.5)); orb.position.copy(mz); m.add(orb);
+    const rod = new THREE.Mesh(new THREE.CylinderGeometry(.005, .005, len * .6, 6), glow(0x9ad0ff, 1.5)); rod.rotation.x = Math.PI / 2; rod.position.set(0, .04, mz.z * .6); m.add(rod);
+  }
+  return m;
+}
 function buildGun(model, up, hands = true){
   const A = ASSETS.guns[model], meta = GUNMETA[model];
   if(A && meta){
@@ -702,7 +727,7 @@ let curModel = null;
 function setVM(){
   if(curModel){ vmGunHolder.remove(curModel); disposeTree(curModel); curModel = null; }
   const g = P.guns[P.gi]; if(!g) return;
-  curModel = buildGun(W[g.k].model, g.up); if(W[g.k].tint && !g.up) tintGun(curModel, W[g.k].tint); vmGunHolder.add(curModel);
+  curModel = gunModel(g.k, g.up); vmGunHolder.add(curModel);
 }
 
 /* ---------- first-person arms (PSX First Person Arms by DrillImpact, free) ---------- */
@@ -934,7 +959,7 @@ INTER.push(BOX.inter); placeBox(Math.floor(Math.random() * Math.max(1, BOXLOCS.l
 function clearDisp(){ while(BOX.disp.children.length){ const c = BOX.disp.children[0]; BOX.disp.remove(c); disposeTree(c); c.traverse(o => { if(o.material && o.material !== VM.green && o.material !== VM.red) o.material.dispose?.(); }); } }
 function showDisp(k){ clearDisp(); if(k === 'bear'){ const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex([{ t: '🧸', font: '90px serif', y: 64 }], 128, 128), transparent: true })); s.scale.setScalar(.6); BOX.disp.add(s); return; }
   const m = buildGun(W[k].model, false, false); m.rotation.y = Math.PI / 2; m.scale.setScalar(m.userData.real ? .75 / m.userData.len : 1.6); if(m.userData.real) m.children[0].position.z = 0; m.traverse(o => { if(o.material) o.material = o.material.clone(); if(o.material && o.material.emissive){ o.material.emissive.set(0x3a2a10); o.material.emissiveIntensity = .5; } }); BOX.disp.add(m); }
-function boxPool(){ const own = P.guns.map(g => g.k); const pool = []; for(const k in W){ if(own.includes(k) || k === 'pistol') continue; const w = W[k].wonder ? (EGG.boost ? .3 : .03) : k === 'plasma' ? .45 : (W[k].box ? 1 : .8); pool.push([k, w]); } return pool; }
+function boxPool(){ const own = P.guns.map(g => g.k); const pool = []; for(const k in W){ if(own.includes(k) || k === 'pistol') continue; if(W[k].egg) continue; const w = W[k].rare || (k === 'plasma' ? .45 : (W[k].box ? 1 : .8)); pool.push([k, w]); } return pool; }
 function boxRoll(){ const pool = boxPool(); let s = pool.reduce((a, b) => a + b[1], 0) * Math.random(); for(const [k, w] of pool){ s -= w; if(s <= 0) return k; } return pool[0][0]; }
 function updBox(dt){
   BOX.t += dt; const lidOpen = BOX.state === 'spin' || BOX.state === 'offer' || BOX.state === 'bear';
@@ -1235,6 +1260,8 @@ function updZombies(dt){
       if(z.t > 2.5) p.y -= dt * .45; if(z.t > 4){ scene.remove(m.root); Z.splice(i, 1); }
       continue;
     }
+    if(z.rad > 0){ z.rad -= dt; z.radT = (z.radT || 0) + dt; if(z.radT > .4){ z.radT = 0; const hp0 = z.m.root.position.clone().setY(1.1); fx(hp0, { add: true, color: 0x6aff4a, v: new THREE.Vector3(rand(-.4,.4), rand(.4,1.2), rand(-.4,.4)), life: .5, size: .22, size1: .03 }); if(hurtZombie(z, z.radDps * .4, false, 'rad')) { radSpread(z); continue; } } }
+    if(z.frozen > 0){ z.frozen -= dt; if(z.iceS){ z.iceS.material.opacity = Math.min(.8, z.frozen); } if(z.frozen <= 0 && z.iceS){ z.m.root.remove(z.iceS); z.iceS = null; } else { continue; } }
     z.groanT -= dt; if(z.groanT <= 0){ if(z.dog){ dogGrowl(z); z.groanT = rand(1, 2.5); } else { groan(z); z.groanT = rand(2.5, 6); } }
     let moving = true;
     if(z.state === 'out'){
@@ -1272,6 +1299,7 @@ function updZombies(dt){
 function hurtZombie(z, dmg, head, kind, at){
   if(z.dead) return false;
   if(instaT > 0) dmg = 1e9;
+  if(z.frozen > 0 && kind !== 'frost') dmg *= 3;
   z.hp -= dmg; STATS.hits++;
   if(at) bloodBurst(at, head ? 10 : 6, head);
   if(z.hp <= 0){ killZombie(z, head, kind); return true; }
@@ -1324,6 +1352,37 @@ function hitscan(o, d, dmg, headMult, pierce, kind){
   for(const h of hits){ if(n >= pierce) break; const at = o.clone().addScaledVector(d, h.t); hurtZombie(h.z, dmg * k * (h.head ? headMult : 1), h.head, kind, at); n++; k *= .75; }
   if(n < pierce || !hits.length){ if(wallT < 70){ const pt = o.clone().addScaledVector(d, wallT - .02); sparks(pt, nrm); } }
 }
+/* ---------- wonder weapon effects ---------- */
+function zombiesOnRay(o, d, maxT){ const out = []; for(const z of Z){ if(z.dead) continue; const p = z.m.root.position; const s = z.m.s; z.m.head.getWorldPosition(hp); const th = !z.headless ? raySphere(o, d, hp, .17 * s) : Infinity; const tb = rayCyl(o, d, p.x, p.z, .3 * s, p.y + .05, p.y + 1.5 * s); const t = Math.min(th, tb); if(t < maxT) out.push({ z, t, head: th <= tb }); } return out.sort((a, b) => a.t - b.t); }
+function beamFx(a, b, col, n = 10, size = .14){ for(let i = 0; i <= n; i++){ const p = a.clone().lerp(b, i / n); fx(p, { add: true, color: col, life: .12 + Math.random() * .1, size, size1: size * .2 }); } }
+function radBeam(o, d, dmg, w, up){
+  const wallT = gridRay(o, d, 70); questRay(o, d, wallT); const hits = zombiesOnRay(o, d, wallT); const end = o.clone().addScaledVector(d, Math.min(wallT, hits.length ? 70 : wallT));
+  beamFx(o.clone().addScaledVector(d, .5), o.clone().addScaledVector(d, Math.min(wallT, 30)), up ? 0xb0ff60 : 0x5aff3a, 18, .1);
+  let n = 0; for(const h of hits){ if(n >= w.pierce) break; const at = o.clone().addScaledVector(d, h.t); h.z.rad = up ? 6 : 4; h.z.radDps = dmg * (up ? 1.2 : .8); hurtZombie(h.z, dmg * (h.head ? w.head : 1), h.head, 'gun', at); n++; }
+  if(wallT < 70) sparks(o.clone().addScaledVector(d, wallT - .02), lastRayNormal.clone());
+  muzzleLight.color.set(0x6aff4a); setTimeout(() => muzzleLight.color.set(0xffa040), 80);
+}
+function radSpread(z){ const p = z.m.root.position; for(const o of Z){ if(o.dead || o === z || o.rad > 0) continue; if(o.m.root.position.distanceTo(p) < 3.2){ o.rad = 3; o.radDps = z.radDps * .8; beamFx(p.clone().setY(1), o.m.root.position.clone().setY(1), 0x6aff4a, 6, .12); } } }
+function stormBolt(o, d, dmg, up){
+  const wallT = gridRay(o, d, 70); questRay(o, d, wallT); const hits = zombiesOnRay(o, d, wallT); const start = o.clone().addScaledVector(d, .5);
+  const jag = (a, b) => { let prev = a.clone(); const n = 6; for(let i = 1; i <= n; i++){ const p = a.clone().lerp(b, i / n); if(i < n) p.add(new THREE.Vector3(rand(-.25, .25), rand(-.25, .25), rand(-.25, .25))); beamFx(prev, p, up ? 0xd0a0ff : 0x8ac8ff, 3, .12); prev = p; } };
+  boomLight.position.copy(o).addScaledVector(d, 4); boomLight.color.set(0x8ab8ff); boomLight.intensity = 14; boomT = .1; setTimeout(() => boomLight.color.set(0xff7a20), 150);
+  tn({ f: 1800, f2: 120, type: 'sawtooth', dur: .25, vol: .1 });
+  if(!hits.length){ jag(start, o.clone().addScaledVector(d, Math.min(wallT, 25))); return; }
+  let cur = hits[0].z, from = start; const done = new Set(); const jumps = up ? 9 : 6;
+  for(let j = 0; j <= jumps && cur; j++){
+    const at = cur.m.root.position.clone().setY(1.1); jag(from, at); done.add(cur); hurtZombie(cur, dmg * (j === 0 ? 1 : .85), j === 0 && hits[0].head, 'gun', at); from = at;
+    let nb = null, nd = up ? 7 : 5.5; for(const z of Z){ if(z.dead || done.has(z)) continue; const dd = z.m.root.position.distanceTo(cur.m.root.position); if(dd < nd){ nd = dd; nb = z; } } cur = nb;
+  }
+}
+function frostBlast(pos, r, dmg, secs){
+  SND.boom(); fx(pos, { add: true, tex: glowTex, color: 0x9ae6ff, life: .45, size: .8, size1: r * 1.6 });
+  for(let i = 0; i < 22; i++) fx(pos, { add: true, color: pick([0xd8f6ff, 0x9ae6ff, 0xffffff]), v: new THREE.Vector3(rand(-5,5), rand(.5,5), rand(-5,5)), g: 6, life: rand(.4, .9), size: .12, size1: .02 });
+  tn({ f: 2600, f2: 900, type: 'triangle', dur: .5, vol: .08, echo: .4 });
+  for(const z of Z){ if(z.dead) continue; const zp = z.m.root.position; const d = Math.hypot(zp.x - pos.x, zp.z - pos.z); if(d > r) continue;
+    if(hurtZombie(z, dmg * (1 - d / r * .5), false, 'frost', zp.clone().setY(1))) continue;
+    z.frozen = secs; if(!z.iceS){ z.iceS = glowSprite(0x9ae6ff, 2.2, .8); z.iceS.position.y = 1; z.m.root.add(z.iceS); } }
+}
 const PROJ = [];
 function fireGun(){
   const g = P.guns[P.gi]; if(!g || P.swapT > 0 || P.reloadT > 0 || P.knifeT > 0 || P.nadeT > 0 || P.drinkT > 0 || P.down) return;
@@ -1333,10 +1392,12 @@ function fireGun(){
   g.next = now + 60 / (d.rpm * (P.perks.includes('rapid') ? 1.33 : 1)); g.mag--; P.semi = true; STATS.shots++;
   const o = camera.getWorldPosition(new THREE.Vector3()); const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
   const spread = (P.ads > .6 ? d.ads : d.spread) * (P.moving > .2 ? 1.5 : 1) * (d.scope && P.ads < .9 ? 3 : 1);
-  if(d.proj){
+  if(d.fx === 'rad'){ radBeam(o, fwd, st.dmg, d, g.up); }
+  else if(d.fx === 'storm'){ stormBolt(o, fwd, st.dmg, g.up); }
+  else if(d.proj){
     const v = fwd.clone().multiplyScalar(g.up ? 46 : 38);
     const pc = d.pcol ? (g.up ? d.pcolUp : d.pcol) : (g.up ? 0xc060ff : 0x60ff60); const s = sprite(glowTex, pc, true); s.scale.setScalar(g.up ? .7 : .5); s.position.copy(o).addScaledVector(fwd, .6);
-    PROJ.push({ s, v, life: 2, kind: 'plasma', dmg: st.dmg, r: d.splash * (g.up ? 1.4 : 1), col: d.pcol ? pc : null });
+    PROJ.push({ s, v, life: 2, kind: 'plasma', dmg: st.dmg, r: d.splash * (g.up ? 1.4 : 1), col: d.pcol ? pc : null, frost: d.fx === 'frost' ? (g.up ? 6 : 4) : 0 });
   } else {
     const pellets = d.pellets || 1;
     for(let i = 0; i < pellets; i++){
@@ -1395,7 +1456,7 @@ function updProj(dt){
       pos.addScaledVector(dir, Math.min(wt, L));
       if(Math.random() < .6) fx(pos, { add: true, color: p.s.material.color.getHex(), life: .25, size: .2, size1: .02 });
       if(!hit && questProjHit(pos)) hit = true;
-      if(hit || p.life <= 0){ explode(pos.clone(), p.r, p.dmg, 'plasma', 0, p.col); scene.remove(p.s); p.s.material.dispose(); PROJ.splice(i, 1); }
+      if(hit || p.life <= 0){ if(p.frost) frostBlast(pos.clone(), p.r, p.dmg, p.frost); else explode(pos.clone(), p.r, p.dmg, 'plasma', 0, p.col); scene.remove(p.s); p.s.material.dispose(); PROJ.splice(i, 1); }
     }
   }
 }
@@ -1620,7 +1681,7 @@ function update(dt){
   if(P.reloadT > 0){ P.reloadT -= dt; if(P.reloadT <= 0 && g){ const st = gs(g); const n = Math.min(st.mag - g.mag, g.res); g.mag += n; g.res -= n; hudGun(); } }
   if(P.knifeT > 0){ P.knifeT -= dt; if(!P.knifeHit && P.knifeT < .38){ P.knifeHit = true; let best = null, bd = 1.9; const f = new THREE.Vector3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw));
       for(const z of Z){ if(z.dead) continue; const zp = z.m.root.position; const dx = zp.x - P.pos.x, dz = zp.z - P.pos.z, dd = Math.hypot(dx, dz); if(dd < bd && (dx * f.x + dz * f.z) / dd > .55){ bd = dd; best = z; } }
-      if(best){ SND.stab(); hurtZombie(best, 150, false, 'knife', best.m.root.position.clone().setY(1.2)); } } }
+      if(best){ SND.stab(); hurtZombie(best, 150, false, 'knife', best.m.root.position.clone().setY(1.2)); } questKnife(); } }
   if(P.nadeT > 0) P.nadeT -= dt;
   if(P.drinkT > 0){ P.drinkT -= dt; if(P.drinkT <= 0 && P.drinkPerk){ P.perks.push(P.drinkPerk); if(P.drinkPerk === 'tough') P.hp = maxHp(); P.drinkPerk = null; hudPerks(); } }
   if(P.firing && !P.sprint) fireGun();
@@ -1769,7 +1830,7 @@ if(PARTS.on) POWER.lever.visible = false;
 if(UPARTS.on){ UPG.g.visible = true; UPG.broken = true; UPG.sign.visible = false; }
 function hudParts(){ const e = $('#parts'); if(!e) return; const row = (S, ic) => (!S.on || S.built || !S.list.length) ? '' : `<span>${ic} ${S.list.map(p => `<i class="${p.got ? '' : 'no'}" title="${p.n}">${p.ic}</i>`).join('')}</span>`; e.innerHTML = row(PARTS, '⚡') + row(UPARTS, '⬆'); }
 // ---- Easter eggs ----
-const EGG = { on: MAPD.eggs !== false, skulls: [], shot: 0, chest: null, souls: 0, need: 12, done: false, bears: [], squeezed: 0, song: false, boost: false };
+const EGG = { on: MAPD.eggs !== false, skulls: [], shot: 0, chest: null, souls: 0, need: 12, done: false, bears: [], squeezed: 0, song: false, jars: [], altars: [], lastBear: null };
 const skullTex = textTex([{ t: '💀', font: '86px serif', y: 64 }], 128, 128);
 if(EGG.on){
   // 1) three glowing skulls hidden high on walls - shoot them
@@ -1789,24 +1850,51 @@ if(EGG.on){
     const B1 = { g, eyeM, done: false };
     EGG.bears.push(B1);
     INTER.push({ pos: wpos(c[0], c[1], .6), r: 1.5, prompt(){ return B1.done ? null : [`Press <b>${KEY}</b> to squeeze the teddy`, 0]; },
-      use(){ if(B1.done) return; B1.done = true; EGG.squeezed++; eyeM.color.set(0xff2020); tn({ f: 900, f2: 1300, type: 'square', dur: .12, vol: .12 }); tn({ f: 1200, f2: 700, type: 'square', dur: .14, vol: .1, at: .14 });
+      use(){ if(B1.done) return; B1.done = true; EGG.squeezed++; EGG.lastBear = g.position.clone(); eyeM.color.set(0xff2020); tn({ f: 900, f2: 1300, type: 'square', dur: .12, vol: .12 }); tn({ f: 1200, f2: 700, type: 'square', dur: .14, vol: .1, at: .14 });
         if(EGG.squeezed === EGG.bears.length) teddySong(); } });
   }
 }
+
+function wonderAltar(at, key, col){
+  const g = new THREE.Group(); g.position.set(at.x, 0, at.z); level.add(g);
+  bx(g, .6, .9, .6, M.metal, 0, .45, 0); const gl = glowSprite(new THREE.Color(col).getHex(), 2.4, .5); gl.position.y = 1.3; g.add(gl);
+  const m = gunModel(key, false, false); m.rotation.y = Math.PI / 2; if(m.userData.real){ m.scale.setScalar(.65 / m.userData.len); m.children[0].position.z = 0; } m.position.y = 1.25; g.add(m);
+  const A = { g, m, gl, taken: false }; EGG.altars.push(A); tn({ f: 220, f2: 880, type: 'triangle', dur: 1.2, vol: .12, echo: .5 });
+  INTER.push({ pos: g.position.clone().setY(1.2), r: 2, prompt(){ return A.taken ? null : [`Press <b>${KEY}</b> to take the ${W[key].name}`, 0]; },
+    use(){ if(A.taken) return; A.taken = true; level.remove(g); giveGun(newGun(key)); SND.buy(); ann(W[key].name.toUpperCase(), col); } });
+}
+// 4) tesla jars: once the power is on, hit all 3 with your knife to call the Storm Caller
+if(EGG.on){
+  for(const c of pickSpots(3, nextToWall)){
+    const g = new THREE.Group(); g.position.copy(wpos(c[0], c[1])); level.add(g);
+    const glass = new THREE.MeshStandardMaterial({ color: 0x8ab8d8, transparent: true, opacity: .35, roughness: .05, metalness: .1 });
+    cy(g, .12, .32, glass, 0, .2, 0); const coreM = new THREE.MeshStandardMaterial({ color: 0x2a3a5a, emissive: 0x6ab0ff, emissiveIntensity: 0 }); const core = new THREE.Mesh(new THREE.SphereGeometry(.05, 10, 8), coreM); core.position.y = .2; g.add(core);
+    cy(g, .13, .05, M.metal, 0, .03, 0); cy(g, .13, .05, M.metal, 0, .38, 0); const gl = glowSprite(0x6ab0ff, .9, 0); gl.position.y = .22; g.add(gl);
+    EGG.jars.push({ g, coreM, gl, pos: g.position.clone(), hit: false });
+  }
+}
+function questKnife(){ // called when the knife swings
+  if(!EGG.on || !power) return; const f = new THREE.Vector3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw));
+  for(const J of EGG.jars){ if(J.hit) continue; const dx = J.pos.x - P.pos.x, dz = J.pos.z - P.pos.z, dd = Math.hypot(dx, dz); if(dd > 1.9 || (dx * f.x + dz * f.z) / dd < .4) continue;
+    J.hit = true; J.coreM.emissiveIntensity = 3; J.gl.material.opacity = .7; tn({ f: 1500, f2: 200, type: 'sawtooth', dur: .35, vol: .12 }); for(let i = 0; i < 10; i++) fx(J.pos.clone().setY(.3), { add: true, color: 0x9ad0ff, v: new THREE.Vector3(rand(-2,2), rand(0,3), rand(-2,2)), life: .4, size: .1, size1: .02 });
+    const n = EGG.jars.filter(j => j.hit).length; if(n < EGG.jars.length) msg(`The jar crackles… (${n}/${EGG.jars.length})`);
+    else { ann('THE STORM ANSWERS', '#8ac8ff'); const at = POWER ? wpos(POWER.x, POWER.z).add(new THREE.Vector3(POWER.face[0] * 1.2, 0, POWER.face[1] * 1.2)) : J.pos.clone(); setTimeout(() => wonderAltar(at, 'storm', '#8ac8ff'), 1200); msg(POWER ? 'A weapon appeared by the power switch.' : 'A weapon appeared by the last jar.'); }
+    return; }
+}
 function teddySong(){
-  EGG.song = true; EGG.boost = true; ann('♪ SECRET SONG ♪', '#ff6ad5');
+  EGG.song = true; ann('♪ SECRET SONG ♪', '#ff6ad5');
   const mel = [220, 261.6, 329.6, 311.1, 329.6, 392, 349.2, 329.6, 293.7, 261.6, 246.9, 261.6, 220, 0, 220, 261.6, 329.6, 440, 415.3, 392, 349.2, 329.6, 293.7, 329.6, 220];
   const bass = [110, 110, 87.3, 87.3, 98, 98, 82.4, 82.4]; const beat = .42;
   for(let rep = 0; rep < 2; rep++){ const o = rep * mel.length * beat;
     mel.forEach((f, i) => { if(f) tn({ f, type: 'triangle', dur: beat * .9, vol: .16, at: o + i * beat, echo: .3 }); });
     for(let i = 0; i < mel.length; i += 2) tn({ f: bass[(i / 2) % bass.length], type: 'sawtooth', dur: beat * 1.8, vol: .07, at: o + i * beat }); }
-  setTimeout(() => { const own = new Set(P.perks); const opts2 = Object.keys(PERKS).filter(k => PERKS[k].placed && !own.has(k)); if(opts2.length && P.perks.length < 4 && !P.down){ const k = pick(opts2); P.drinkT = 1.6; P.drinkPerk = k; SND.drink(); msg('The teddies gave you ' + PERKS[k].name + '! The box feels lucky now…'); } else { P.points += 2500; hudPts(); msg('The teddies gave you 2500 points! The box feels lucky now…'); } }, 1500);
+  setTimeout(() => { wonderAltar(EGG.lastBear || P.pos.clone(), 'rad', '#5aff3a'); msg('Something glows where the last teddy sat…'); }, 2500);
 }
 function skullHit(S){
   if(S.hit) return; S.hit = true; EGG.shot++; level.remove(S.sp); level.remove(S.gl);
   for(let i = 0; i < 10; i++) fx(S.p, { add: true, color: 0x50ff80, v: new THREE.Vector3(rand(-2,2), rand(-1,2), rand(-2,2)), life: .6, size: .12, size1: .02 });
   tn({ f: 160, f2: 60, type: 'sawtooth', dur: .6, vol: .14, echo: .4 });
-  if(EGG.shot === EGG.skulls.length){ EGG.boost = true; spawnChest(); }
+  if(EGG.shot === EGG.skulls.length){ spawnChest(); }
   else msg(`A skull shatters… (${EGG.shot}/${EGG.skulls.length})`);
 }
 function questRay(o, d, wallT){ if(!EGG.on) return; for(const S of EGG.skulls){ if(S.hit) continue; const t = raySphere(o, d, S.p, .26); if(t < wallT + .3 && t < 80) skullHit(S); } }
@@ -1822,18 +1910,20 @@ function spawnChest(){
   EGG.chest = { g, lid, gl, pos: g.position.clone(), open: false, taken: false };
   ann('FEED THE SOUL CHEST', '#5aff8a'); msg(`A soul chest appeared in the ${ROOM_NAMES[RID[c[1]][c[0]]]}. Kill zombies near it.`);
   tn({ f: 80, f2: 40, type: 'sawtooth', dur: 2.5, vol: .16, echo: .6 });
-  INTER.push({ pos: g.position.clone().setY(1), r: 2.2, prompt(){ const C = EGG.chest; if(!C.open) return [`The soul chest hungers (${EGG.souls}/${EGG.need} souls)`, 0, true]; if(C.taken) return null; return [`Press <b>${KEY}</b> to take the Ray Gun`, 0]; },
-    use(){ const C = EGG.chest; if(!C.open || C.taken) return; C.taken = true; giveGun(newGun('ray')); SND.buy(); ann('RAY GUN', '#ff4a3a'); level.remove(C.g); } });
+  INTER.push({ pos: g.position.clone().setY(1), r: 2.2, prompt(){ const C = EGG.chest; if(!C.open) return [`The soul chest hungers (${EGG.souls}/${EGG.need} souls)`, 0, true]; if(C.taken) return null; return [`Press <b>${KEY}</b> to take the ${W.frost.name}`, 0]; },
+    use(){ const C = EGG.chest; if(!C.open || C.taken) return; C.taken = true; giveGun(newGun('frost')); SND.buy(); ann(W.frost.name.toUpperCase(), '#9ae6ff'); level.remove(C.g); } });
 }
 function questKill(z){
   const C = EGG.chest; if(!C || C.open) return; const zp = z.m.root.position; if(Math.hypot(zp.x - C.pos.x, zp.z - C.pos.z) > 7) return;
   EGG.souls++; const from = zp.clone().setY(1.2); for(let i = 0; i < 6; i++){ const t = i / 6; fx(from.clone().lerp(C.pos.clone().setY(.6), t), { add: true, color: 0x50ff80, life: .5 + t * .3, size: .25, size1: .05 }); }
   tn({ f: 600, f2: 300, type: 'sine', dur: .25, vol: .1 });
-  if(EGG.souls >= EGG.need){ C.open = true; EGG.done = true; ann('THE CHEST IS FULL', '#5aff8a'); SND.boxSpin && SND.boxSpin(); const m = tintGun(buildGun('plasma', false, false), W.ray.tint); m.rotation.y = Math.PI / 2; if(m.userData.real){ m.scale.setScalar(.6 / m.userData.len); m.children[0].position.z = 0; } m.position.y = .85; C.g.add(m); C.gun = m; }
+  if(EGG.souls >= EGG.need){ C.open = true; EGG.done = true; ann('THE CHEST IS FULL', '#5aff8a'); SND.boxSpin && SND.boxSpin(); const m = gunModel('frost', false, false); m.rotation.y = Math.PI / 2; if(m.userData.real){ m.scale.setScalar(.6 / m.userData.len); m.children[0].position.z = 0; } m.position.y = .85; C.g.add(m); C.gun = m; }
 }
 function updQuest(dt){
   for(const p of [...PARTS.list, ...UPARTS.list]){ if(p.got) continue; p.gl.material.opacity = .35 + Math.sin(now * 3 + p.c[0]) * .2; }
   for(const S of EGG.skulls){ if(S.hit) continue; S.gl.material.opacity = .15 + Math.sin(now * 2.3 + S.p.x) * .1; }
+  for(const J of EGG.jars){ if(!J.hit){ J.coreM.emissiveIntensity = power ? .6 + Math.sin(now * 7 + J.pos.x) * .4 : 0; J.gl.material.opacity = power ? .2 + Math.random() * .15 : 0; } else J.gl.material.opacity = .5 + Math.random() * .3; }
+  for(const A of EGG.altars){ if(A.taken) continue; A.m.rotation.y += dt; A.m.position.y = 1.25 + Math.sin(now * 2) * .05; A.gl.material.opacity = .4 + Math.sin(now * 3) * .12; }
   const C = EGG.chest; if(C && !C.taken){ C.gl.material.opacity = .3 + Math.sin(now * 4) * .12 + (C.open ? .3 : 0); C.lid.rotation.x += ((C.open ? -1.4 : 0) - C.lid.rotation.x) * Math.min(1, dt * 4); if(C.gun) C.gun.rotation.y += dt; }
 }
 hudParts();
@@ -1870,7 +1960,7 @@ $('#bHelp').onclick = () => { $('#help').classList.toggle('hidden'); $('#setting
 $('#help').innerHTML = (isTouch
   ? '<b>Phone:</b> left thumb moves (push all the way up to sprint), drag on the right to look. Hold <b>FIRE</b> and drag it to aim while shooting. <b>AIM</b> zooms in. <b>USE</b> pops up next to things you can buy.'
   : '<b>PC:</b> WASD move · Shift sprint · Mouse aim/shoot · Right-click zoom · R reload · F use/buy (hold to rebuild windows) · V knife · G grenade · Q / 1 / 2 / wheel swap · Esc pause.')
-  + '<br><br>Zombies break in through the windows. Every hit is +10 points, kills are +60 (headshots +100, knife +130). Spend points on guns from the walls, the <b>?</b> box (950), doors to new rooms, and perk machines. The <b>power switch</b> (Generator Room) and the <b>Upgrade</b> machine (Lab, 5000) start broken: find their 3 glowing parts hidden around the map (they move every game), build the switch, then turn the power on for perks. Zombies sometimes drop power-ups: Max Ammo, Insta-Kill, Double Points, Kaboom and Carpenter. Every few rounds <b>hellhounds</b> attack instead; kill them all for a Max Ammo.<br><br><b>Secrets:</b> there are hidden things to shoot and things to squeeze… find them for a wonder weapon. Make your own maps in the <b>🛠 Map Maker</b>.';
+  + '<br><br>Zombies break in through the windows. Every hit is +10 points, kills are +60 (headshots +100, knife +130). Spend points on guns from the walls, the <b>?</b> box (950), doors to new rooms, and perk machines. The <b>power switch</b> (Generator Room) and the <b>Upgrade</b> machine (Lab, 5000) start broken: find their 3 glowing parts hidden around the map (they move every game), build the switch, then turn the power on for perks. Zombies sometimes drop power-ups: Max Ammo, Insta-Kill, Double Points, Kaboom and Carpenter. Every few rounds <b>hellhounds</b> attack instead; kill them all for a Max Ammo.<br><br>The <b>?</b> box can give any gun, even the rare <b>Ray Gun</b>. <b>Secrets:</b> three wonder weapons (Frost Howl, Rad Gun, Storm Caller) never come from the box; each one is hidden behind its own Easter egg. Look for things to shoot, things to squeeze and things to hit with your knife once the power is on… Make your own maps in the <b>🛠 Map Maker</b>.';
 $('#play').onclick = () => { if(!ASSETS.ready && !$('#play').dataset.force) return; startGame(); };
 $('#play').disabled = true; $('#play').textContent = 'LOADING…';
 loadAssets((n, t) => { $('#play').textContent = `LOADING ${Math.round(n / t * 100)}%`; }).then(() => { setupArms(); decorate(); $('#play').disabled = false; $('#play').textContent = 'PLAY'; });
