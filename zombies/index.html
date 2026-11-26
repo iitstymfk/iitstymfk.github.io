@@ -511,8 +511,8 @@ function newGun(k, up = false){ const g = { k, up, next: 0 }; const s = gs(g); g
 
 /* ---------- weapon models (viewmodel + display) ---------- */
 const VM = {
-  metal: new THREE.MeshStandardMaterial({ color: 0x4a4f57, metalness: .35, roughness: .38 }),
-  dark: new THREE.MeshStandardMaterial({ color: 0x24262b, metalness: .25, roughness: .55 }),
+  metal: new THREE.MeshStandardMaterial({ color: 0x5b616b, metalness: .35, roughness: .35 }),
+  dark: new THREE.MeshStandardMaterial({ color: 0x30333a, metalness: .25, roughness: .5 }),
   wood: new THREE.MeshStandardMaterial({ color: 0x6b4022, metalness: 0, roughness: .6, map: TEX.wood }),
   glove: new THREE.MeshStandardMaterial({ color: 0x24211d, roughness: .9 }),
   sleeve: new THREE.MeshStandardMaterial({ color: 0x3b4430, roughness: .95 }),
@@ -1336,12 +1336,12 @@ function update(dt){
 }
 function updVM(dt){
   const g = P.guns[P.gi]; const a = P.ads;
-  const hip = new THREE.Vector3(.2, -.2, -.42), ads = new THREE.Vector3(0, -.105, -.3);
+  const hip = new THREE.Vector3(.15, -.17, -.5), ads = new THREE.Vector3(0, -.098, -.36);
   const pos = hip.lerp(ads, a);
   const bobA = P.sprint ? 2.2 : 1;
   pos.x += Math.cos(P.step * .5) * .012 * P.moving * bobA * (1 - a * .8); pos.y += Math.abs(Math.sin(P.step * .5)) * .014 * P.moving * bobA * (1 - a * .8);
   pos.z += P.kick * .06;
-  let rx = P.kick * .25, ry = P.sprint ? .55 : 0, rz = P.sprint ? .3 : 0;
+  let rx = P.kick * .25, ry = P.sprint ? .55 : .07 * (1 - a), rz = P.sprint ? .3 : -.03 * (1 - a);
   if(P.reloadT > 0){ const k = 1 - P.reloadT / P.reloadDur; const s = Math.sin(k * Math.PI); rx -= s * .6; pos.y -= s * .12; rz += s * .5; }
   if(P.swapT > 0){ pos.y -= P.swapT * .6; }
   if(P.drinkT > 0 || P.knifeT > 0 || P.nadeT > 0 || P.down || !g){ pos.y -= .5; }
