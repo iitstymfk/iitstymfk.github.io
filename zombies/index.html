@@ -7,6 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Iitsty Zombies</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧟</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -189,6 +190,7 @@ async function rpc(fn, args){
   const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.message || ('error ' + r.status)); return j;
 }
 const KEY = isTouch ? 'USE' : 'F';
+function lockPtr(){ try{ const r = canvas.requestPointerLock?.(); if(r && r.catch) r.catch(() => {}); }catch{} }
 try{ await Promise.race([Promise.all(['40px Creepster', '700 40px Oswald', '600 22px Oswald'].map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 2500))]); }catch{}
 function disposeTree(o){ o.traverse(c => { if(c.geometry) c.geometry.dispose(); }); }
 
@@ -1169,7 +1171,7 @@ addEventListener('keydown', e => {
   if(e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'KeyQ') swapGun();
 });
 addEventListener('keyup', e => { keys[e.code] = false; if(e.code === 'KeyF' || e.code === 'KeyE') useHeld = false; });
-canvas.addEventListener('mousedown', e => { if(isTouch || G_STATE !== 'play') return; if(document.pointerLockElement !== canvas){ canvas.requestPointerLock?.(); return; } if(e.button === 0){ P.firing = true; } if(e.button === 2) P.adsHeld = true; if(e.button === 3 || e.button === 4) doKnife(); });
+canvas.addEventListener('mousedown', e => { if(isTouch || G_STATE !== 'play') return; if(document.pointerLockElement !== canvas){ lockPtr(); return; } if(e.button === 0){ P.firing = true; } if(e.button === 2) P.adsHeld = true; if(e.button === 3 || e.button === 4) doKnife(); });
 addEventListener('mouseup', e => { if(e.button === 0){ P.firing = false; P.semi = false; } if(e.button === 2) P.adsHeld = false; });
 addEventListener('mousemove', e => { if(document.pointerLockElement === canvas && G_STATE === 'play'){ const s = .0022 * opts.sens * (P.ads > .5 ? (gs(P.guns[P.gi] || { k: 'pistol' }).d.scope ? .35 : .7) : 1); P.yaw -= e.movementX * s; P.pitch -= e.movementY * s; } });
 addEventListener('wheel', e => { if(G_STATE === 'play') swapGun(); });
@@ -1206,7 +1208,7 @@ function startGame(){
   opts.name = $('#nm').value.trim().slice(0, 20); LS.set('name', opts.name);
   $('#menu').classList.add('hidden'); $('#hud').classList.remove('hidden'); if(isTouch) $('#touch').classList.remove('hidden');
   if(isTouch){ document.documentElement.requestFullscreen?.().catch(() => {}); screen.orientation?.lock?.('landscape').catch(() => {}); }
-  else canvas.requestPointerLock?.();
+  else lockPtr();
   P.guns = [newGun('pistol')]; P.gi = 0; setVM(); hudGun(); hudPts(); hudPerks();
   P.pos.copy(wpos(7, 16)); P.yaw = Math.PI; P.pitch = 0; P.hp = 100;
   G_STATE = 'play'; STATS.start = Date.now(); RS.breakT = 2.5; RS.round = 0; drawRound(0, false); $('#round').innerHTML = '';
@@ -1217,7 +1219,7 @@ function startRound(r){
   drawRound(r); SND.roundStart();
 }
 function pause(){ if(G_STATE !== 'play') return; G_STATE = 'pause'; P.firing = false; P.adsHeld = false; useHeld = false; for(const k in keys) keys[k] = false; $('#pause').classList.remove('hidden'); if(AC) AC.suspend(); }
-function resume(){ $('#pause').classList.add('hidden'); G_STATE = 'play'; if(AC) AC.resume(); if(!isTouch) canvas.requestPointerLock?.(); }
+function resume(){ $('#pause').classList.add('hidden'); G_STATE = 'play'; if(AC) AC.resume(); if(!isTouch) lockPtr(); }
 $('#resume').onclick = resume; $('#quit').onclick = () => location.reload();
 function gameOver(){
   G_STATE = 'over'; document.exitPointerLock?.(); $('#touch').classList.add('hidden');
