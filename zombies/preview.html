@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><title>asset preview</title><style>body{margin:0;background:#111}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; document.body.appendChild(r.domElement);
+const s = new THREE.Scene(); s.background = new THREE.Color(0x222428);
+s.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), .04).texture;
+const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, .01, 100); cam.position.set(0, 1.6, 5.2); cam.lookAt(0, .8, 0);
+s.add(new THREE.DirectionalLight(0xffffff, 2).translateX(3).translateY(5).translateZ(4));
+const L = new GLTFLoader(); const items = []; let mixer = null;
+const list = ['Gun_Pistol', 'Gun_Revolver', 'Gun_Rifle', 'Gun_Sniper', 'Prop_Grenade', 'Prop_Ammo', 'Prop_HealthPack', 'Prop_Barrel1', 'Prop_Barrel2_Closed', 'Prop_Chest'];
+function fit(o, size){ const b = new THREE.Box3().setFromObject(o), v = b.getSize(new THREE.Vector3()); const k = size / Math.max(v.x, v.y, v.z); o.scale.multiplyScalar(k); const b2 = new THREE.Box3().setFromObject(o); o.position.sub(b2.getCenter(new THREE.Vector3())); }
+list.forEach((n, i) => L.load(`assets/scifi/${n}.gltf`, g => { const holder = new THREE.Group(); const o = g.scene; fit(o, .75); holder.add(o); holder.position.set(-2.4 + (i % 5) * 1.2, i < 5 ? 1.9 : .9, 0); s.add(holder); items.push(holder); }));
+L.load('assets/zombie/skeleton-zombie.glb', g => { const o = g.scene; o.position.set(0, -.25, 1.2); s.add(o); mixer = new THREE.AnimationMixer(o); const clip = g.animations.find(a => /Walk/.test(a.name)) || g.animations[0]; mixer.clipAction(clip).play(); window.ZANIMS = g.animations.map(a => a.name); const b = new THREE.Box3().setFromObject(o); window.ZSIZE = b.getSize(new THREE.Vector3()).toArray(); o.position.x = 2.6; o.position.z = .6; });
+const clock = new THREE.Clock();
+window.tick = (t = 0) => { const dt = t || clock.getDelta(); for(const h of items) h.rotation.y += dt * .5; if(mixer) mixer.update(dt); r.render(s, cam); };
+r.setAnimationLoop(() => tick());
+</script></body></html>
