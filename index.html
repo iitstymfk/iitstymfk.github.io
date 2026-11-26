@@ -4149,9 +4149,33 @@ function mcBox(){
         <div class="p">${how}</div>
         ${v.java ? `<div class="a">Java <code>${escH(v.java)}</code><button data-c="${escH(v.java)}">copy</button></div>` : ''}
         ${v.bedrock ? `<div class="a">Bedrock <code>${escH(v.bedrock.split(':')[0])}</code> port <code>${escH(v.bedrock.split(':')[1] || '19132')}</code><button data-c="${escH(v.bedrock)}">copy</button></div>` : ''}
-        ${on && v.players.length ? `<div class="p">🧍 ${v.players.map(escH).join(', ')}</div>` : ''}</div>`; }).join('') +
-    `<div class="thRow"><button class="thBtn2" data-x>Close</button></div>`);
+        ${on && v.players.length ? `<div class="p">🧍 ${v.players.map(escH).join(', ')}</div>` : ''}
+        ${v.start && !stale && v.status === 'offline' ? `<div class="a"><button class="mcGo" data-start="${escH(v.id)}">▶ Start ${escH(v.name)}</button></div>` : ''}
+        ${v.start && stale ? `<div class="p" style="opacity:.7">Start isn't available while the server PC is off.</div>` : ''}</div>`; }).join('') +
+    `<div id="mcStartBox" style="display:none;margin-top:10px"><input id="mcCode" type="password" placeholder="Friend code" autocomplete="off"><input id="mcWho" placeholder="Your name (optional)" maxlength="30" value="${escH(jget('thName') || '')}"><div class="thRow"><button class="thBtn2 go" data-go>Start it</button></div></div>
+    <div class="thMsg"></div><div class="thRow"><button class="thBtn2" data-x>Close</button></div>`);
   b.querySelector('[data-x]').onclick = closeModal;
+  let pick = null;
+  const ask = async (sid, code, who) => {
+    msg(b, 'Asking the server PC…');
+    try{
+      const r = await rpc('mc_start_request', { p_code: code, p_server: sid, p_who: who || null });
+      jset('mcCode', code); if(who) jset('thName', who);
+      msg(b, r.already ? 'Already starting! Give it a minute.' : 'Starting! It takes about a minute, then join with the address above. ⛏️');
+      b.querySelector('#mcStartBox').style.display = 'none';
+      setTimeout(liveTick, 20000); setTimeout(liveTick, 50000);
+    }catch(e){
+      if(/friend code/i.test(e.message)){ jset('mcCode', null); b.querySelector('#mcStartBox').style.display = ''; }
+      msg(b, e.message, 1);
+    }
+  };
+  b.querySelectorAll('[data-start]').forEach(x => x.onclick = () => {
+    pick = x.dataset.start; const saved = jget('mcCode');
+    if(saved) ask(pick, saved, jget('thName') || '');
+    else { b.querySelector('#mcStartBox').style.display = ''; msg(b, 'Enter the friend code to start ' + x.textContent.replace('▶ Start ', '') + '.'); setTimeout(() => b.querySelector('#mcCode').focus(), 50); }
+  });
+  b.querySelector('[data-go]').onclick = () => { const c = b.querySelector('#mcCode').value.trim(); if(!c) return msg(b, 'Type the friend code.', 1); ask(pick, c, b.querySelector('#mcWho').value.trim()); };
+  b.querySelector('#mcCode').onkeydown = e => { if(e.key === 'Enter') b.querySelector('[data-go]').click(); };
   b.querySelectorAll('[data-c]').forEach(x => x.onclick = () => copyTxt(x.dataset.c, x));
 }
 mcPill.onclick = mcBox;
@@ -4164,7 +4188,7 @@ async function liveTick(){
       const S = MC.data.servers, stale = MC.age_s > 180, on = stale ? [] : S.filter(v => v.status === 'online'), pl = on.reduce((a, v) => a + v.players.length, 0);
       mcPill.innerHTML = `<i class="${on.length ? 'on' : ''}"></i>⛏️ ${on.length ? (on.length === 1 ? escH(on[0].name) : on.length + ' servers') + ' online' + (pl ? ' · ' + pl + ' playing' : '') : 'Minecraft servers'}`;
       mcPill.style.display = '';
-      if(q('#thModal') && q('#thModal').textContent.includes('Minecraft servers')) mcBox();
+      if(q('#thModal') && q('#thModal').textContent.includes('Minecraft servers') && !(q('#mcStartBox') && q('#mcStartBox').style.display === '')) mcBox();
     }
     const np = L.find(x => x.name === 'np_iitstymfk');
     npLive = np && np.data && np.data.title && np.age_s < 1800 ? np.data : null;
@@ -4188,6 +4212,7 @@ css.textContent = `
 .mcS .a{display:flex;gap:6px;align-items:center;font-size:12.5px;margin-top:6px;flex-wrap:wrap}.mcS .a code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px}
 .mcS .a button{font:inherit;font-size:11px;padding:2px 8px;border-radius:7px;border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;cursor:pointer}
 .mcS .p{font-size:12px;opacity:.85;margin-top:4px}
+.mcS .a button.mcGo{font-size:13px;padding:6px 12px;border-color:#23a55a;color:#bff5d0;background:rgba(35,165,90,.18)}
 #reqBtn.shift{left:128px}
 .rqKind{display:flex;gap:8px;margin:6px 0}.rqKind button{flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#eee;font:inherit;cursor:pointer}.rqKind button.on{background:color-mix(in srgb,var(--accent) 35%,transparent);border-color:var(--accent)}
 .rqList{margin-top:14px;border-top:1px solid rgba(255,255,255,.1);padding-top:10px}.rqItem{display:flex;gap:8px;align-items:baseline;padding:5px 0;font-size:13px}.rqItem span{flex:1;min-width:0;overflow-wrap:anywhere}.rqItem small{opacity:.75;white-space:nowrap}
