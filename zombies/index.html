@@ -1475,7 +1475,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { P, Z, RS, W, BOX, UPG, DOORS, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 </body>
