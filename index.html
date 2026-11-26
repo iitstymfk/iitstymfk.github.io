@@ -987,7 +987,7 @@ function renderUser(){
   $('uName').textContent = u.name;
   $('uDot').className = 'dot ' + u.status;
   $('uStatus').textContent = u.custom || (u.status === 'offline' ? (u.note || 'offline') : STATUS_TEXT[u.status]);
-  $('uActivity').textContent = u.activity ? '▸ playing ' + u.activity : '';
+  const npEl = $('uActivity'); if(!(npEl.dataset && npEl.dataset.np)) npEl.textContent = u.activity ? '▸ playing ' + u.activity : '';
   if(window.SITEF) siteUserExtras(u);
 }
 function renderServer(){
@@ -4133,11 +4133,61 @@ async function rpc(fn, args){
   const j = await r.json().catch(() => ({})); if(!r.ok) throw new Error(j.message || ('error ' + r.status)); return j;
 }
 
+/* ---------- ⛏ live Minecraft status + 🎮 now playing (pushed from the PC every minute or so) ---------- */
+const mcPill = document.createElement('button'); mcPill.className = 'mcPill'; mcPill.style.display = 'none';
+(() => { const so = document.getElementById('socials'), w = document.createElement('div'); w.style.textAlign = 'center'; w.appendChild(mcPill); if(so) so.insertAdjacentElement('afterend', w); })();
+let MC = null;
+const copyTxt = (t, b) => { const done = () => { if(b){ const o = b.textContent; b.textContent = 'copied'; setTimeout(() => b.textContent = o, 1200); } };
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(done, () => { prompt('Copy this:', t); }); };
+function mcBox(){
+  if(!MC) return;
+  const S = MC.data.servers || [], stale = MC.age_s > 180;
+  const b = modal(`<h3>⛏️ Minecraft servers</h3><p>${stale ? 'The server PC is off right now, so everything shows offline.' : 'Live from the server PC.'}</p>` +
+    S.map(v => { const on = !stale && v.status === 'online';
+      const how = v.bedrock ? `Java ${escH(v.version)} or Bedrock (console/phone), no mods needed` : (v.note ? escH(v.note) : `PC only · ${escH(v.type)} ${escH(v.version)}`);
+      return `<div class="mcS"><div class="h"><i style="width:9px;height:9px;border-radius:50%;background:${on ? '#23a55a' : (!stale && v.status === 'starting' ? '#f0b232' : '#80848e')}"></i>${escH(v.name)}<small>${on ? v.players.length + '/' + v.max + ' online' : (!stale && v.status === 'starting' ? 'starting…' : 'offline')}</small></div>
+        <div class="p">${how}</div>
+        ${v.java ? `<div class="a">Java <code>${escH(v.java)}</code><button data-c="${escH(v.java)}">copy</button></div>` : ''}
+        ${v.bedrock ? `<div class="a">Bedrock <code>${escH(v.bedrock.split(':')[0])}</code> port <code>${escH(v.bedrock.split(':')[1] || '19132')}</code><button data-c="${escH(v.bedrock)}">copy</button></div>` : ''}
+        ${on && v.players.length ? `<div class="p">🧍 ${v.players.map(escH).join(', ')}</div>` : ''}</div>`; }).join('') +
+    `<div class="thRow"><button class="thBtn2" data-x>Close</button></div>`);
+  b.querySelector('[data-x]').onclick = closeModal;
+  b.querySelectorAll('[data-c]').forEach(x => x.onclick = () => copyTxt(x.dataset.c, x));
+}
+mcPill.onclick = mcBox;
+let npLive = null;
+async function liveTick(){
+  try{
+    const L = await rpc('live_get', { p_names: ['mc', 'np_iitstymfk'] });
+    MC = L.find(x => x.name === 'mc') || null;
+    if(MC && (MC.data.servers || []).length){
+      const S = MC.data.servers, stale = MC.age_s > 180, on = stale ? [] : S.filter(v => v.status === 'online'), pl = on.reduce((a, v) => a + v.players.length, 0);
+      mcPill.innerHTML = `<i class="${on.length ? 'on' : ''}"></i>⛏️ ${on.length ? (on.length === 1 ? escH(on[0].name) : on.length + ' servers') + ' online' + (pl ? ' · ' + pl + ' playing' : '') : 'Minecraft servers'}`;
+      mcPill.style.display = '';
+      if(q('#thModal') && q('#thModal').textContent.includes('Minecraft servers')) mcBox();
+    }
+    const np = L.find(x => x.name === 'np_iitstymfk');
+    npLive = np && np.data && np.data.title && np.age_s < 1800 ? np.data : null;
+    const el = document.getElementById('uActivity');
+    if(el){ if(npLive) el.textContent = (npLive.kind === 'watch' ? '▸ watching ' : '▸ playing ') + npLive.title;
+      else if(el.dataset.np) el.textContent = (typeof user !== 'undefined' && user.activity) ? '▸ playing ' + user.activity : '';
+      el.dataset.np = npLive ? '1' : ''; }
+  }catch(e){}
+}
+if((CONFIG.counterPage || 'iitstymfk') === 'iitstymfk'){ liveTick(); setInterval(() => { if(!document.hidden) liveTick(); }, 30000); }
+
 /* ---------- styles ---------- */
 const css = document.createElement('style');
 css.textContent = `
 #thBtn{left:72px;font-size:22px;display:none}
 #reqBtn{left:72px;font-size:21px}
+.mcPill{display:inline-flex;align-items:center;gap:8px;margin:0 auto 16px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;font-size:13px;cursor:pointer;backdrop-filter:blur(8px)}
+.mcPill i{width:8px;height:8px;border-radius:50%;background:#80848e;display:inline-block}.mcPill i.on{background:#23a55a;box-shadow:0 0 8px #23a55a}
+.mcS{border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;margin:8px 0;text-align:left}
+.mcS .h{display:flex;align-items:center;gap:8px;font-weight:600}.mcS .h small{margin-left:auto;font-weight:400;opacity:.8}
+.mcS .a{display:flex;gap:6px;align-items:center;font-size:12.5px;margin-top:6px;flex-wrap:wrap}.mcS .a code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px}
+.mcS .a button{font:inherit;font-size:11px;padding:2px 8px;border-radius:7px;border:1px solid rgba(255,255,255,.2);background:transparent;color:inherit;cursor:pointer}
+.mcS .p{font-size:12px;opacity:.85;margin-top:4px}
 #reqBtn.shift{left:128px}
 .rqKind{display:flex;gap:8px;margin:6px 0}.rqKind button{flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#eee;font:inherit;cursor:pointer}.rqKind button.on{background:color-mix(in srgb,var(--accent) 35%,transparent);border-color:var(--accent)}
 .rqList{margin-top:14px;border-top:1px solid rgba(255,255,255,.1);padding-top:10px}.rqItem{display:flex;gap:8px;align-items:baseline;padding:5px 0;font-size:13px}.rqItem span{flex:1;min-width:0;overflow-wrap:anywhere}.rqItem small{opacity:.75;white-space:nowrap}
