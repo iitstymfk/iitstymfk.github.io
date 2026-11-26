@@ -678,7 +678,7 @@ function setupArms(){
     kb.visible = false; B['handR'].add(kb);
     Object.assign(ARMS, { ok: true, root, holder, mixer, A, B, kb, mode: 'hold', kAlt: false,
       rOff: new THREE.Euler(0, 0, 0), lOff: new THREE.Euler(0, 0, 0), kbPos: new THREE.Vector3(0, .1, .02), kbRot: new THREE.Euler(-Math.PI / 2, 0, 0),
-      grip: { y: -.22, z: .3, zs: .3 }, fore: { y: -.05, z: .62 }, wristBack: .07 });
+      grip: { y: -.22, z: .3, zs: .3 }, hip: new THREE.Vector3(.12, -.135, -.33), fore: { y: -.05, z: .62 }, wristBack: .07 });
   }catch(e){ console.warn('arms setup', e); ARMS.ok = false; }
 }
 function setWorldQuat(bone, q){ bone.parent.getWorldQuaternion(_q3); bone.quaternion.copy(_q3.invert().multiply(q)); bone.updateMatrixWorld(true); }
@@ -1546,7 +1546,7 @@ function update(dt){
 }
 function updVM(dt){
   const g = P.guns[P.gi]; const a = P.ads;
-  const RM = curModel && curModel.userData.real; const hip = RM ? new THREE.Vector3(.12, -.135, -.33) : new THREE.Vector3(.15, -.17, -.5), ads = RM ? new THREE.Vector3(0, -(curModel.userData.sight + .006), -.2) : new THREE.Vector3(0, -.098, -.36);
+  const RM = curModel && curModel.userData.real; const hip = RM ? (ARMS.ok && ARMS.on ? ARMS.hip.clone() : new THREE.Vector3(.12, -.135, -.33)) : new THREE.Vector3(.15, -.17, -.5), ads = RM ? new THREE.Vector3(0, -(curModel.userData.sight + .006), -.2) : new THREE.Vector3(0, -.098, -.36);
   const pos = hip.lerp(ads, a);
   const bobA = P.sprint ? 2.2 : 1;
   pos.x += Math.cos(P.step * .5) * .012 * P.moving * bobA * (1 - a * .8); pos.y += Math.abs(Math.sin(P.step * .5)) * .014 * P.moving * bobA * (1 - a * .8);
@@ -1648,7 +1648,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { ARMS, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 </body>
