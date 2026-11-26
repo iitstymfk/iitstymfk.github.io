@@ -1224,12 +1224,12 @@ function gameOver(){
   $('#ovStats').innerHTML = `<span>Kills <b>${STATS.kills}</b></span><span>Headshots <b>${STATS.heads}</b></span><span>Points <b>${STATS.earned}</b></span><span>Time <b>${mins}m</b></span>`;
   setTimeout(() => $('#over').classList.remove('hidden'), 1800);
   tn({ f: 110, f2: 40, type: 'sawtooth', dur: 3, vol: .15, echo: .5 });
-  if(RS.round >= 1){
+  if(RS.round >= 2 || STATS.kills > 0){
     $('#ovSave').textContent = 'Saving your score…';
     rpc('zombies_submit', { p_name: opts.name || 'Survivor', p_round: RS.round, p_kills: STATS.kills, p_points: STATS.earned, p_headshots: STATS.heads, p_device: isTouch ? 'phone' : 'pc' })
       .then(r => { $('#ovSave').textContent = `Saved! You're #${r.rank} on the board.`; loadLB('#lb2', r.name, RS.round); })
       .catch(e => { $('#ovSave').textContent = 'Could not save score: ' + e.message; loadLB('#lb2'); });
-  }
+  } else loadLB('#lb2');
 }
 $('#again').onclick = () => location.reload();
 async function loadLB(sel, me, myRound){
