@@ -722,7 +722,13 @@ function updArms(dt, gunShown){
   const rW = gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.rOff)).multiply(rq), lW = long && ARMS.lFix ? gq.clone().multiply(ARMS.lFix) : gq.clone().multiply(new THREE.Quaternion().setFromEuler(ARMS.lOff)).multiply(lq);
   const rT = gp.clone().addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(rW), -ARMS.wristBack), lT = fp.clone().addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(lW), -ARMS.wristBack);
   ik2(B['upper_armR'], B['forearmR'], B['handR'], rT, new THREE.Vector3(.6, -.6, .2)); setWorldQuat(B['handR'], rW);
-  ik2(B['upper_armL'], B['forearmL'], B['handL'], lT, new THREE.Vector3(-.6, -.6, .2)); setWorldQuat(B['handL'], lW);
+  // left hand lets go while sprinting (pistols) and during the reload flip, then eases back on
+  const lWant = (P.sprint && !long) || P.reloadT > 0 ? 0 : 1; ARMS.lK = (ARMS.lK == null ? 1 : ARMS.lK) + (lWant - (ARMS.lK == null ? 1 : ARMS.lK)) * Math.min(1, dt * 10);
+  if(ARMS.lK > .02){
+    const restL = B['handL'].getWorldPosition(new THREE.Vector3()); const tgt = restL.lerp(lT, ARMS.lK);
+    ik2(B['upper_armL'], B['forearmL'], B['handL'], tgt, new THREE.Vector3(-.6, -.6, .2));
+    const qa = B['handL'].getWorldQuaternion(new THREE.Quaternion()); setWorldQuat(B['handL'], qa.slerp(lW, ARMS.lK));
+  }
 }
 
 /* ================= interactables & features ================= */
