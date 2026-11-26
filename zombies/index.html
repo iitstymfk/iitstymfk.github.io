@@ -179,6 +179,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 /* ================= basics ================= */
 const $ = s => document.querySelector(s);
@@ -206,7 +207,7 @@ const ASSETS = { guns: {}, zombie: null, grenade: null, barrel: null, ready: fal
 async function loadAssets(onProg){
   const L = new GLTFLoader(); const load = u => new Promise((res, rej) => L.load(u, res, undefined, rej));
   const jobs = [], total = Object.keys(GUNMETA).length + 3; let done = 0; const tick = () => onProg && onProg(++done, total);
-  for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh){ o.castShadow = false; if(o.material) o.material.envMapIntensity = 1; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
+  for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh && o.material){ o.castShadow = false; const m = o.material; m.vertexColors = false; if(m.name === 'gunmetal'){ m.roughness = .5; m.metalness = .5; } m.envMapIntensity = .55; m.needsUpdate = true; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
   jobs.push(load('assets/zombie/skeleton-zombie.glb').then(g => { ASSETS.zombie = g; }).catch(e => console.warn('zombie', e)).finally(tick));
   jobs.push(load('assets/scifi/Prop_Grenade.gltf').then(g => { ASSETS.grenade = g.scene; }).catch(() => {}).finally(tick));
   jobs.push(load('assets/scifi/Prop_Barrel1.gltf').then(g => { ASSETS.barrel = g.scene; }).catch(() => {}).finally(tick));
@@ -229,7 +230,8 @@ const scene = new THREE.Scene(); scene.background = new THREE.Color(0x05070b);
 scene.fog = new THREE.FogExp2(0x06080c, 0.055);
 const camera = new THREE.PerspectiveCamera(78, 1, 0.05, 140); camera.rotation.order = 'YXZ'; scene.add(camera);
 const vmScene = new THREE.Scene(); const vmCam = new THREE.PerspectiveCamera(55, 1, 0.01, 10);
-const vmHemi = new THREE.HemisphereLight(0xc8d0ff, 0x2a1c12, 1.1); vmScene.add(vmHemi);
+const vmHemi = new THREE.HemisphereLight(0xc8d0ff, 0x2a1c12, .8); vmScene.add(vmHemi);
+vmScene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture;
 const vmDir = new THREE.DirectionalLight(0xffe2b8, 1.8); vmDir.position.set(1, 2, 1.5); vmScene.add(vmDir);
 const vmFlash = new THREE.PointLight(0xffb060, 0, 3, 2); vmFlash.position.set(0.15, -0.05, -0.7); vmScene.add(vmFlash);
 let composer = null, bloomPass = null, gradePass = null, vmPass = null;
