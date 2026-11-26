@@ -436,7 +436,7 @@ if(POST){
   const N = QL >= 2 ? 700 : 350, pos = new Float32Array(N * 3), seed = new Float32Array(N);
   for(let i = 0; i < N; i++){ const r = pick([[1,14,11,20],[1,14,1,9],[16,30,11,20],[16,30,1,9]]); pos[i*3] = rand(r[0], r[1] + 1) * CELL; pos[i*3+1] = rand(.2, WH - .2); pos[i*3+2] = rand(r[2], r[3] + 1) * CELL; seed[i] = Math.random() * 100; }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  dust = new THREE.Points(g, new THREE.PointsMaterial({ map: glowTex, color: 0xffd8a8, size: .045, transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending }));
+  dust = new THREE.Points(g, new THREE.PointsMaterial({ map: glowTex, color: 0xffd8a8, size: .022, transparent: true, opacity: .4, depthWrite: false, blending: THREE.AdditiveBlending }));
   dust.userData.seed = seed; dust.userData.base = pos.slice(); scene.add(dust);
 }
 function updDust(t){ if(!dust) return; const p = dust.geometry.attributes.position.array, b = dust.userData.base, sd = dust.userData.seed;
@@ -683,7 +683,7 @@ const WINS = [];
     const boards = [];
     for(let i = 0; i < 5; i++){ const b = new THREE.Mesh(boardG, M.wood); const y = 1.02 + i * .27; b.userData.home = { y, rz: rand(-.25, .25) }; b.position.set(0, y, CELL/2 - .02); b.rotation.z = b.userData.home.rz; g.add(b); boards.push(b); }
     const moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0x4060a0, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .35 })); moon.scale.set(2.2, 1.6, 1); moon.position.set(0, 1.6, -CELL * .3); g.add(moon);
-    if(POST){ const bmM = new THREE.MeshBasicMaterial({ map: coneTex, color: 0x6a8ad0, transparent: true, opacity: .03, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+    if(POST){ const bmM = new THREE.MeshBasicMaterial({ map: coneTex, color: 0x6a8ad0, transparent: true, opacity: .014, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
       for(const ry of [0, Math.PI / 2]){ const beam = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 2.6), bmM); beam.position.set(0, 1.0, CELL / 2 + 1.0); beam.rotation.set(-1.0, ry, 0, 'YXZ'); g.add(beam); } }
     const W1 = { x, z, n: nv, t: tv, room, center: c, boards, hp: 5, group: g, tearer: null, fixT: 0,
       inside: c.clone().addScaledVector(nv, CELL), sill: c.clone().addScaledVector(nv, -CELL * .75), spawn: c.clone().addScaledVector(nv, -CELL * 5) };
@@ -859,9 +859,9 @@ const ZM = {
   shirt: ['#363a44', '#4a2e25', '#2f3a2d', '#55554e', '#24303f', '#4a1a1a', '#5f5849'].map(c => mat({ map: shirtTex(c), roughness: .95, metalness: 0 })),
   pants: ['#1f2125', '#2e291f', '#1b2530', '#2d2d2d'].map(c => mat({ color: c, roughness: .95, metalness: 0 })),
   dark: new THREE.MeshBasicMaterial({ color: 0x0a0504 }), hair: mat({ color: 0x1a1510, roughness: 1, metalness: 0 }), shoe: mat({ color: 0x15110d, roughness: .7, metalness: 0 }),
-  eye: new THREE.MeshBasicMaterial({ color: new THREE.Color(3, 1.6, .3) }), eyeRed: new THREE.MeshBasicMaterial({ color: new THREE.Color(3.5, .5, .2) }),
-  glow: new THREE.SpriteMaterial({ map: glowTex, color: 0xff9a20, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .9 }),
-  glowRed: new THREE.SpriteMaterial({ map: glowTex, color: 0xff3010, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .9 }),
+  eye: new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 1.1, .2) }), eyeRed: new THREE.MeshBasicMaterial({ color: new THREE.Color(2.6, .35, .15) }),
+  glow: new THREE.SpriteMaterial({ map: glowTex, color: 0xff9a20, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .45 }),
+  glowRed: new THREE.SpriteMaterial({ map: glowTex, color: 0xff3010, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .45 }),
   shadow: new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }),
 };
 function zombieMesh(type){
