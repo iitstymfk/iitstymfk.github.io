@@ -4133,6 +4133,10 @@ async function rpc(fn, args){
 const css = document.createElement('style');
 css.textContent = `
 #thBtn{left:72px;font-size:22px;display:none}
+#reqBtn{left:72px;font-size:21px}
+#reqBtn.shift{left:128px}
+.rqKind{display:flex;gap:8px;margin:6px 0}.rqKind button{flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#eee;font:inherit;cursor:pointer}.rqKind button.on{background:color-mix(in srgb,var(--accent) 35%,transparent);border-color:var(--accent)}
+.rqList{margin-top:14px;border-top:1px solid rgba(255,255,255,.1);padding-top:10px}.rqItem{display:flex;gap:8px;align-items:baseline;padding:5px 0;font-size:13px}.rqItem span{flex:1;min-width:0;overflow-wrap:anywhere}.rqItem small{opacity:.75;white-space:nowrap}
 #thBtn.live{animation:thPulse 2.4s ease-in-out infinite}
 @keyframes thPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}50%{box-shadow:0 0 0 8px transparent}}
 .thModal{position:fixed;inset:0;z-index:2147480500;display:grid;place-items:center;background:rgba(0,0,0,.6);backdrop-filter:blur(6px)}
@@ -4204,7 +4208,46 @@ async function checkOpen(){
   try{ const s = await rpc('theater_status'); isOpen = !!(s && s.open); }catch(e){ return; }
   btn.classList.toggle('live', isOpen);
   btn.style.display = (isOpen || isOwner) && !th.on ? 'grid' : 'none';
+  reqBtn.classList.toggle('shift', btn.style.display === 'grid'); reqBtn.style.display = th.on ? 'none' : 'grid';
 }
+/* ---------- 🍿 requests: friends ask for a movie or show; it shows up on the PC Dashboard ---------- */
+const reqBtn = document.createElement('button');
+reqBtn.id = 'reqBtn'; reqBtn.className = 'cornerBtn'; reqBtn.textContent = '🍿'; reqBtn.title = 'Request a movie or show'; reqBtn.setAttribute('aria-label', 'Request a movie or show');
+document.body.appendChild(reqBtn);
+reqBtn.onclick = () => requestBox();
+const RQS = { new: '🆕 asked', getting: '⏳ getting it', added: '✅ added', no: '🚫 not getting' };
+function requestBox(){
+  let kind = 'movie';
+  const b = modal(`<h3>🍿 Request a movie or show</h3><p>Ask for something to watch and it goes on the list.</p>
+    <input id="rqTitle" placeholder="Title (and year if you know it)" maxlength="120" autocomplete="off">
+    <div class="rqKind"><button class="on" data-k="movie">🎬 Movie</button><button data-k="show">📺 Show</button></div>
+    <input id="rqNote" placeholder="Note (optional, e.g. which season)" maxlength="300">
+    <input id="rqWho" placeholder="Your name (optional)" maxlength="30" value="${escH(jget('thName') || '')}">
+    <div class="thRow"><button class="thBtn2" data-x>Close</button><button class="thBtn2 go" data-go>Send request</button></div><div class="thMsg"></div>
+    <div class="rqList"><b style="font-size:13px;opacity:.8">On the list</b><div id="rqItems"><p style="font-size:13px">Loading…</p></div></div>`);
+  b.querySelectorAll('[data-k]').forEach(k => k.onclick = () => { kind = k.dataset.k; b.querySelectorAll('[data-k]').forEach(x => x.classList.toggle('on', x === k)); });
+  const list = async () => {
+    try{
+      const L = await rpc('media_requests_list');
+      b.querySelector('#rqItems').innerHTML = L.length ? L.map(r => `<div class="rqItem">${r.kind === 'show' ? '📺' : '🎬'}<span>${escH(r.title)}</span><small>${RQS[r.status] || ''}</small></div>`).join('') : '<p style="font-size:13px">Nothing yet. Be the first!</p>';
+    }catch(e){ b.querySelector('#rqItems').innerHTML = '<p style="font-size:13px">Couldn\'t load the list.</p>'; }
+  };
+  const go = async () => {
+    const title = b.querySelector('#rqTitle').value.trim(), who = b.querySelector('#rqWho').value.trim();
+    if(!title) return msg(b, 'Type a title first.', 1);
+    if(who) jset('thName', who);
+    msg(b, 'Sending…');
+    try{
+      const r = await rpc('media_request_add', { p_title: title, p_kind: kind, p_note: b.querySelector('#rqNote').value.trim() || null, p_who: who || null });
+      msg(b, r.dup ? 'Already on the list 👍' : 'Sent! 🍿');
+      b.querySelector('#rqTitle').value = ''; b.querySelector('#rqNote').value = ''; list();
+    }catch(e){ msg(b, 'Couldn\'t send (' + e.message + ').', 1); }
+  };
+  b.querySelector('[data-x]').onclick = closeModal; b.querySelector('[data-go]').onclick = go;
+  b.querySelector('#rqTitle').onkeydown = e => { if(e.key === 'Enter') go(); };
+  list(); setTimeout(() => b.querySelector('#rqTitle').focus(), 50);
+}
+
 checkOpen();
 setInterval(() => { if(!document.hidden && !th.on) checkOpen(); }, 60000);
 document.addEventListener('visibilitychange', () => { if(!document.hidden && !th.on) checkOpen(); });
