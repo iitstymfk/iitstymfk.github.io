@@ -1217,7 +1217,7 @@ function moveToward(z, target, speed, dt){
 }
 function prisonerZombie(type){
   const G2 = ASSETS.zombie2, root = new THREE.Group(); const s = rand(.94, 1.06); root.scale.setScalar(s);
-  const model = SkeletonUtils.clone(G2.scene); model.scale.multiplyScalar(G2.fit); root.add(model); model.position.z = -.2; // he leans forward; centre his body over the hitbox let headBone = null;
+  const model = SkeletonUtils.clone(G2.scene); model.scale.multiplyScalar(G2.fit); root.add(model); model.position.z = -.2; /* he leans forward: centre his body over the hitbox */ let headBone = null;
   model.traverse(o => { if(o.isBone && /Head$/.test(o.name) && !headBone) headBone = o; });
   const head = new THREE.Object3D(); head.position.set(0, 10, 4); (headBone || model).add(head);
   for(const sx of [-1, 1]){ const gl = new THREE.Sprite(type > 1 ? ZM.glowRed : ZM.glow); gl.scale.setScalar(4.5); gl.position.set(sx * 3.2, 0, 6); head.add(gl); }
