@@ -208,13 +208,20 @@ const GUNMETA = {"pistol":{"len":0.215,"h":0.136,"my":0.046},"revolver":{"len":0
 const ASSETS = { guns: {}, zombie: null, grenade: null, barrel: null, arms: null, ready: false };
 async function loadAssets(onProg){
   const L = new GLTFLoader(); const load = u => new Promise((res, rej) => L.load(u, res, undefined, rej));
-  const jobs = [], total = Object.keys(GUNMETA).length + 4; let done = 0; const tick = () => onProg && onProg(++done, total);
+  const jobs = [], total = Object.keys(GUNMETA).length + 5; let done = 0; const tick = () => onProg && onProg(++done, total);
   for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh && o.material){ o.castShadow = false; const m = o.material; m.vertexColors = false; if(m.name === 'gunmetal'){ m.roughness = .5; m.metalness = .5; } m.envMapIntensity = .55; m.needsUpdate = true; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
   jobs.push(load('assets/arms/arms_rig.glb').then(g => { ASSETS.arms = g; }).catch(e => console.warn('arms', e)).finally(tick));
+  jobs.push(load('assets/zombie/prisoner.glb').then(g => { prepPrisoner(g); ASSETS.zombie2 = g; }).catch(e => console.warn('prisoner', e)).finally(tick));
   jobs.push(load('assets/zombie/skeleton-zombie.glb').then(g => { ASSETS.zombie = g; }).catch(e => console.warn('zombie', e)).finally(tick));
   jobs.push(load('assets/scifi/Prop_Grenade.gltf').then(g => { ASSETS.grenade = g.scene; }).catch(() => {}).finally(tick));
   jobs.push(load('assets/scifi/Prop_Barrel1.gltf').then(g => { ASSETS.barrel = g.scene; }).catch(() => {}).finally(tick));
   await Promise.all(jobs); ASSETS.ready = true;
+}
+// the prisoner zombie (Mixamo): remove forward root motion, size him like the other zombies, and map his animations to ours
+function prepPrisoner(g){
+  for(const c of g.animations){ for(const t of c.tracks){ if(/Hips\.position$/.test(t.name)){ const v = t.values; const x0 = v[0], z0 = v[2]; for(let i = 0; i < v.length; i += 3){ v[i] = x0; v[i + 2] = z0; } } } }
+  g.scene.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g.scene); const h = b.max.y - b.min.y; g.fit = h > 0 ? 1.82 / Math.max(h, 1.7) : 1;
+  g.scene.traverse(o => { if(o.isMesh){ o.frustumCulled = false; o.castShadow = SHADOWS; const m = o.material; if(m){ m.roughness = .9; m.metalness = 0; m.envMapIntensity = .3; m.color && m.color.multiplyScalar(.85); } } });
 }
 function fitTo(o, size, axis){ o.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(o), v = b.getSize(new THREE.Vector3()); o.scale.multiplyScalar(size / (axis === 'y' ? v.y : Math.max(v.x, v.y, v.z))); return o; }
 function lockPtr(){ try{ const r = canvas.requestPointerLock?.(); if(r && r.catch) r.catch(() => {}); }catch{} }
@@ -338,6 +345,10 @@ const M = {
   dark: mat({ color: 0x151515, roughness: .8, metalness: .2 }),
 };
 TEX.floor.repeat.set(32*1.6/6.4, 22*1.6/6.4);
+{ const TL = new THREE.TextureLoader(); const up = (t, mats, rep) => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; for(const m of mats){ m.map = t; if(m.bumpMap) m.bumpMap = t; m.needsUpdate = true; } };
+  TL.load('assets/tex/floor_tile.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.62); });
+  TL.load('assets/tex/planks.jpg', t => { up(t, [M.wood]); M.wood.color.set(0x9a8a78); });
+  TL.load('assets/tex/metal_rivet.jpg', t => { up(t, [M.metal]); M.metal.color.setScalar(.75); }); }
 TEX.dirt.repeat.set(30, 30); TEX.ceil.repeat.set(14, 10);
 
 /* ================= map ================= */
@@ -549,7 +560,7 @@ let AC = null, MG = null, NB = null, ECHO = null;
 function audio(){
   if(AC){ if(AC.state === 'suspended') AC.resume(); return AC; }
   try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch{ return null; }
-  MG = AC.createGain(); MG.gain.value = opts.vol;
+  MG = AC.createGain(); MG.gain.value = opts.vol; setTimeout(loadSfx, 50);
   const comp = AC.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 6; MG.connect(comp); comp.connect(AC.destination);
   NB = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate); const d = NB.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   ECHO = AC.createDelay(1); ECHO.delayTime.value = .24; const fb = AC.createGain(); fb.gain.value = .32; const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
@@ -563,6 +574,15 @@ function nz({ f = 2000, f2 = null, q = .7, type = 'lowpass', dur = .2, vol = .5,
   const s = AC.createBufferSource(); s.buffer = NB; const fl = AC.createBiquadFilter(); fl.type = type; fl.frequency.setValueAtTime(f, t); if(f2) fl.frequency.exponentialRampToValueAtTime(f2, t + dur); fl.Q.value = q;
   const g = AC.createGain(); env(g, t, a, vol, dur); s.connect(fl); fl.connect(g); g.connect(out(dest, echo)); s.start(t, Math.random()); s.stop(t + a + dur + .05);
 }
+// recorded sound effects (Zombie Massacre SFX pack), loaded after the first tap
+const SFXN = { zatk: 10, zpain: 10, gore: 4, head: 4, knife: 4, swing: 2, xbow: 3, deagle: 0, mg: 0 }; const SFXB = {}; let sfxLoading = false;
+function loadSfx(){ if(sfxLoading || !AC) return; sfxLoading = true;
+  for(const k in SFXN){ const n = SFXN[k]; SFXB[k] = []; const names = n ? Array.from({ length: n }, (_, i) => k + (i + 1)) : [k];
+    for(const nm of names) fetch('assets/sfx/' + nm + '.mp3').then(r => r.arrayBuffer()).then(b => AC.decodeAudioData(b)).then(buf => SFXB[k].push(buf)).catch(() => {}); } }
+function sfx(k, vol = .5, pos = null, rate = 1){
+  if(!AC || !opts.vol) return false; const L = SFXB[k]; if(!L || !L.length) return false;
+  let v = vol; if(pos){ const d = Math.hypot(pos.x - P.pos.x, pos.z - P.pos.z); if(d > 24) return false; v = vol / (1 + d * .22); }
+  const s = AC.createBufferSource(); s.buffer = pick(L); s.playbackRate.value = rate * rand(.93, 1.07); const g = AC.createGain(); g.gain.value = v; s.connect(g); g.connect(MG); s.start(); return true; }
 function tn({ f = 440, f2 = null, type = 'sine', dur = .2, vol = .3, at = 0, a = .005, dest = null, echo = 0 } = {}){
   if(!AC || !opts.vol) return; const t = AC.currentTime + at;
   const o = AC.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
@@ -570,6 +590,7 @@ function tn({ f = 440, f2 = null, type = 'sine', dur = .2, vol = .3, at = 0, a =
 }
 const SND = {
   gun(k, up){
+    if(k === 'revolver' || k === 'sniper') sfx('deagle', k === 'sniper' ? .55 : .45, null, k === 'sniper' ? .8 : 1); if(k === 'lmg' || k === 'ar') sfx('mg', .32, null, k === 'ar' ? 1.12 : 1);
     const p = { pistol: [3200, .16, .55, 150], smg: [2600, .09, .42, 130], rifle: [3600, .3, .75, 120], shotgun: [1900, .45, .9, 90], ar: [3000, .13, .5, 120], lmg: [2400, .14, .55, 100], sniper: [4200, .55, .95, 110], revolver: [3300, .32, .75, 120] }[k];
     if(k === 'plasma'){ tn({ f: up ? 700 : 1100, f2: 180, type: 'square', dur: .22, vol: .18 }); tn({ f: 1800, f2: 500, type: 'sawtooth', dur: .12, vol: .1 }); return; }
     nz({ f: p[0], f2: 250, dur: p[1], vol: p[2], echo: .25 }); tn({ f: p[3], f2: 38, dur: p[1] * .8, vol: p[2] * .9 });
@@ -603,6 +624,7 @@ const SND = {
 function groan(z, loud){
   if(!AC || !opts.vol) return;
   const d = z.m.root.position.distanceTo(P.pos); if(d > 22) return;
+  if(Math.random() < .55 && sfx('zatk', loud ? .55 : .38, z.m.root.position, z.type > 0 ? 1.12 : .9)) return;
   const t = AC.currentTime, dur = rand(.7, 1.5), base = z.type > 0 ? rand(120, 190) : rand(65, 120);
   const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(base * 1.15, t); o.frequency.exponentialRampToValueAtTime(base * .8, t + dur);
   const lfo = AC.createOscillator(); lfo.frequency.value = rand(4, 8); const lg = AC.createGain(); lg.gain.value = base * .08; lfo.connect(lg); lg.connect(o.frequency);
@@ -1192,7 +1214,24 @@ function moveToward(z, target, speed, dt){
     const want = Math.atan2(dx, dz); let diff = want - z.m.root.rotation.y; diff = Math.atan2(Math.sin(diff), Math.cos(diff)); z.m.root.rotation.y += diff * Math.min(1, dt * 8); }
   return d;
 }
+function prisonerZombie(type){
+  const G2 = ASSETS.zombie2, root = new THREE.Group(); const s = rand(.94, 1.06); root.scale.setScalar(s);
+  const model = SkeletonUtils.clone(G2.scene); model.scale.multiplyScalar(G2.fit); root.add(model); let headBone = null;
+  model.traverse(o => { if(o.isBone && /Head$/.test(o.name) && !headBone) headBone = o; });
+  const head = new THREE.Object3D(); head.position.set(0, 10, 4); (headBone || model).add(head);
+  for(const sx of [-1, 1]){ const gl = new THREE.Sprite(ZM.glow); gl.scale.setScalar(4.5); gl.position.set(sx * 3.2, 0, 6); head.add(gl); }
+  const mixer = new THREE.AnimationMixer(model), A = {}, C = n => G2.animations.find(a => a.name === n);
+  const map = { walk: 'walk', run: 'walk', swipe: 'attack', bite: 'attack', die: Math.random() < .5 ? 'death' : 'dying', stumble: 'hit', idle: 'idle' };
+  for(const k in map){ const c = C(map[k]); if(c) A[k] = mixer.clipAction(c); }
+  for(const k of ['swipe', 'die', 'stumble', 'bite']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
+  const sh = new THREE.Mesh(ZG.shadow, ZM.shadow); sh.scale.setScalar(.9); sh.position.y = .02; root.add(sh);
+  scene.add(root);
+  const m = { root, head, headBone, mixer, A, s, skinned: true, cur: null, walkRef: .75, prisoner: true };
+  zPlay(m, 'walk', 0); if(m.cur) m.cur.time = Math.random() * m.cur.getClip().duration;
+  return m;
+}
 function skelZombie(type){
+  if(type === 0 && ASSETS.zombie2 && Math.random() < .55) return prisonerZombie(type);
   zombieVariants();
   const root = new THREE.Group(); const s = rand(.93, 1.07) * (type === 2 ? 1.04 : 1); root.scale.setScalar(s);
   const model = SkeletonUtils.clone(ASSETS.zombie.scene); root.add(model);
@@ -1221,7 +1260,7 @@ function animSkel(z, dt, moving){
   if(z.atkT > 0 && z.swipeStart){ z.swipeStart = false; m.A.swipe.reset(); zPlay(m, 'swipe', .12, 2.1); m.cur = m.A.swipe; }
   else if(m.cur === m.A.swipe && m.A.swipe.isRunning() && m.A.swipe.time < m.A.swipe.getClip().duration * .62){ /* let the swipe finish */ }
   else if(z.type){ zPlay(m, 'run', .25, moving ? z.speed / 1.62 : .3); if(m.cur === m.A.run) m.cur.timeScale = moving ? z.speed / 1.62 : .3; }
-  else { zPlay(m, 'walk', .25, 1); if(m.cur === m.A.walk) m.cur.timeScale = moving ? z.speed / .5 : .35; }
+  else { zPlay(m, 'walk', .25, 1); if(m.cur === m.A.walk) m.cur.timeScale = moving ? z.speed / (m.walkRef || .5) : .35; }
   m.mixer.update(dt);
 }
 function animZombie(z, dt, moving){
@@ -1274,7 +1313,7 @@ function updZombies(dt){
         if(!w.tearer || w.tearer.dead || w.tearer.state !== 'tear') w.tearer = z;
         if(w.tearer === z){ z.t += dt; if(z.t > 1.05){ z.t = 0; w.hp--; setBoard(w, w.hp, false, true); SND.boardBreak(); z.atkT = .45; z.swipeStart = true; } }
         const dIn = Math.hypot(P.pos.x - w.inside.x, P.pos.z - w.inside.z);
-        if(dIn < 1.5 && z.atkCD <= 0 && w.tearer === z){ z.atkT = .45; z.swipeStart = true; z.atkCD = 1.3; z.swipe = true; }
+        if(dIn < 1.5 && z.atkCD <= 0 && w.tearer === z){ z.atkT = .45; z.swipeStart = true; if(Math.random() < .6) sfx('zatk', .55, p); z.atkCD = 1.3; z.swipe = true; }
       } else if(!w.tearer || w.tearer === z || w.tearer.dead || w.tearer.state !== 'climb'){ w.tearer = z; z.state = 'climb'; z.t = 0; z.from = p.clone(); }
     } else if(z.state === 'climb'){
       z.t += dt / .9; const k = Math.min(1, z.t);
@@ -1284,7 +1323,7 @@ function updZombies(dt){
       const tg = zTarget(z);
       const dP = Math.hypot(P.pos.x - p.x, P.pos.z - p.z);
       if(dP > .85 && !P.down) moveToward(z, tg, z.speed * (z.atkT > 0 ? .3 : 1), dt); else { moving = false; z.m.root.rotation.y = Math.atan2(P.pos.x - p.x, P.pos.z - p.z); }
-      if(dP < (z.dog ? 1.0 : 1.15) && z.atkCD <= 0 && !P.down){ z.atkT = z.dog ? .25 : .45; z.swipeStart = true; z.atkCD = z.dog ? .75 : 1.15; z.swipe = true; }
+      if(dP < (z.dog ? 1.0 : 1.15) && z.atkCD <= 0 && !P.down){ z.atkT = z.dog ? .25 : .45; z.swipeStart = true; if(!z.dog && Math.random() < .6) sfx('zatk', .6, p); z.atkCD = z.dog ? .75 : 1.15; z.swipe = true; }
       // separation
       for(const o of Z){ if(o === z || o.dead || o.state !== 'in') continue; const op = o.m.root.position; const dx = p.x - op.x, dz = p.z - op.z, d = Math.hypot(dx, dz); if(d < .55 && d > 1e-4){ const push = (.55 - d) * .5; p.x += dx / d * push; p.z += dz / d * push; } }
       pushOut(p, .28);
@@ -1303,7 +1342,7 @@ function hurtZombie(z, dmg, head, kind, at){
   z.hp -= dmg; STATS.hits++;
   if(at) bloodBurst(at, head ? 10 : 6, head);
   if(z.hp <= 0){ killZombie(z, head, kind); return true; }
-  if(kind !== 'boom') addPoints(10); hitmark(false); SND.hit();
+  if(kind !== 'boom') addPoints(10); hitmark(false); SND.hit(); if(!z.dog && Math.random() < .22) sfx('zpain', .45, z.m.root.position);
   return false;
 }
 function killZombie(z, head, kind){
@@ -1311,7 +1350,7 @@ function killZombie(z, head, kind){
   if(z.win && z.win.tearer === z) z.win.tearer = null;
   questKill(z);
   floorBlood(z.m.root.position, 1.2);
-  addPoints(kind === 'knife' ? 130 : kind === 'boom' ? 50 : head ? 100 : 60); hitmark(true); SND.kill(head);
+  addPoints(kind === 'knife' ? 130 : kind === 'boom' ? 50 : head ? 100 : 60); hitmark(true); SND.kill(head); if(!z.dog) sfx(head ? 'head' : 'gore', head ? .55 : .4, z.m.root.position);
   if(z.dog) DOGR.last = z.m.root.position.clone();
   if(!z.dog && kind !== 'nuke' && RS.drops < 4 && Math.random() < .03 && z.state === 'in') spawnPU(z.m.root.position);
 }
@@ -1419,7 +1458,7 @@ function reload(){
   P.reloadDur = P.reloadT = W[g.k].reload * (P.perks.includes('speed') ? .5 : 1); SND.reload(P.reloadDur);
 }
 function swapGun(){ if(P.guns.length < 2 || P.swapT > 0 || P.drinkT > 0 || P.down) return; P.gi = (P.gi + 1) % P.guns.length; P.reloadT = 0; P.swapT = .45; setVM(); hudGun(); }
-function doKnife(){ if(P.knifeT > 0 || P.drinkT > 0 || P.down) return; P.knifeT = .5; P.knifeHit = false; P.reloadT = 0; SND.knife(); }
+function doKnife(){ if(P.knifeT > 0 || P.drinkT > 0 || P.down) return; P.knifeT = .5; P.knifeHit = false; P.reloadT = 0; if(!sfx('swing', .5)) SND.knife(); }
 function throwNade(){
   if(P.nades <= 0 || P.nadeT > 0 || P.drinkT > 0 || P.down) return; P.nades--; P.nadeT = .55; hudGun();
   setTimeout(() => {
@@ -1681,7 +1720,7 @@ function update(dt){
   if(P.reloadT > 0){ P.reloadT -= dt; if(P.reloadT <= 0 && g){ const st = gs(g); const n = Math.min(st.mag - g.mag, g.res); g.mag += n; g.res -= n; hudGun(); } }
   if(P.knifeT > 0){ P.knifeT -= dt; if(!P.knifeHit && P.knifeT < .38){ P.knifeHit = true; let best = null, bd = 1.9; const f = new THREE.Vector3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw));
       for(const z of Z){ if(z.dead) continue; const zp = z.m.root.position; const dx = zp.x - P.pos.x, dz = zp.z - P.pos.z, dd = Math.hypot(dx, dz); if(dd < bd && (dx * f.x + dz * f.z) / dd > .55){ bd = dd; best = z; } }
-      if(best){ SND.stab(); hurtZombie(best, 150, false, 'knife', best.m.root.position.clone().setY(1.2)); } questKnife(); } }
+      if(best){ if(!sfx('knife', .6)) SND.stab(); hurtZombie(best, 150, false, 'knife', best.m.root.position.clone().setY(1.2)); } questKnife(); } }
   if(P.nadeT > 0) P.nadeT -= dt;
   if(P.drinkT > 0){ P.drinkT -= dt; if(P.drinkT <= 0 && P.drinkPerk){ P.perks.push(P.drinkPerk); if(P.drinkPerk === 'tough') P.hp = maxHp(); P.drinkPerk = null; hudPerks(); } }
   if(P.firing && !P.sprint) fireGun();
