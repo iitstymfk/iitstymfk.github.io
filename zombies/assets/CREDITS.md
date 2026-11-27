@@ -46,3 +46,6 @@
 
 ## Sounds
 - "Must Have Horror Sound Effects" by YourPalRob: https://yourpalrob.itch.io/must-have-horror-sound-effects (commercial use allowed, credit not required, no redistribution as standalone files).
+
+## Textures
+- "Foxtex - Complete Edition" by Foxhead (foxh3ad): https://foxh3ad.itch.io/foxtexcom (free texture pack for level designers; 4000+ textures, 512px).
