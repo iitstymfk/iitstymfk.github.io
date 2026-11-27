@@ -217,6 +217,7 @@ async function loadAssets(onProg){
   const jobs = [], total = Object.keys(GUNMETA).length + 9; let done = 0; const tick = () => onProg && onProg(++done, total);
   for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh && o.material){ o.castShadow = false; const m = o.material; m.vertexColors = false; if(m.name === 'gunmetal'){ m.roughness = .5; m.metalness = .5; } m.envMapIntensity = .55; m.needsUpdate = true; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
   jobs.push(load('assets/arms/arms_rig.glb').then(g => { ASSETS.arms = g; }).catch(e => console.warn('arms', e)).finally(tick));
+  if(LAB) jobs.push(load('assets/lab_props.glb').then(g => { ASSETS.lab = {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material) m.material.envMapIntensity = .5; } }); ASSETS.lab[o.name] = o; } }).catch(e => console.warn('lab props', e)).finally(tick));
   jobs.push(load('assets/props.glb').then(g => { ASSETS.props = {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .35; } } }); ASSETS.props[o.name] = o; } }).catch(e => console.warn('props', e)).finally(tick));
   jobs.push(load('assets/zombie/female.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material){ const m = o.material; if(/hair/i.test(m.name)){ m.transparent = false; m.alphaTest = .5; m.side = THREE.DoubleSide; } else { m.transparent = false; m.opacity = 1; } } }); ASSETS.female = g; }).catch(e => console.warn('female', e)).finally(tick));
   jobs.push(load('assets/zombie/rotter.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material && o.material.color) o.material.color.multiplyScalar(1.5); }); ASSETS.rotter = g; }).catch(e => console.warn('rotter', e)).finally(tick));
@@ -347,6 +348,7 @@ function textTex(lines, w, h, opt = {}){
 }
 
 /* ================= materials ================= */
+const LAB = new URLSearchParams(location.search).get('map') === 'lab';
 function mat(p){
   if(LQ){ const q = { ...p }; delete q.metalness; delete q.roughness; return new THREE.MeshLambertMaterial(q); }
   return new THREE.MeshStandardMaterial(p);
@@ -366,14 +368,18 @@ const M = {
 };
 TEX.floor.repeat.set(32*1.6/6.4, 22*1.6/6.4);
 { const TL = new THREE.TextureLoader(); const up = (t, mats, rep) => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; for(const m of mats){ m.map = t; if(m.bumpMap) m.bumpMap = t; m.needsUpdate = true; } };
-  TL.load('assets/tex/floor_tile.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.62); });
+  if(LAB){ // Black Site Lab: sci-fi panel walls + steel deck plates (Quaternius Sci-Fi MegaKit textures)
+    TL.load('assets/tex/lab_floor.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.8); M.floor.roughness = .55; M.floor.metalness = .35; });
+    TL.load('assets/tex/lab_wall.jpg', t => { up(t, [M.brick]); M.brick.color.setScalar(.85); M.brick.bumpScale = .6; M.brick.roughness = .5; M.brick.metalness = .3; });
+    TL.load('assets/tex/lab_wall.jpg', t => { up(t, [M.stone]); M.stone.color.set(0x56606a); M.stone.bumpScale = .6; });
+  } else TL.load('assets/tex/floor_tile.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.62); });
   // Foxtex (Foxhead): upstairs office panels + herringbone floor, basement stone slabs
   TL.load('assets/tex/fox_office_wall.jpg', t => { t.repeat.set(1, 1.25); up(t, [M.officeWall]); M.officeWall.color.set(0xb0a490); });
   TL.load('assets/tex/fox_wood_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.woodFloor]); M.woodFloor.color.set(0x8a7a68); });
   TL.load('assets/tex/fox_base_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.baseFloor]); M.baseFloor.color.set(0x807a72); });
   TL.load('assets/tex/planks.jpg', t => { up(t, [M.wood]); M.wood.color.set(0x9a8a78); });
   TL.load('assets/tex/metal_rivet.jpg', t => { up(t, [M.metal]); M.metal.color.setScalar(.75); });
-  TL.load('assets/tex/stone_block.jpg', t => { t.repeat.set(1, 1.5); up(t, [M.stone]); M.stone.color.set(0x6e6a64); }); }
+  if(!LAB) TL.load('assets/tex/stone_block.jpg', t => { t.repeat.set(1, 1.5); up(t, [M.stone]); M.stone.color.set(0x6e6a64); }); }
 TEX.dirt.repeat.set(30, 30); TEX.ceil.repeat.set(14, 10);
 
 /* ================= map ================= */
@@ -427,9 +433,47 @@ function stockMap(){
     bulbs: [[4.5,15.5],[10.5,15.5],[4.5,5],[10.5,5],[20,15.5],[26.5,15.5],[20,5],[26.5,5],[35.5,5],[35.5,15.5],[23,5,1],[28,5,1],[5,5,-1],[10.5,5,-1]],
     pipes: [[1,14,12],[1,14,2],[16,30,12],[16,30,2],[1,14,19.5],[16,30,8.5],[32,38,2],[32,38,19.5]] };
 }
-let MAPD = stockMap();
+// Black Site Lab: a second stock map, built from the Sci-Fi MegaKit (Quaternius). Specimen tanks, Argus rounds, Pack-a-Punch in Containment.
+function labMap(){
+  const w = 40, h = 22, g = []; for(let z = 0; z < h; z++) g.push(new Array(w).fill('#'));
+  const R = (x0, z0, x1, z1, c) => { for(let z = z0; z <= z1; z++) for(let x = x0; x <= x1; x++) g[z][x] = c; };
+  R(1, 1, 12, 9, '.'); R(14, 1, 25, 9, '.'); R(27, 1, 38, 9, '.'); R(1, 11, 12, 20, '.'); R(14, 11, 25, 20, '.'); R(27, 11, 38, 20, '.');
+  const D = (c, cells) => { for(const [x, z] of cells) g[z][x] = c; };
+  D('D', [[5,10],[6,10],[7,10]]); D('E', [[13,14],[13,15],[13,16]]); D('F', [[19,10],[20,10],[21,10]]); D('H', [[13,4],[13,5],[13,6]]);
+  D('K', [[26,15],[26,16],[26,17]]); D('J', [[26,4],[26,5],[26,6]]); D('L', [[32,10],[33,10],[34,10]]);
+  for(const x of [4, 9, 17, 22, 30, 35]){ g[0][x] = 'W'; g[21][x] = 'W'; } for(const z of [5, 15]){ g[z][0] = 'W'; g[z][39] = 'W'; }
+  for(const [x, z] of [[3,12],[8,18],[16,12],[23,17],[15,8],[23,8],[2,7],[37,12],[29,19],[31,2],[36,8]]) g[z][x] = 'C';
+  // basement: Containment, under the Server Room (stairs down from the Server Room)
+  const dn = []; for(let z = 0; z < h; z++) dn.push(new Array(w).fill('#'));
+  for(let z = 2; z <= 9; z++) for(let x = 2; x <= 12; x++) dn[z][x] = '.';
+  for(const x of [3, 10]){ dn[1][x] = 'W'; dn[0][x] = ' '; } dn[5][1] = 'W'; dn[5][0] = ' ';
+  return { v: 1, name: 'Black Site Lab', theme: 'lab', special: 'argus', grid: g.map(r => r.join('')), down: { grid: dn.map(r => r.join('')) },
+    stairs: [ { x: 12, z: 8, dir: [-1, 0], len: 4, lv: -1 } ],
+    doors: { D: 750, E: 750, F: 1250, H: 1000, K: 1500, J: 1500, L: 1000 },
+    names: [[6, 16, 'Intake'], [6, 4, 'Server Room'], [20, 15, 'Main Lab'], [20, 5, 'Specimen Hall'], [33, 5, 'Armory'], [33, 15, 'Reactor'], [6, 5, 'Containment', -1]],
+    spawn: { x: 6, z: 16, yaw: Math.PI },
+    wallbuys: [ { k: 'smg', x: 1, z: 18 }, { k: 'rifle', x: 12, z: 12 }, { k: 'shotgun', x: 1, z: 3 }, { k: 'ar', x: 25, z: 19 }, { k: 'revolver', x: 38, z: 3 }, { k: 'lmg', x: 38, z: 7 }, { k: 'sniper', x: 38, z: 13 } ],
+    perks: { revive: { x: 2, z: 20, face: [0, -1] }, tough: { x: 24, z: 20, face: [0, -1] }, rapid: { x: 12, z: 2, face: [-1, 0] }, speed: { x: 25, z: 2, face: [-1, 0] }, stamina: { x: 33, z: 1, face: [0, 1] } },
+    box: [ { x: 6, z: 1, face: [0, 1] }, { x: 19, z: 20, face: [0, -1] }, { x: 20, z: 1, face: [0, 1] }, { x: 33, z: 20, face: [0, -1] } ],
+    upg: { x: 6, z: 2, face: [0, 1], lv: -1 }, power: { x: 38, z: 18 }, parts: true, eggs: true,
+    zips: [ { a: [14, 19], b: [25, 12] } ],
+    portals: [ { a: [37, 2], b: [5, 5, -1], name: 'Pack-a-Punch' } ],
+    props: [
+      { k: 'computer', x: 2, z: 1, f: [0, 1] }, { k: 'computer', x: 3, z: 1, f: [0, 1] }, { k: 'computer', x: 1, z: 6, f: [1, 0] }, { k: 'pcolumn', x: 9, z: 3 }, { k: 'pcolumn', x: 9, z: 5 }, { k: 'vent', x: 5, z: 5 },
+      { k: 'tank1', x: 16, z: 4, f: [1, 0] }, { k: 'tank2', x: 20, z: 6, f: [0, -1] }, { k: 'alien3', x: 22, z: 3, f: [-1, 1] }, { k: 'computer', x: 18, z: 1, f: [0, 1] }, { k: 'flight', x: 18, z: 4, f: [0, 1] },
+      { k: 'column', x: 17, z: 13 }, { k: 'column', x: 22, z: 13 }, { k: 'column', x: 17, z: 18 }, { k: 'column', x: 22, z: 18 }, { k: 'computer', x: 24, z: 11, f: [0, 1] }, { k: 'vent', x: 19, z: 15 }, { k: 'flight', x: 20, z: 16, f: [0, 1] },
+      { k: 'pipes', x: 30, z: 13, f: [0, 1] }, { k: 'barrel2', x: 36, z: 12 }, { k: 'barrel2', x: 37, z: 20 }, { k: 'pcolumn', x: 31, z: 17 }, { k: 'pcolumn', x: 34, z: 17 }, { k: 'computer', x: 38, z: 16, f: [-1, 0] },
+      { k: 'crate4', x: 28, z: 2, f: [0, 1] }, { k: 'crate3', x: 28, z: 2, f: [1, 1], y: 1.01 }, { k: 'crate4', x: 29, z: 2, f: [0, 1] }, { k: 'crate3', x: 38, z: 9, f: [0, 1] }, { k: 'labdoor', x: 29, z: 9, d: [0, 1] },
+      { k: 'flight', x: 6, z: 20, f: [0, -1] }, { k: 'computer', x: 11, z: 20, f: [0, -1] }, { k: 'labdoor', x: 1, z: 14, d: [-1, 0] },
+      { k: 'tank1', x: 11, z: 3, f: [-1, 0], lv: -1 }, { k: 'barrel2', x: 2, z: 9, lv: -1 }, { k: 'crate4', x: 12, z: 5, f: [-1, 0], lv: -1 }, { k: 'vent', x: 7, z: 6, lv: -1 },
+    ],
+    barrels: [[1, 11, 1], [1, 1, 0], [25, 11, 1], [38, 1, 0], [27, 20, 1], [4, 9, 0, -1]],
+    bulbs: [[4.5,15.5],[9.5,15.5],[4.5,5],[9.5,5],[17.5,15.5],[22.5,15.5],[17.5,5],[22.5,5],[32.5,5],[32.5,15.5],[5,5,-1],[10,6,-1]],
+    pipes: [[1,12,12],[14,25,12],[1,12,2],[14,25,2],[27,38,2],[27,38,19.5],[2,12,3,-1]] };
+}
 const MAP_ID = new URLSearchParams(location.search).get('map');
-if(MAP_ID){ try{ const all = JSON.parse(localStorage.getItem('iz_maps') || '{}'); if(all[MAP_ID] && all[MAP_ID].grid) MAPD = all[MAP_ID]; }catch(e){ console.warn('map load', e); } }
+let MAPD = LAB ? labMap() : stockMap();
+if(MAP_ID && !LAB){ try{ const all = JSON.parse(localStorage.getItem('iz_maps') || '{}'); if(all[MAP_ID] && all[MAP_ID].grid) MAPD = all[MAP_ID]; }catch(e){ console.warn('map load', e); } }
 const CUSTOM = !MAPD.stock;
 const CELL = 1.6, WH = 3.2;
 /* Floors: the basement and upstairs are laid out side by side with the ground floor in one big logical grid
@@ -473,7 +517,13 @@ const PROPCAT = { sofa: { long: 'x' }, pool: { long: 'z' }, desk: { base: Math.P
   wardrobe: {}, amp: {}, guitar: { soft: true }, shelf: {}, books: { soft: true }, door: { wall: true, y: 0 }, clock: { wall: true, y: 2.25 },
   poster1: { wall: true, y: 1.55 }, poster2: { wall: true, y: 1.55 }, blueprint: { wall: true, y: 1.55 }, map: { wall: true, y: 1.55 },
   crate2: {}, jerry: { soft: true }, medpack: { soft: true }, pallets: {}, barrier: {}, cabinet2: {}, sleepbag: { soft: true }, bottle1: { soft: true }, bottle2: { soft: true },
-  tire: { soft: true }, spikes: {}, bookshelf2: {}, monitor: { soft: true }, sheet1: { wall: true, y: 1.3 }, sheet2: { wall: true, y: 1.1 }, car: {}, pole: {}, bush: {} };
+  tire: { soft: true }, spikes: {}, bookshelf2: {}, monitor: { soft: true }, sheet1: { wall: true, y: 1.3 }, sheet2: { wall: true, y: 1.1 }, car: {}, pole: {}, bush: {},
+  // Black Site Lab pieces (assets/lab_props.glb)
+  computer: { n: 'lab_Prop_Computer' }, crate3: { n: 'lab_Prop_Crate3' }, crate4: { n: 'lab_Prop_Crate4', s: .9 }, barrel2: { n: 'lab_Prop_Barrel_Large' },
+  flight: { n: 'lab_Prop_Light_Floor', soft: true, light: true, lc: 0x7fd8ff, ly: .35 }, vent: { n: 'lab_Prop_Vent_Big', soft: true, s: .75 },
+  column: { n: 'lab_Column_Round', s: .64 }, pcolumn: { n: 'lab_Column_Pipes', s: .64 }, pipes: { n: 'lab_Prop_PipeHolder', long: 'x', s: .72 },
+  labdoor: { n: 'lab_Door_Metal', wall: true, y: 0, s: .74 }, alien3: { n: 'lab_Alien_Scolitex', s: .5 },
+  tank1: { n: 'lab_Alien_Cyclop', tank: true, s: .85 }, tank2: { n: 'lab_Alien_Oculichrysalis', tank: true } };
 const PROPS = [];
 function propCells(p){ const B = BANDS.find(b => b.lv === (p.lv || 0)); if(!B) return null; const c = PROPCAT[p.k]; if(!c) return null;
   const f = p.f || [0, 1], x = p.x + B.x0, z = p.z; const cells = [[x, z]];
@@ -1973,8 +2023,8 @@ function pause(){ if(G_STATE !== 'play') return; G_STATE = 'pause'; P.firing = f
 function resume(){ $('#pause').classList.add('hidden'); G_STATE = 'play'; if(AC) AC.resume(); if(!isTouch) lockPtr(); }
 { const sel = $('#mapSel'); let all = {}; try{ all = JSON.parse(localStorage.getItem('iz_maps') || '{}'); }catch(e){}
   const esc = t => String(t || 'Untitled').replace(/[<&]/g, c => c === '<' ? '&lt;' : '&amp;');
-  sel.innerHTML = '<option value="">Iitsty Outpost</option>' + Object.entries(all).map(([k, m]) => `<option value="${esc(k)}">${esc(m.name)}</option>`).join('');
-  sel.value = CUSTOM && MAP_ID ? MAP_ID : ''; sel.onchange = () => { location.href = sel.value ? '?map=' + encodeURIComponent(sel.value) : './'; }; }
+  sel.innerHTML = '<option value="">Iitsty Outpost</option><option value="lab">Black Site Lab</option>' + Object.entries(all).map(([k, m]) => `<option value="${esc(k)}">${esc(m.name)}</option>`).join('');
+  sel.value = (CUSTOM || LAB) && MAP_ID ? MAP_ID : ''; sel.onchange = () => { location.href = sel.value ? '?map=' + encodeURIComponent(sel.value) : './'; }; }
 $('#resume').onclick = resume; $('#quit').onclick = () => location.reload();
 function gameOver(){
   sfx('st_over', .5);
@@ -1984,7 +2034,7 @@ function gameOver(){
   $('#ovStats').innerHTML = `<span>Kills <b>${STATS.kills}</b></span><span>Headshots <b>${STATS.heads}</b></span><span>Points <b>${STATS.earned}</b></span><span>Time <b>${mins}m</b></span>`;
   setTimeout(() => $('#over').classList.remove('hidden'), 1800);
   tn({ f: 110, f2: 40, type: 'sawtooth', dur: 3, vol: .15, echo: .5 });
-  if(CUSTOM){ $('#ovSave').textContent = 'Custom map: scores only go on the board from the Iitsty Outpost map.'; }
+  if(CUSTOM){ $('#ovSave').textContent = (LAB ? 'Black Site Lab' : 'Custom map') + ': scores only go on the board from the Iitsty Outpost map.'; }
   else if(RS.round >= 2 || STATS.kills > 0){
     $('#ovSave').textContent = 'Saving your score…';
     rpc('zombies_submit', { p_name: opts.name || 'Survivor', p_round: RS.round, p_kills: STATS.kills, p_points: STATS.earned, p_headshots: STATS.heads, p_device: isTouch ? 'phone' : 'pc' })
@@ -2390,13 +2440,25 @@ function decorSVG(){
     m.position.set(cx, WH - .5, cz); m.rotation.y = Math.atan2(-(a[0] + b[0]), -(a[1] + b[1])); m.rotateX(-.35); level.add(m);
   }
 }
+// a glass specimen tank (steel base + lid, green-lit fluid) for the Lab's aliens
+const TANK_M = { glass: new THREE.MeshStandardMaterial({ color: 0x5affb0, emissive: 0x0a5a30, emissiveIntensity: .7, transparent: true, opacity: .22, roughness: .05, metalness: .1, depthWrite: false }) };
+function specimenTank(){ const g = new THREE.Group(), r = .62;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(r + .08, r + .12, .22, 20), M.metal); base.position.y = .11;
+  const lid = new THREE.Mesh(new THREE.CylinderGeometry(r + .08, r + .08, .2, 20), M.metal); lid.position.y = 2.6;
+  const gl = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 2.3, 20, 1, true), TANK_M.glass); gl.position.y = 1.37; gl.renderOrder = 2;
+  g.add(base, lid, gl);
+  for(let i = 0; i < 4; i++){ const a = i * Math.PI / 2 + .78, rod = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, 2.3, 6), M.pipe); rod.position.set(Math.cos(a) * (r + .03), 1.37, Math.sin(a) * (r + .03)); g.add(rod); }
+  const gs = glowSprite(0x5affb0, 1.6, .35); gs.position.y = 1.3; g.add(gs);
+  if(!LQ){ const L = new THREE.PointLight(0x4dffa0, 2.2, 5, 1.8); L.position.y = 1.6; g.add(L); }
+  return g; }
 function placeProps(){
   if(!ASSETS.props) return;
-  for(const P1 of PROPS){ const src = ASSETS.props[P1.p.k]; if(!src) continue; const o = src.clone(); const c = P1.c;
+  for(const P1 of PROPS){ const c = P1.c, src = c.n ? (ASSETS.lab || {})[c.n] : ASSETS.props[P1.p.k]; if(!src) continue; const o0 = src.clone(); if(c.s) o0.scale.setScalar(c.s);
+    let o = o0; if(c.tank){ o = new THREE.Group(); o0.position.y = .22; o.add(o0, specimenTank()); }
     if(c.wall){ const d = P1.p.d || [0, -1]; const w = wpos(P1.x, P1.z); o.position.set(w.x + d[0] * (CELL / 2 - .025), (P1.p.y != null ? P1.p.y : c.y), w.z + d[1] * (CELL / 2 - .025)); o.rotation.y = Math.atan2(-d[0], -d[1]); }
     else { let cx = 0, cz = 0; for(const [x, z] of P1.cells){ const w = wpos(x, z); cx += w.x; cz += w.z; } cx /= P1.cells.length; cz /= P1.cells.length;
       o.position.set(cx, P1.p.y || 0, cz); o.rotation.y = Math.atan2(P1.f[0], P1.f[1]) + (c.base || 0);
-      if(c.light && !LQ){ const L = new THREE.PointLight(0xffc070, 3, 4.5, 1.8); L.position.set(0, 1.45, 0); o.add(L); const g = glowSprite(0xffc070, .6, .5); g.position.y = 1.45; o.add(g); } }
+      if(c.light && !LQ){ const lc = c.lc || 0xffc070, ly = c.ly || 1.45; const L = new THREE.PointLight(lc, 3, 4.5, 1.8); L.position.set(0, ly, 0); o.add(L); const g = glowSprite(lc, .6, .5); g.position.y = ly; o.add(g); } }
     level.add(o); }
 }
 // outside the windows: wrecked car, power poles, bushes, road barriers, tyres, spikes (seeded per map, never right in front of a window)
