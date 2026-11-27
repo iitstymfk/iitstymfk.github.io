@@ -217,6 +217,13 @@ async function loadAssets(onProg){
   const jobs = [], total = Object.keys(GUNMETA).length + 9; let done = 0; const tick = () => onProg && onProg(++done, total);
   for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh && o.material){ o.castShadow = false; const m = o.material; m.vertexColors = false; if(m.name === 'gunmetal'){ m.roughness = .5; m.metalness = .5; } m.envMapIntensity = .55; m.needsUpdate = true; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
   jobs.push(load('assets/arms/arms_rig.glb').then(g => { ASSETS.arms = g; }).catch(e => console.warn('arms', e)).finally(tick));
+  // putrid zombie + Shroudling: their own animations (3ds Max biped rigs, from FPS Creator packs on Sketchfab)
+  jobs.push(load('assets/zombie/putrid.glb').then(g => { prepBeast(g, .98); ASSETS.putrid = g; }).catch(e => console.warn('putrid', e)).finally(tick));
+  jobs.push(load('assets/zombie/shroudling.glb').then(g => { prepBeast(g, 1.15); ASSETS.shroud = g; }).catch(e => console.warn('shroud', e)).finally(tick));
+  // morgue furniture + gore chunks (head / body pieces for gibs)
+  jobs.push(load('assets/morgue.glb').then(g => { ASSETS.ext = ASSETS.ext || {}; for(const o of [...g.scene.children]){ const b = new THREE.Box3().setFromObject(o), c = b.getCenter(new THREE.Vector3());
+      for(const ch of o.children) ch.position.sub(new THREE.Vector3(c.x - o.position.x, b.min.y - o.position.y, c.z - o.position.z)); if(o.isMesh) o.geometry.translate(o.position.x - c.x, o.position.y - b.min.y, o.position.z - c.z);
+      o.position.set(0, 0, 0); o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .5; if(m.material.emissive) m.material.emissiveIntensity = .2; } } }); ASSETS.ext[o.name] = o; } }).catch(e => console.warn('morgue', e)).finally(tick));
   if(LAB) jobs.push(load('assets/lab_props.glb').then(g => { ASSETS.lab = {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material) m.material.envMapIntensity = .5; } }); ASSETS.lab[o.name] = o; } }).catch(e => console.warn('lab props', e)).finally(tick));
   jobs.push(load('assets/props.glb').then(g => { ASSETS.props = {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .35; } } }); ASSETS.props[o.name] = o; } }).catch(e => console.warn('props', e)).finally(tick));
   jobs.push(load('assets/zombie/female.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material){ const m = o.material; if(/hair/i.test(m.name)){ m.transparent = false; m.alphaTest = .5; m.side = THREE.DoubleSide; } else { m.transparent = false; m.opacity = 1; } } }); ASSETS.female = g; }).catch(e => console.warn('female', e)).finally(tick));
@@ -230,6 +237,11 @@ async function loadAssets(onProg){
   await Promise.all(jobs); ASSETS.ready = true;
 }
 // the prisoner zombie (Mixamo): remove forward root motion, size him like the other zombies, and map his animations to ours
+function prepBeast(g, hipsH){
+  g.scene.updateMatrixWorld(true); let hb = null; g.scene.traverse(o => { if(o.isBone && /Pelvis/i.test(o.name) && !hb) hb = o; });
+  const y = hb ? hb.getWorldPosition(new THREE.Vector3()).y : 1; g.fit = y > 0 ? hipsH / y : 1;
+  g.scene.traverse(o => { if(o.isMesh){ o.frustumCulled = false; o.castShadow = SHADOWS; const m = o.material; if(m){ m.roughness = .85; m.metalness = 0; m.envMapIntensity = .3; } } });
+}
 function prepPrisoner(g){
   for(const c of g.animations){ for(const t of c.tracks){ if(/Hips\.position$/.test(t.name)){ const v = t.values; const x0 = v[0], y0 = v[1]; for(let i = 0; i < v.length; i += 3){ v[i] = x0; v[i + 1] = y0; } } } }
   g.scene.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g.scene); const h = b.max.y - b.min.y; g.fit = h > 0 ? 1.82 / Math.max(h, 1.7) : 1;
@@ -429,6 +441,8 @@ function stockMap(){
       { k: 'cabinet2', x: 17, z: 7, f: [1, 0] }, { k: 'medpack', x: 17, z: 7, f: [1, 0], y: .78 }, { k: 'bookshelf2', x: 29, z: 2, f: [-1, 0] }, { k: 'bottle1', x: 29, z: 2, f: [-1, 0], y: 1.02 }, { k: 'bottle2', x: 29, z: 2, f: [-1, 0], y: 1.52 },
       { k: 'pallets', x: 33, z: 2, f: [0, 1] }, { k: 'tire', x: 36, z: 8, f: [0, -1] },
       { k: 'sleepbag', x: 37, z: 17, f: [-1, 0] }, { k: 'sheet1', x: 32, z: 15, d: [-1, 0] },
+      { k: 'autopsy', x: 35, z: 14, f: [0, 1] }, { k: 'corpse', x: 35, z: 14, f: [0, 1], y: .86 }, { k: 'trolley', x: 33, z: 13, f: [1, 0] }, { k: 'scales', x: 36, z: 12, f: [0, 1] },
+      { k: 'msink', x: 32, z: 11, f: [1, 0] }, { k: 'mcabinet', x: 38, z: 11, f: [-1, 0] }, { k: 'mlockers', x: 37, z: 20, d: [0, 1] }, { k: 'mbench', x: 34, z: 18, f: [0, -1] },
       { k: 'monitor', x: 27, z: 3, f: [0, 1], y: .78, lv: 1 },
       { k: 'jerry', x: 9, z: 7, f: [0, -1], lv: -1 }, { k: 'sheet2', x: 2, z: 6, d: [-1, 0], lv: -1 },
       { k: 'shelf', x: 2, z: 4, f: [1, 0], lv: -1 }, { k: 'guitar', x: 3, z: 2, f: [0, 1], lv: -1 }, { k: 'amp', x: 5, z: 2, f: [0, 1], lv: -1 }, { k: 'poster2', x: 13, z: 6, d: [1, 0], lv: -1 },
@@ -525,6 +539,9 @@ const PROPCAT = { sofa: { long: 'x' }, pool: { long: 'z' }, desk: { base: Math.P
   poster1: { wall: true, y: 1.55 }, poster2: { wall: true, y: 1.55 }, blueprint: { wall: true, y: 1.55 }, map: { wall: true, y: 1.55 },
   crate2: {}, jerry: { soft: true }, medpack: { soft: true }, pallets: {}, barrier: {}, cabinet2: {}, sleepbag: { soft: true }, bottle1: { soft: true }, bottle2: { soft: true },
   tire: { soft: true }, spikes: {}, bookshelf2: {}, monitor: { soft: true }, sheet1: { wall: true, y: 1.3 }, sheet2: { wall: true, y: 1.1 }, car: {}, pole: {}, bush: {},
+  // morgue furniture (assets/morgue.glb)
+  autopsy: { n: 'mg_table', long: 'z', s: .9 }, corpse: { n: 'mg_body', soft: true, s: .62 }, mlockers: { n: 'mg_lockers', wall: true, y: 0, s: .5 }, trolley: { n: 'mg_trolley' }, msink: { n: 'mg_sink' },
+  mcabinet: { n: 'mg_cabinet', s: .85 }, scales: { n: 'mg_scales' }, slamp: { n: 'mg_lamp', soft: true, s: .8 }, mbench: { n: 'mg_bench', long: 'x', s: .8 },
   // Black Site Lab pieces (assets/lab_props.glb)
   computer: { n: 'lab_Prop_Computer' }, crate3: { n: 'lab_Prop_Crate3' }, crate4: { n: 'lab_Prop_Crate4', s: .9 }, barrel2: { n: 'lab_Prop_Barrel_Large' },
   flight: { n: 'lab_Prop_Light_Floor', soft: true, light: true, lc: 0x7fd8ff, ly: .35 }, vent: { n: 'lab_Prop_Vent_Big', soft: true, s: .75 },
@@ -767,6 +784,7 @@ function fx(pos, opt){
   if(FX.length > 260){ const o = FX.shift(); o.s.removeFromParent(); o.s.material.dispose(); }
 }
 function updFX(dt){
+  updGibs(dt);
   for(let i = FX.length - 1; i >= 0; i--){
     const p = FX[i]; p.t += dt; const k = p.t / p.life;
     if(k >= 1){ p.s.removeFromParent(); p.s.material.dispose(); FX.splice(i, 1); continue; }
@@ -774,6 +792,16 @@ function updFX(dt){
     p.s.scale.setScalar(p.s0 + (p.s1 - p.s0) * k); p.s.material.opacity = p.o * (1 - k);
   }
 }
+// flying gore chunks (heads pop off on headshot kills, bodies come apart in explosions); they bounce, bleed and fade
+const GIBS = [];
+function spawnGib(k, pos, sc = 1){ const src = (ASSETS.ext || {})[k]; if(!src) return; const o = src.clone(); o.scale.setScalar(sc); o.position.copy(pos); scene.add(o);
+  GIBS.push({ o, v: new THREE.Vector3(rand(-2.5, 2.5), rand(2.5, 5), rand(-2.5, 2.5)), w: new THREE.Vector3(rand(-9, 9), rand(-9, 9), rand(-9, 9)), t: 0, bled: 0 });
+  if(GIBS.length > (LQ ? 8 : 20)){ const g = GIBS.shift(); g.o.removeFromParent(); } }
+function updGibs(dt){ for(let i = GIBS.length - 1; i >= 0; i--){ const g = GIBS[i], p = g.o.position; g.t += dt;
+  if(g.t > 14){ g.o.scale.multiplyScalar(1 - dt * 2); if(g.t > 16){ g.o.removeFromParent(); GIBS.splice(i, 1); } continue; }
+  if(g.v.lengthSq() > .01){ g.v.y -= 9.8 * dt; p.addScaledVector(g.v, dt); g.o.rotation.x += g.w.x * dt; g.o.rotation.y += g.w.y * dt; g.o.rotation.z += g.w.z * dt;
+    if(blocksAt(p.x, p.z)){ p.x -= g.v.x * dt; p.z -= g.v.z * dt; g.v.x *= -.4; g.v.z *= -.4; }
+    if(p.y < .05){ p.y = .05; if(g.v.y < -1.5 && g.bled < 3){ g.bled++; floorBlood(p, .5); } g.v.y *= -.3; g.v.x *= .6; g.v.z *= .6; g.w.multiplyScalar(.5); if(Math.abs(g.v.y) < .4) g.v.set(0, 0, 0); } } } }
 function bloodBurst(pos, n = 8, big){
   for(let i = 0; i < n; i++) fx(pos, { color: 0x7a0000, v: new THREE.Vector3(rand(-1.5,1.5), rand(.5, 3), rand(-1.5,1.5)), g: 9, life: rand(.35, .7), size: big ? .16 : .09, size1: .03 });
   fx(pos, { tex: smokeTex, color: 0x5a0000, life: .5, size: big ? .6 : .3, size1: big ? 1.1 : .55, op: .8 });
@@ -1480,10 +1508,12 @@ function spawnZombie(){
   const w = pick(weighted);
   const r = RS.round; let type = 0; const q = Math.random();
   if(r >= 8 && q < .3) type = 2; else if(r >= 6 && q < .75) type = 1; else if(r >= 4 && q < .5) type = 1; else if(r === 3 && q < .2) type = 1;
-  const m = zombieMesh(type);
+  const boss = r >= 9 && ASSETS.shroud && !Z.some(q => q.boss && !q.dead) && Math.random() < .03;
+  const m = boss ? beastZombie('shroud', 2) : zombieMesh(type); if(boss) type = 2;
   const pos = w.spawn.clone().addScaledVector(w.t, rand(-2, 2)); m.root.position.copy(pos);
   const z = { m, type, hp: RS.zhp, tilt: rand(-.25, .25), speed: [rand(.85, 1.15), rand(2.2, 2.6), rand(3.3, 3.8)][type], state: 'out', win: w, t: 0, atkT: 0, atkCD: 0, phase: Math.random() * 6, dead: false, groanT: rand(1, 4), wait: rand(-.6, .6) };
   if(r >= 8 && m.prisoner && !type && Math.random() < .07){ z.crawl = 2; z.speed = rand(1.7, 2); }
+  if(boss){ z.boss = true; z.hp = RS.zhp * 6; z.speed = rand(3, 3.3); ann('THE SHROUDLING', '#ff4a2a'); sfx('st_special', .5); }
   Z.push(z); RS.toSpawn--;
 }
 /* ---------- hellhound rounds: every few rounds the zombies stop and fire dogs come; kill them all for a Max Ammo ---------- */
@@ -1642,7 +1672,28 @@ function prisonerZombie(type){
   zPlay(m, 'walk', 0); if(m.cur) m.cur.time = Math.random() * m.cur.getClip().duration;
   return m;
 }
+// a zombie with its OWN animation set (putrid zombie, Shroudling). cfg.map: role -> clip name(s)
+const BEAST = {
+  putrid: { walkRef: .42, runRef: 2.4, map: { walk: ['Walk', 'Walk2', 'Walk4'], run: ['Walk3'], swipe: ['Attack', 'Attack2'], die: ['Death', 'Death2', 'Death3'], stumble: ['Hurt'], idle: ['Idle'] } },
+  shroud: { walkRef: .6, runRef: 3.1, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack1', 'Attack2'], die: ['Death'], stumble: ['Idle'], idle: ['Idle'], scream: ['Rage'] } },
+};
+function beastZombie(key, type){
+  const G = ASSETS[key], cfg = BEAST[key], root = new THREE.Group(), s = rand(.94, 1.06) * (key === 'shroud' ? 1.12 : 1); root.scale.setScalar(s);
+  const model = SkeletonUtils.clone(G.scene); model.scale.multiplyScalar(G.fit); root.add(model); let headBone = null;
+  model.traverse(o => { if(o.isBone && /Head$|Head_\d+$/.test(o.name) && !headBone) headBone = o; });
+  const head = new THREE.Object3D(); if(headBone){ const nub = headBone.children.find(c => c.isBone); if(nub) head.position.copy(nub.position).multiplyScalar(.5); } (headBone || model).add(head);
+  const mixer = new THREE.AnimationMixer(model), A = {}, C = n => G.animations.find(a => a.name === n);
+  for(const k in cfg.map){ const c = C(pick(cfg.map[k])); if(c) A[k] = mixer.clipAction(c); }
+  for(const k of ['swipe', 'die', 'stumble', 'scream']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
+  const sh = new THREE.Mesh(ZG.shadow, ZM.shadow); sh.scale.setScalar(key === 'shroud' ? 1.2 : .9); sh.position.y = .02; root.add(sh);
+  if(key === 'shroud'){ const gl = glowSprite(0xff2a10, 1.6, .25); gl.position.y = 1.4; root.add(gl); }
+  scene.add(root);
+  const m = { root, head, headBone, mixer, A, s, skinned: true, cur: null, walkRef: cfg.walkRef, runRef: cfg.runRef, beast: key };
+  zPlay(m, type ? 'run' : 'walk', 0); if(m.cur) m.cur.time = Math.random() * m.cur.getClip().duration;
+  return m;
+}
 function skelZombie(type){
+  if(ASSETS.putrid && Math.random() < .22) return beastZombie('putrid', type);
   if(ASSETS.zombie2 && Math.random() < .55) return prisonerZombie(type);
   zombieVariants();
   const root = new THREE.Group(); const s = rand(.93, 1.07) * (type === 2 ? 1.04 : 1); root.scale.setScalar(s);
@@ -1772,7 +1823,8 @@ function killZombie(z, head, kind){
   if(z.win && z.win.tearer === z) z.win.tearer = null;
   questKill(z);
   floorBlood(z.m.root.position, 1.2);
-  addPoints(kind === 'knife' ? 130 : kind === 'boom' ? 50 : head ? 100 : 60); hitmark(true); SND.kill(head); if(!z.dog) sfx(head ? 'head' : 'gore', head ? .55 : .4, z.m.root.position);
+  addPoints(kind === 'knife' ? 130 : kind === 'boom' ? 50 : head ? 100 : 60); if(z.boss) addPoints(1000);
+  if(!z.dog){ const at = z.m.root.position.clone(); if(head){ const hp2 = new THREE.Vector3(); headL(z, hp2); spawnGib('gib_head', hp2, 1.5); } if(kind === 'boom' || kind === 'nuke' || (kind === 'gun' && Math.random() < .04)) for(const k of ['gib_p2', 'gib_p3', 'gib_p4']) if(Math.random() < .8) spawnGib(k, at.clone().setY(at.y + rand(.6, 1.3)), k === 'gib_p2' ? 2.2 : 1); } hitmark(true); SND.kill(head); if(!z.dog) sfx(head ? 'head' : 'gore', head ? .55 : .4, z.m.root.position);
   if(z.dog) DOGR.last = z.m.root.position.clone();
   if(!z.dog && kind !== 'nuke' && RS.drops < 4 && Math.random() < .03 && z.state === 'in') spawnPU(z.m.root.position);
 }
@@ -2514,7 +2566,7 @@ function specimenTank(){ const g = new THREE.Group(), r = .62;
   return g; }
 function placeProps(){
   if(!ASSETS.props) return;
-  for(const P1 of PROPS){ const c = P1.c, src = c.n ? (ASSETS.lab || {})[c.n] : ASSETS.props[P1.p.k]; if(!src) continue; const o0 = src.clone(); if(c.s) o0.scale.setScalar(c.s);
+  for(const P1 of PROPS){ const c = P1.c, src = c.n ? ((ASSETS.lab || {})[c.n] || (ASSETS.ext || {})[c.n]) : ASSETS.props[P1.p.k]; if(!src) continue; const o0 = src.clone(); if(c.s) o0.scale.setScalar(c.s);
     let o = o0; if(c.tank){ o = new THREE.Group(); o0.position.y = .22; o.add(o0, specimenTank()); }
     if(c.wall){ const d = P1.p.d || [0, -1]; const w = wpos(P1.x, P1.z); o.position.set(w.x + d[0] * (CELL / 2 - .025), (P1.p.y != null ? P1.p.y : c.y), w.z + d[1] * (CELL / 2 - .025)); o.rotation.y = Math.atan2(-d[0], -d[1]); }
     else { let cx = 0, cz = 0; for(const [x, z] of P1.cells){ const w = wpos(x, z); cx += w.x; cz += w.z; } cx /= P1.cells.length; cz /= P1.cells.length;
@@ -2583,7 +2635,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
