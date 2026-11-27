@@ -43,6 +43,8 @@ textarea{width:100%;min-height:90px;background:#0e0e11;color:var(--fg);border:1p
 .doorrow{display:flex;gap:6px;align-items:center;margin:4px 0}
 .doorrow b{width:26px;height:26px;display:grid;place-items:center;border-radius:6px;background:#8a4a12}
 .small{font-size:12px;color:var(--dim)}
+#floors button.on{background:#ffd84a;color:#111;font-weight:700}
+#floors .x{padding:2px 8px;font-size:12px}
 </style>
 </head>
 <body>
@@ -64,6 +66,7 @@ textarea{width:100%;min-height:90px;background:#0e0e11;color:var(--fg);border:1p
   <button id="zOut">－</button><button id="zIn">＋</button>
   <button id="bUndo">↶ Undo</button>
 </div>
+<div class="bar" id="floors" style="margin-bottom:6px"></div>
 <div class="tools" id="tools"></div>
 <div id="hint"></div>
 <div class="wrap">
@@ -89,9 +92,10 @@ const $ = s => document.querySelector(s);
 const LSK = 'iz_maps';
 const PERKS = { revive: ['Second Wind', '#3aa0ff'], tough: ['Tough Brew', '#ff3030'], rapid: ['Rapid Fire', '#ffd030'], speed: ['Speed Mix', '#40ff70'], stamina: ['Stamina Shot', '#ff9a30'] };
 const GUNS = { rifle: ['Garand-K', 500], smg: ['Ranger SMG', 1000], ar: ['Storm AR', 1400], shotgun: ['Trench 12', 1500], revolver: ['Python .357', 1200], sniper: ['Vulture .50', 2000], lmg: ['Brute LMG', 2500] };
+const STDIR = { e: [1, 0], w: [-1, 0], s: [0, 1], n: [0, -1] }; let stDir = 'e';
 const TOOLS = [
   ['Paint', [['wall', '🧱 Wall'], ['floor', '⬜ Floor'], ['out', '🌲 Outside'], ['win', '🪟 Window'], ['door', '🚪 Door'], ['crate', '📦 Crate']]],
-  ['Place', [['spawn', '🧍 Start'], ['box', '❓ Box spot'], ['perk', '🥤 Perk'], ['buy', '🔫 Wall buy'], ['upg', '⬆ Upgrade'], ['power', '⚡ Power'], ['barrel', '🛢 Barrel'], ['fire', '🔥 Fire barrel'], ['light', '💡 Light'], ['name', '🏷 Room name']]],
+  ['Place', [['spawn', '🧍 Start'], ['box', '❓ Box spot'], ['perk', '🥤 Perk'], ['buy', '🔫 Wall buy'], ['upg', '⬆ Upgrade'], ['power', '⚡ Power'], ['barrel', '🛢 Barrel'], ['fire', '🔥 Fire barrel'], ['light', '💡 Light'], ['name', '🏷 Room name'], ['stairs', '🪜 Stairs']]],
   ['Edit', [['rotate', '↻ Turn'], ['erase', '✖ Remove thing'], ['move', '✋ Scroll']]],
 ];
 const HINTS = {
@@ -100,7 +104,7 @@ const HINTS = {
   crate: 'Crates block walking but you can shoot over them.', spawn: 'Where you start. That room is open from the start.', box: 'Mystery box spots (it moves between them). Put them against a wall.',
   perk: 'Pick a perk, then tap a floor cell against a wall.', buy: 'Pick a gun, then tap a floor cell next to a wall; the chalk drawing goes on that wall.', upg: 'The Upgrade machine (one per map).',
   power: 'Power switch: tap a floor cell next to a wall.', barrel: 'A plain barrel.', fire: 'A burning barrel (lights the room).', light: 'Ceiling lights. If you place none, lights are added for you.',
-  name: 'Tap a room to name it.', rotate: 'Tap a perk, box, Upgrade machine or wall buy to turn it.', erase: 'Tap a placed thing to remove it.', move: 'Drag to scroll the map (phone).'
+  name: 'Tap a room to name it.', stairs: 'On the lower floor, pick a direction, then tap where the bottom step goes. 4 steps go up that way; the floor above gets a hole and a landing.', rotate: 'Tap a perk, box, Upgrade machine or wall buy to turn it.', erase: 'Tap a placed thing to remove it.', move: 'Drag to scroll the map (phone).'
 };
 let maps = {}; try{ maps = JSON.parse(localStorage.getItem(LSK) || '{}'); }catch(e){ maps = {}; }
 let id = null, M = null, tool = 'wall', perkSel = 'revive', gunSel = 'rifle', doorSel = 'A', cs = 22, undo = [];
@@ -117,19 +121,38 @@ function stockCopy(){ // a copy of the built-in Iitsty Outpost to remix
   D('D', [[6,10],[7,10],[8,10]]); D('E', [[15,14],[15,15],[15,16]]); D('F', [[22,10],[23,10],[24,10]]); D('H', [[15,4],[15,5],[15,6]]); D('J', [[31,4],[31,5],[31,6]]); D('K', [[31,16],[31,17],[31,18]]); D('L', [[34,10],[35,10],[36,10]]);
   for(const [x, z] of [[4,21],[11,21],[0,15],[4,0],[10,0],[0,5],[20,21],[27,21],[20,0],[27,0],[35,0],[39,5],[39,15],[35,21]]) g[z][x] = 'W';
   for(const [x, z] of [[3,13],[12,18],[5,3],[18,13],[28,18],[24,4],[19,7],[2,8],[37,2],[33,19],[37,12]]) g[z][x] = 'C';
-  return { v: 1, name: 'Outpost Remix', grid: g.map(r => r.join('')), doors: { D: 750, E: 1000, F: 1250, H: 1250, J: 1500, K: 1500, L: 1000 },
-    names: [[7, 16, 'Spawn Room'], [7, 5, 'Storage'], [23, 15, 'Generator Room'], [23, 5, 'Lab'], [35, 5, 'Workshop'], [35, 15, 'Morgue']], spawn: { x: 7, z: 16, yaw: Math.PI },
-    wallbuys: [{ k: 'rifle', x: 14, z: 12, dx: 1, dz: 0 }, { k: 'smg', x: 1, z: 18, dx: -1, dz: 0 }, { k: 'shotgun', x: 14, z: 8, dx: 1, dz: 0 }, { k: 'ar', x: 30, z: 12, dx: 1, dz: 0 }, { k: 'revolver', x: 38, z: 7, dx: 1, dz: 0 }],
+  const up = []; for(let z = 0; z < h; z++) up.push(new Array(w).fill(' '));
+  const RU = (x0, z0, x1, z1, c) => { for(let z = z0; z <= z1; z++) for(let x = x0; x <= x1; x++) up[z][x] = c; };
+  RU(19, 0, 31, 9, '#'); RU(20, 2, 30, 8, '.'); RU(20, 1, 21, 1, '.'); RU(26, 1, 30, 1, '.'); up[0][21] = 'W'; up[0][28] = 'W';
+  const dn = []; for(let z = 0; z < h; z++) dn.push(new Array(w).fill('#'));
+  const RD = (x0, z0, x1, z1, c) => { for(let z = z0; z <= z1; z++) for(let x = x0; x <= x1; x++) dn[z][x] = c; };
+  RD(2, 2, 13, 7, '.'); RD(2, 8, 8, 8, '.'); dn[1][6] = 'W'; dn[0][6] = ' '; dn[1][11] = 'W'; dn[0][11] = ' ';
+  g[1][23] = '.'; g[1][26] = '#'; g[8][9] = '#';
+  return { v: 1, name: 'Outpost Remix', grid: g.map(r => r.join('')), up: { grid: up.map(r => r.join('')) }, down: { grid: dn.map(r => r.join('')) },
+    stairs: [{ x: 22, z: 1, dir: [1, 0], len: 4 }, { x: 13, z: 8, dir: [-1, 0], len: 4, lv: -1 }], doors: { D: 750, E: 1000, F: 1250, H: 1250, J: 1500, K: 1500, L: 1000 },
+    names: [[7, 16, 'Spawn Room'], [7, 5, 'Storage'], [23, 15, 'Generator Room'], [23, 5, 'Lab'], [35, 5, 'Workshop'], [35, 15, 'Morgue'], [25, 5, 'Offices', 1], [7, 5, 'Boiler Room', -1]], spawn: { x: 7, z: 16, yaw: Math.PI },
+    wallbuys: [{ k: 'rifle', x: 14, z: 12, dx: 1, dz: 0 }, { k: 'smg', x: 1, z: 18, dx: -1, dz: 0 }, { k: 'shotgun', x: 14, z: 8, dx: 1, dz: 0 }, { k: 'ar', x: 30, z: 12, dx: 1, dz: 0 }, { k: 'revolver', x: 38, z: 7, dx: 1, dz: 0 }, { k: 'sniper', x: 30, z: 5, dx: 1, dz: 0, lv: 1 }, { k: 'lmg', x: 13, z: 4, dx: 1, dz: 0, lv: -1 }],
     perks: { revive: { x: 13, z: 20, face: [0, -1] }, tough: { x: 16, z: 20, face: [0, -1] }, rapid: { x: 1, z: 8, face: [1, 0] }, speed: { x: 30, z: 8, face: [-1, 0] }, stamina: { x: 16, z: 1, face: [0, 1] } },
-    box: [{ x: 7, z: 1, face: [0, 1] }, { x: 24, z: 20, face: [0, -1] }, { x: 27, z: 9, face: [0, -1] }, { x: 36, z: 20, face: [0, -1] }], upg: { x: 23, z: 1, face: [0, 1] }, power: { x: 30, z: 19, wall: [1, 0] },
-    parts: true, upgParts: true, eggs: true, dogs: true, barrels: [[1, 11, 1], [13, 1, 0], [29, 11, 1], [29, 1, 0], [14, 19, 0], [32, 9, 1], [38, 11, 0]],
-    bulbs: [[4.5,15.5],[10.5,15.5],[4.5,5],[10.5,5],[20,15.5],[26.5,15.5],[20,5],[26.5,5],[35.5,5],[35.5,15.5]],
+    box: [{ x: 7, z: 1, face: [0, 1] }, { x: 24, z: 20, face: [0, -1] }, { x: 27, z: 9, face: [0, -1] }, { x: 36, z: 20, face: [0, -1] }, { x: 21, z: 8, face: [0, -1], lv: 1 }], upg: { x: 7, z: 2, face: [0, 1], lv: -1 }, power: { x: 30, z: 19, wall: [1, 0] },
+    parts: true, upgParts: true, eggs: true, dogs: true, barrels: [[1, 11, 1], [13, 1, 0], [29, 11, 1], [29, 1, 0], [14, 19, 0], [32, 9, 1], [38, 11, 0], [2, 7, 1, -1], [12, 2, 0, -1], [30, 8, 0, 1]],
+    bulbs: [[4.5,15.5],[10.5,15.5],[4.5,5],[10.5,5],[20,15.5],[26.5,15.5],[20,5],[26.5,5],[35.5,5],[35.5,15.5],[23,5,1],[28,5,1],[5,5,-1],[10.5,5,-1]],
     pipes: [[1,14,12],[1,14,2],[16,30,12],[16,30,2],[1,14,19.5],[16,30,8.5],[32,38,2],[32,38,19.5]] };
 }
 // ---------- helpers ----------
+let FL = 0; // floor being edited: -1 basement, 0 ground, 1 upstairs
+const FLNAME = { '-1': 'Basement', '0': 'Ground floor', '1': 'Upstairs' };
+function newFloorGrid(lv){ const w = M.grid[0].length, h = M.grid.length; const ch = lv > 0 ? ' ' : '#'; return Array.from({ length: h }, () => ch.repeat(w)); }
+function ensureFloor(lv){ if(lv === 1 && !M.up) M.up = { grid: newFloorGrid(1) }; if(lv === -1 && !M.down) M.down = { grid: newFloorGrid(-1) }; }
+const gridOf = lv => lv === 0 ? M.grid : lv === 1 ? (M.up && M.up.grid) : (M.down && M.down.grid);
+const GR = () => gridOf(FL);
+const hasFloor = lv => !!gridOf(lv);
 const W_ = () => M.grid[0].length, H_ = () => M.grid.length;
-const at = (x, z) => (z >= 0 && z < H_() && x >= 0 && x < W_()) ? M.grid[z][x] : undefined;
-function setCell(x, z, c){ const r = M.grid[z]; M.grid[z] = r.slice(0, x) + c + r.slice(x + 1); }
+const atF = (lv, x, z) => { const g = gridOf(lv); return g && z >= 0 && z < H_() && x >= 0 && x < W_() ? g[z][x] : undefined; };
+const at = (x, z) => atF(FL, x, z);
+function setCell(x, z, c){ const g = GR(); const r = g[z]; g[z] = r.slice(0, x) + c + r.slice(x + 1); }
+const onF = o => o && ((o.lv || 0) === FL);
+function stairCells(st){ const out = []; for(let i = 0; i < (st.len || 4); i++) out.push([st.x + st.dir[0] * i, st.z + st.dir[1] * i]); return out; }
+function stairAt(x, z){ for(let i = 0; i < (M.stairs || []).length; i++){ const st = M.stairs[i]; const lo = st.lv || 0; if(lo !== FL && lo + 1 !== FL) continue; if(stairCells(st).some(c => c[0] === x && c[1] === z)) return i; } return -1; }
 const isDoor = c => /^[A-Z]$/.test(c || '') && c !== 'W' && c !== 'C' && c !== 'M';
 const walk = c => c === '.';
 function wallSide(x, z){ for(const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1]]){ const c = at(x + dx, z + dz); if(c === '#' || c === undefined) return [dx, dz]; } return null; }
@@ -137,29 +160,31 @@ function openSide(x, z){ let best = null, bn = -1; for(const [dx, dz] of [[0,1],
 function rooms(){
   const w = W_(), h = H_(), R = []; for(let z = 0; z < h; z++) R.push(new Array(w).fill(-1)); let n = 0; const open = c => c === '.' || c === 'C';
   const fill = (x0, z0, id) => { const q = [[x0, z0]]; R[z0][x0] = id; while(q.length){ const [x, z] = q.pop(); for(const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx = x + dx, nz = z + dz; if(nx < 0 || nz < 0 || nx >= w || nz >= h || R[nz][nx] >= 0 || !open(M.grid[nz][nx])) continue; R[nz][nx] = id; q.push([nx, nz]); } } };
-  const sp = M.spawn; if(sp && open(at(sp.x, sp.z))) fill(sp.x, sp.z, n++);
-  for(let z = 0; z < h; z++) for(let x = 0; x < w; x++) if(R[z][x] < 0 && open(M.grid[z][x])) fill(x, z, n++);
+  const sp = M.spawn; if(sp && onF(sp) && open(at(sp.x, sp.z))) fill(sp.x, sp.z, n++);
+  for(let z = 0; z < h; z++) for(let x = 0; x < w; x++) if(R[z][x] < 0 && open(at(x, z))) fill(x, z, n++);
   return { R, n };
 }
 function thingsAt(x, z){
   const out = [];
-  if(M.spawn && M.spawn.x === x && M.spawn.z === z) out.push(['spawn']);
-  M.box.forEach((b, i) => { if(b.x === x && b.z === z) out.push(['box', i]); });
-  for(const k in M.perks) if(M.perks[k].x === x && M.perks[k].z === z) out.push(['perk', k]);
-  M.wallbuys.forEach((b, i) => { if(b.x === x && b.z === z) out.push(['buy', i]); });
-  if(M.upg && M.upg.x === x && M.upg.z === z) out.push(['upg']);
-  if(M.power && M.power.x === x && M.power.z === z) out.push(['power']);
-  M.barrels.forEach((b, i) => { if(b[0] === x && b[1] === z) out.push(['barrel', i]); });
-  M.bulbs.forEach((b, i) => { if(Math.floor(b[0]) === x && Math.floor(b[1]) === z) out.push(['light', i]); });
-  M.names.forEach((b, i) => { if(b[0] === x && b[1] === z) out.push(['name', i]); });
+  if(onF(M.spawn) && M.spawn.x === x && M.spawn.z === z) out.push(['spawn']);
+  M.box.forEach((b, i) => { if(onF(b) && b.x === x && b.z === z) out.push(['box', i]); });
+  for(const k in M.perks) if(onF(M.perks[k]) && M.perks[k].x === x && M.perks[k].z === z) out.push(['perk', k]);
+  M.wallbuys.forEach((b, i) => { if(onF(b) && b.x === x && b.z === z) out.push(['buy', i]); });
+  if(onF(M.upg) && M.upg.x === x && M.upg.z === z) out.push(['upg']);
+  if(onF(M.power) && M.power.x === x && M.power.z === z) out.push(['power']);
+  M.barrels.forEach((b, i) => { if((b[3] || 0) === FL && b[0] === x && b[1] === z) out.push(['barrel', i]); });
+  M.bulbs.forEach((b, i) => { if((b[2] || 0) === FL && Math.floor(b[0]) === x && Math.floor(b[1]) === z) out.push(['light', i]); });
+  M.names.forEach((b, i) => { if((b[3] || 0) === FL && b[0] === x && b[1] === z) out.push(['name', i]); });
+  const si = stairAt(x, z); if(si >= 0) out.push(['stairs', si]);
   return out;
 }
-function clearThings(x, z, keep){ for(const [k, i] of thingsAt(x, z)) if(k !== keep && k !== 'name' && k !== 'light') removeThing(k, i); }
+function clearThings(x, z, keep){ for(const [k, i] of thingsAt(x, z)) if(k !== keep && k !== 'name' && k !== 'light' && k !== 'stairs') removeThing(k, i); }
 function removeThing(k, i){
   if(k === 'spawn') M.spawn = null; else if(k === 'box') M.box.splice(i, 1); else if(k === 'perk') delete M.perks[i]; else if(k === 'buy') M.wallbuys.splice(i, 1);
-  else if(k === 'upg') M.upg = null; else if(k === 'power') M.power = null; else if(k === 'barrel') M.barrels.splice(i, 1); else if(k === 'light') M.bulbs.splice(i, 1); else if(k === 'name') M.names.splice(i, 1);
+  else if(k === 'stairs') M.stairs.splice(i, 1); else if(k === 'upg') M.upg = null; else if(k === 'power') M.power = null; else if(k === 'barrel') M.barrels.splice(i, 1); else if(k === 'light') M.bulbs.splice(i, 1); else if(k === 'name') M.names.splice(i, 1);
 }
-function nextDoorLetter(){ const used = new Set(Object.keys(M.doors)); for(const g of M.grid) for(const c of g) if(isDoor(c)) used.add(c); for(const c of 'ABDEFGHIJKLNOPQRSTUVXYZ') if(!used.has(c)) return c; return 'Z'; }
+function allCells(){ return [M.grid, gridOf(1), gridOf(-1)].filter(Boolean).map(g => g.join('')).join(''); }
+function nextDoorLetter(){ const used = new Set(Object.keys(M.doors)); for(const c of allCells()) if(isDoor(c)) used.add(c); for(const c of 'ABDEFGHIJKLNOPQRSTUVXYZ') if(!used.has(c)) return c; return 'Z'; }
 // ---------- UI ----------
 function buildTools(){
   const T = $('#tools'); T.innerHTML = '';
@@ -173,13 +198,14 @@ function setTool(k){
   const ex = $('#extra'); ex.innerHTML = '';
   if(k === 'perk'){ ex.innerHTML = '<span class="lbl">Perk</span>' + Object.keys(PERKS).map(p => `<button data-p="${p}" class="${p === perkSel ? 'on' : ''}" style="color:${PERKS[p][1]}">${PERKS[p][0]}</button>`).join(''); ex.querySelectorAll('button').forEach(b => b.onclick = () => { perkSel = b.dataset.p; setTool('perk'); }); }
   else if(k === 'buy'){ ex.innerHTML = '<span class="lbl">Gun</span>' + Object.keys(GUNS).map(p => `<button data-p="${p}" class="${p === gunSel ? 'on' : ''}">${GUNS[p][0]} ${GUNS[p][1]}</button>`).join(''); ex.querySelectorAll('button').forEach(b => b.onclick = () => { gunSel = b.dataset.p; setTool('buy'); }); }
-  else if(k === 'door'){ const letters = [...new Set([...Object.keys(M.doors), ...M.grid.join('').split('').filter(isDoor)])].sort(); if(!letters.includes(doorSel)) letters.push(doorSel);
+  else if(k === 'door'){ const letters = [...new Set([...Object.keys(M.doors), ...allCells().split('').filter(isDoor)])].sort(); if(!letters.includes(doorSel)) letters.push(doorSel);
     ex.innerHTML = '<span class="lbl">Door</span>' + letters.map(c => `<button data-p="${c}" class="${c === doorSel ? 'on' : ''}">${c}</button>`).join('') + '<button data-p="+">＋ new door</button>';
     ex.querySelectorAll('button').forEach(b => b.onclick = () => { doorSel = b.dataset.p === '+' ? nextDoorLetter() : b.dataset.p; setTool('door'); }); }
+  else if(k === 'stairs'){ ex.innerHTML = '<span class="lbl">Up toward</span>' + [['n','↑'],['e','→'],['s','↓'],['w','←']].map(([d, a]) => `<button data-p="${d}" class="${d === stDir ? 'on' : ''}">${a}</button>`).join(''); ex.querySelectorAll('button').forEach(b => b.onclick = () => { stDir = b.dataset.p; setTool('stairs'); }); }
   ex.style.display = ex.innerHTML ? '' : 'none';
 }
 function snapshot(){ undo.push(JSON.stringify(M)); if(undo.length > 60) undo.shift(); }
-function commit(){ maps[id] = M; saveAll(); draw(); checks(); doorsUI(); }
+function commit(){ maps[id] = M; saveAll(); if(!hasFloor(FL)) FL = 0; floorsUI(); draw(); checks(); doorsUI(); }
 function apply(x, z, first){
   const c = at(x, z); if(c === undefined) return;
   const paint = ch => { if(c === ch) return; setCell(x, z, ch); if(ch !== '.') clearThings(x, z); };
@@ -193,19 +219,31 @@ function apply(x, z, first){
 function needFloor(c){ if(c !== '.'){ flash('Put that on a floor cell.'); return false; } return true; }
 function place(x, z, c){
   const T = tool;
-  if(T === 'spawn'){ if(!needFloor(c)) return; clearThings(x, z); M.spawn = { x, z, yaw: Math.atan2(-openSide(x, z)[0], -openSide(x, z)[1]) }; }
-  else if(T === 'box'){ if(!needFloor(c)) return; clearThings(x, z); M.box.push({ x, z, face: openSide(x, z) }); }
-  else if(T === 'perk'){ if(!needFloor(c)) return; clearThings(x, z); M.perks[perkSel] = { x, z, face: openSide(x, z) }; }
-  else if(T === 'buy'){ if(!needFloor(c)) return; const ws = wallSide(x, z); if(!ws) return flash('Wall buys need a wall right next to them.'); clearThings(x, z); M.wallbuys.push({ k: gunSel, x, z, dx: ws[0], dz: ws[1] }); }
-  else if(T === 'upg'){ if(!needFloor(c)) return; clearThings(x, z); M.upg = { x, z, face: openSide(x, z) }; }
-  else if(T === 'power'){ if(!needFloor(c)) return; const ws = wallSide(x, z); if(!ws) return flash('The power switch goes on a wall: pick a floor cell next to a wall.'); clearThings(x, z); M.power = { x, z, wall: ws }; }
-  else if(T === 'barrel' || T === 'fire'){ if(!needFloor(c)) return; clearThings(x, z); M.barrels.push([x, z, T === 'fire' ? 1 : 0]); }
-  else if(T === 'light'){ if(c === '#' || c === ' ') return flash('Lights go over a room.'); const i = M.bulbs.findIndex(b => Math.floor(b[0]) === x && Math.floor(b[1]) === z); if(i >= 0) M.bulbs.splice(i, 1); else M.bulbs.push([x + .5, z + .5]); }
-  else if(T === 'name'){ if(c !== '.') return flash('Tap a floor cell inside the room.'); const { R } = rooms(); const r = R[z][x]; const old = M.names.find(n => R[n[1]] && R[n[1]][n[0]] === r); const nm = prompt('Room name:', old ? old[2] : ''); if(nm == null) return; M.names = M.names.filter(n => !(R[n[1]] && R[n[1]][n[0]] === r)); if(nm.trim()) M.names.push([x, z, nm.trim().slice(0, 24)]); }
+  if(T === 'spawn'){ if(!needFloor(c)) return; clearThings(x, z); M.spawn = { lv: FL || undefined, x, z, yaw: Math.atan2(-openSide(x, z)[0], -openSide(x, z)[1]) }; }
+  else if(T === 'box'){ if(!needFloor(c)) return; clearThings(x, z); M.box.push({ x, z, face: openSide(x, z), lv: FL || undefined }); }
+  else if(T === 'perk'){ if(!needFloor(c)) return; clearThings(x, z); M.perks[perkSel] = { x, z, face: openSide(x, z), lv: FL || undefined }; }
+  else if(T === 'buy'){ if(!needFloor(c)) return; const ws = wallSide(x, z); if(!ws) return flash('Wall buys need a wall right next to them.'); clearThings(x, z); M.wallbuys.push({ k: gunSel, x, z, dx: ws[0], dz: ws[1], lv: FL || undefined }); }
+  else if(T === 'upg'){ if(!needFloor(c)) return; clearThings(x, z); M.upg = { x, z, face: openSide(x, z), lv: FL || undefined }; }
+  else if(T === 'power'){ if(!needFloor(c)) return; const ws = wallSide(x, z); if(!ws) return flash('The power switch goes on a wall: pick a floor cell next to a wall.'); clearThings(x, z); M.power = { x, z, wall: ws, lv: FL || undefined }; }
+  else if(T === 'barrel' || T === 'fire'){ if(!needFloor(c)) return; clearThings(x, z); M.barrels.push(FL ? [x, z, T === 'fire' ? 1 : 0, FL] : [x, z, T === 'fire' ? 1 : 0]); }
+  else if(T === 'light'){ if(c === '#' || c === ' ') return flash('Lights go over a room.'); const i = M.bulbs.findIndex(b => (b[2] || 0) === FL && Math.floor(b[0]) === x && Math.floor(b[1]) === z); if(i >= 0) M.bulbs.splice(i, 1); else M.bulbs.push(FL ? [x + .5, z + .5, FL] : [x + .5, z + .5]); }
+  else if(T === 'name'){ if(c !== '.') return flash('Tap a floor cell inside the room.'); const { R } = rooms(); const r = R[z][x]; const old = M.names.find(n => (n[3] || 0) === FL && R[n[1]] && R[n[1]][n[0]] === r); const nm = prompt('Room name:', old ? old[2] : ''); if(nm == null) return; M.names = M.names.filter(n => !((n[3] || 0) === FL && R[n[1]] && R[n[1]][n[0]] === r)); if(nm.trim()) M.names.push(FL ? [x, z, nm.trim().slice(0, 24), FL] : [x, z, nm.trim().slice(0, 24)]); }
   else if(T === 'rotate'){ const dirs = [[0,1],[1,0],[0,-1],[-1,0]]; const turn = f => dirs[(dirs.findIndex(d => d[0] === f[0] && d[1] === f[1]) + 1) % 4];
     for(const [k, i] of thingsAt(x, z)){ if(k === 'box') M.box[i].face = turn(M.box[i].face || [0, 1]); if(k === 'perk') M.perks[i].face = turn(M.perks[i].face || [0, 1]); if(k === 'upg') M.upg.face = turn(M.upg.face || [0, 1]); if(k === 'spawn') M.spawn.yaw = ((M.spawn.yaw || 0) + Math.PI / 2) % (Math.PI * 2);
       if(k === 'buy'){ const b = M.wallbuys[i]; const opts = dirs.filter(([dx, dz]) => { const cc = at(x + dx, z + dz); return cc === '#' || cc === undefined; }); if(opts.length){ const j = opts.findIndex(d => d[0] === b.dx && d[1] === b.dz); [b.dx, b.dz] = opts[(j + 1) % opts.length]; } }
       if(k === 'power'){ const opts = dirs.filter(([dx, dz]) => { const cc = at(x + dx, z + dz); return cc === '#' || cc === undefined; }); if(opts.length){ const j = opts.findIndex(d => d[0] === M.power.wall[0] && d[1] === M.power.wall[1]); M.power.wall = opts[(j + 1) % opts.length]; } } } }
+  else if(T === 'stairs'){
+    if(FL === 1) return flash('Stairs are placed on the lower floor. Go to the Ground floor (or Basement) and tap where the bottom step goes.');
+    const d = STDIR[stDir], cells = []; for(let i = 0; i < 4; i++) cells.push([x + d[0] * i, z + d[1] * i]);
+    const ex = [x + d[0] * 4, z + d[1] * 4];
+    if(cells.some(([a, b]) => at(a, b) !== '.') ) return flash('Stairs need 4 floor cells in a row (in the arrow direction).');
+    if(at(ex[0], ex[1]) === undefined) return flash('Leave room at the top: the cell after the 4 steps must be inside the map.');
+    if(stairAt(x, z) >= 0) return;
+    ensureFloor(FL + 1); M.stairs = M.stairs || []; M.stairs.push({ x, z, dir: d, len: 4, lv: FL || undefined });
+    // the cell past the top step is a wall on this floor and the landing on the floor above
+    setCell(ex[0], ex[1], '#'); const up = gridOf(FL + 1); const r = up[ex[1]]; if(r[ex[0]] !== '.') up[ex[1]] = r.slice(0, ex[0]) + '.' + r.slice(ex[0] + 1);
+    flash(`Stairs placed. They come out on the ${FLNAME[FL + 1]} at the highlighted landing.`);
+  }
   else if(T === 'erase'){ const th = thingsAt(x, z); if(!th.length) return; const [k, i] = th[0]; removeThing(k, i); }
 }
 let flashT = 0; function flash(t){ $('#hint').innerHTML = `<span class="bad">${t}</span>`; clearTimeout(flashT); flashT = setTimeout(() => $('#hint').textContent = HINTS[tool] || '', 2600); }
@@ -218,31 +256,39 @@ function draw(){
   const { R } = rooms();
   ctx.fillStyle = '#0a1a0a'; ctx.fillRect(0, 0, w * cs, h * cs);
   for(let z = 0; z < h; z++) for(let x = 0; x < w; x++){
-    const c = M.grid[z][x], X = x * cs, Z = z * cs;
+    const c = at(x, z), X = x * cs, Z = z * cs;
     if(c === '#'){ ctx.fillStyle = '#3c3c42'; ctx.fillRect(X, Z, cs, cs); ctx.fillStyle = '#2c2c30'; ctx.fillRect(X, Z + cs * .5, cs, 1); }
-    else if(c === ' '){ ctx.fillStyle = '#16301a'; ctx.fillRect(X, Z, cs, cs); }
+    else if(c === ' '){ ctx.fillStyle = '#16301a'; ctx.fillRect(X, Z, cs, cs); if(FL > 0){ const b = atF(FL - 1, x, z); if(b && b !== ' '){ ctx.fillStyle = b === '#' ? '#26302a' : '#1f3a24'; ctx.fillRect(X, Z, cs, cs); } } }
     else if(c === 'W'){ ctx.fillStyle = '#3c3c42'; ctx.fillRect(X, Z, cs, cs); ctx.fillStyle = '#6fb8ff'; ctx.fillRect(X + cs * .15, Z + cs * .15, cs * .7, cs * .7); ctx.fillStyle = '#7a5030'; for(let k = 0; k < 3; k++) ctx.fillRect(X + cs * .1, Z + cs * (.25 + k * .22), cs * .8, cs * .08); }
     else if(isDoor(c)){ ctx.fillStyle = '#8a4a12'; ctx.fillRect(X, Z, cs, cs); ctx.fillStyle = '#fff'; ctx.font = `700 ${cs * .62}px Oswald`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(c, X + cs / 2, Z + cs / 2 + 1); }
     else { const r = R[z][x]; ctx.fillStyle = '#c9b48f'; ctx.fillRect(X, Z, cs, cs); if(r >= 0){ ctx.fillStyle = ROOMCOL[r % ROOMCOL.length] + '55'; ctx.fillRect(X, Z, cs, cs); }
       if(c === 'C'){ ctx.fillStyle = '#7a5226'; ctx.fillRect(X + 2, Z + 2, cs - 4, cs - 4); ctx.strokeStyle = '#4a2e12'; ctx.strokeRect(X + 2.5, Z + 2.5, cs - 5, cs - 5); } }
   }
+  for(const st of (M.stairs || [])){ const lo = st.lv || 0; if(lo !== FL && lo + 1 !== FL) continue; const cells = stairCells(st), up = lo === FL;
+    cells.forEach(([x, z], i) => { const X = x * cs, Z = z * cs; ctx.fillStyle = up ? `rgb(${120 + i * 25},${85 + i * 18},50)` : 'rgba(0,0,0,.75)'; ctx.fillRect(X + 1, Z + 1, cs - 2, cs - 2);
+      ctx.strokeStyle = up ? '#3a2410' : '#555'; for(let k = 1; k < 4; k++){ ctx.beginPath(); if(st.dir[0]){ ctx.moveTo(X + cs * k / 4, Z + 2); ctx.lineTo(X + cs * k / 4, Z + cs - 2); } else { ctx.moveTo(X + 2, Z + cs * k / 4); ctx.lineTo(X + cs - 2, Z + cs * k / 4); } ctx.stroke(); } });
+    const [ex, ez] = [st.x + st.dir[0] * 4, st.z + st.dir[1] * 4]; const mid = cells[1]; ctx.font = `${cs * .6}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff';
+    ctx.fillText(up ? '🪜' : '⬇', mid[0] * cs + cs / 2, mid[1] * cs + cs / 2);
+    if(!up){ ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 2; ctx.strokeRect(ex * cs + 2, ez * cs + 2, cs - 4, cs - 4); ctx.lineWidth = 1; } }
   ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1; ctx.beginPath(); for(let x = 0; x <= w; x++){ ctx.moveTo(x * cs + .5, 0); ctx.lineTo(x * cs + .5, h * cs); } for(let z = 0; z <= h; z++){ ctx.moveTo(0, z * cs + .5); ctx.lineTo(w * cs, z * cs + .5); } ctx.stroke();
   const icon = (x, z, t, col, face) => { const X = x * cs, Z = z * cs; if(col){ ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X + cs / 2, Z + cs / 2, cs * .46, 0, 7); ctx.fill(); }
     ctx.font = `${cs * .66}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText(t, X + cs / 2, Z + cs / 2 + 1);
     if(face){ ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X + cs / 2 + face[0] * cs * .3, Z + cs / 2 + face[1] * cs * .3); ctx.lineTo(X + cs / 2 + face[0] * cs * .6, Z + cs / 2 + face[1] * cs * .6); ctx.stroke(); ctx.lineWidth = 1; } };
-  for(const b of M.barrels) icon(b[0], b[1], b[2] ? '🔥' : '🛢');
-  for(const b of M.box) icon(b.x, b.z, '❓', '#6a4a1acc', b.face);
-  for(const k in M.perks){ const p = M.perks[k]; icon(p.x, p.z, '🥤', PERKS[k][1] + 'cc', p.face); }
-  for(const b of M.wallbuys){ icon(b.x, b.z, '🔫', '#2a2a2acc', [b.dx, b.dz]); ctx.fillStyle = '#ffd84a'; ctx.font = `700 ${cs * .34}px Oswald`; ctx.fillText(b.k.slice(0, 3).toUpperCase(), b.x * cs + cs / 2, b.z * cs + cs * .92); }
-  if(M.upg) icon(M.upg.x, M.upg.z, '⬆', '#6a20aacc', M.upg.face);
-  if(M.power) icon(M.power.x, M.power.z, '⚡', '#8a7010cc', M.power.wall);
-  if(M.spawn) icon(M.spawn.x, M.spawn.z, '🧍', '#1d6a1dcc', [Math.round(-Math.sin(M.spawn.yaw || 0)), Math.round(-Math.cos(M.spawn.yaw || 0))]);
-  for(const b of M.bulbs){ ctx.font = `${cs * .5}px serif`; ctx.fillText('💡', b[0] * cs, b[1] * cs); }
-  ctx.font = `700 ${Math.max(11, cs * .55)}px Oswald`; ctx.textAlign = 'center'; for(const n of M.names){ ctx.fillStyle = '#000a'; const tw = ctx.measureText(n[2]).width; ctx.fillRect(n[0] * cs + cs / 2 - tw / 2 - 4, n[1] * cs - cs * .2, tw + 8, cs * .8); ctx.fillStyle = '#ffd84a'; ctx.fillText(n[2], n[0] * cs + cs / 2, n[1] * cs + cs * .2); }
+  for(const b of M.barrels) if((b[3] || 0) === FL) icon(b[0], b[1], b[2] ? '🔥' : '🛢');
+  for(const b of M.box.filter(onF)) icon(b.x, b.z, '❓', '#6a4a1acc', b.face);
+  for(const k in M.perks){ const p = M.perks[k]; if(!onF(p)) continue; icon(p.x, p.z, '🥤', PERKS[k][1] + 'cc', p.face); }
+  for(const b of M.wallbuys.filter(onF)){ icon(b.x, b.z, '🔫', '#2a2a2acc', [b.dx, b.dz]); ctx.fillStyle = '#ffd84a'; ctx.font = `700 ${cs * .34}px Oswald`; ctx.fillText(b.k.slice(0, 3).toUpperCase(), b.x * cs + cs / 2, b.z * cs + cs * .92); }
+  if(onF(M.upg)) icon(M.upg.x, M.upg.z, '⬆', '#6a20aacc', M.upg.face);
+  if(onF(M.power)) icon(M.power.x, M.power.z, '⚡', '#8a7010cc', M.power.wall);
+  if(onF(M.spawn)) icon(M.spawn.x, M.spawn.z, '🧍', '#1d6a1dcc', [Math.round(-Math.sin(M.spawn.yaw || 0)), Math.round(-Math.cos(M.spawn.yaw || 0))]);
+  for(const b of M.bulbs){ if((b[2] || 0) !== FL) continue; ctx.font = `${cs * .5}px serif`; ctx.fillText('💡', b[0] * cs, b[1] * cs); }
+  ctx.font = `700 ${Math.max(11, cs * .55)}px Oswald`; ctx.textAlign = 'center'; for(const n of M.names){ if((n[3] || 0) !== FL) continue; ctx.fillStyle = '#000a'; const tw = ctx.measureText(n[2]).width; ctx.fillRect(n[0] * cs + cs / 2 - tw / 2 - 4, n[1] * cs - cs * .2, tw + 8, cs * .8); ctx.fillStyle = '#ffd84a'; ctx.fillText(n[2], n[0] * cs + cs / 2, n[1] * cs + cs * .2); }
 }
 // ---------- checks ----------
 function checks(){
   const out = [], add = (cls, t) => out.push(`<div class="${cls}">${cls === 'ok' ? '✔' : cls === 'bad' ? '✖' : '!'} ${t}</div>`);
+  const keep = FL; FL = 0;
+  try{
   const { R, n } = rooms(); const w = W_(), h = H_(), out_ = (x, z) => x < 0 || z < 0 || x >= w || z >= h || M.grid[z][x] === ' ';
   if(!M.spawn || at(M.spawn.x, M.spawn.z) !== '.') add('bad', 'Place your start point (🧍) on a floor cell.'); else add('ok', `Start point set (${n} room${n === 1 ? '' : 's'}).`);
   let good = 0, badW = 0; for(let z = 0; z < h; z++) for(let x = 0; x < w; x++) if(M.grid[z][x] === 'W'){ let ok = false; for(const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1]]){ if(walk(at(x + dx, z + dz)) || at(x + dx, z + dz) === 'C'){ if(out_(x - dx, z - dz)) ok = true; } } ok ? good++ : badW++; }
@@ -254,12 +300,19 @@ function checks(){
   if(!M.box.length) add('meh', 'No mystery box spots.'); else add('ok', `${M.box.length} box spot${M.box.length === 1 ? '' : 's'}.`);
   const pk = Object.keys(M.perks).length; add(pk ? 'ok' : 'meh', `${pk} of 5 perks placed.`);
   if(!M.power) add('meh', 'No power switch: power is on from the start.'); if(!M.upg) add('meh', 'No Upgrade machine.');
-  const bad = [...M.box, ...Object.values(M.perks), ...(M.upg ? [M.upg] : []), ...(M.power ? [M.power] : []), ...M.wallbuys].filter(o => at(o.x, o.z) !== '.'); if(bad.length) add('bad', `${bad.length} thing${bad.length === 1 ? ' is' : 's are'} sitting on a wall or crate; move ${bad.length === 1 ? 'it' : 'them'}.`);
+  const bad = [...M.box, ...Object.values(M.perks), ...(M.upg ? [M.upg] : []), ...(M.power ? [M.power] : []), ...M.wallbuys].filter(o => atF(o.lv || 0, o.x, o.z) !== '.');
+  for(const st of (M.stairs || [])){ const lo = st.lv || 0, cells = stairCells(st), ex = [st.x + st.dir[0] * 4, st.z + st.dir[1] * 4];
+    if(cells.some(([x, z]) => atF(lo, x, z) !== '.')) add('bad', `Stairs on the ${FLNAME[lo]} are blocked: their 4 steps must stay floor.`);
+    else if(atF(lo + 1, ex[0], ex[1]) !== '.') add('bad', `Stairs from the ${FLNAME[lo]} come out into a wall on the ${FLNAME[lo + 1]}: make the highlighted landing a floor cell.`);
+    else add('ok', `Stairs: ${FLNAME[lo]} ↔ ${FLNAME[lo + 1]}.`); }
+  for(const lv of [1, -1]) if(hasFloor(lv) && !(M.stairs || []).some(st => (st.lv || 0) === (lv > 0 ? 0 : -1))) add('meh', `The ${FLNAME[lv]} has no stairs to it, so nobody can get there.`);
+  if(bad.length) add('bad', `${bad.length} thing${bad.length === 1 ? ' is' : 's are'} sitting on a wall or crate; move ${bad.length === 1 ? 'it' : 'them'}.`);
+  } finally { FL = keep; }
   $('#checks').innerHTML = out.join('');
   return !out.some(o => o.includes('class="bad"'));
 }
 function doorsUI(){
-  const letters = [...new Set(M.grid.join('').split('').filter(isDoor))].sort(); for(const k of Object.keys(M.doors)) if(!letters.includes(k)) delete M.doors[k];
+  const letters = [...new Set(allCells().split('').filter(isDoor))].sort(); for(const k of Object.keys(M.doors)) if(!letters.includes(k)) delete M.doors[k];
   $('#doors').innerHTML = letters.length ? letters.map(c => `<div class="doorrow"><b>${c}</b><span style="flex:1">Door ${c}</span><input type="number" min="0" step="50" value="${M.doors[c] ?? 1000}" data-d="${c}"> pts</div>`).join('') : '<div class="small">No doors yet.</div>';
   $('#doors').querySelectorAll('input').forEach(i => i.onchange = () => { M.doors[i.dataset.d] = Math.max(0, Math.round(+i.value || 0)); commit(); });
 }
@@ -269,8 +322,18 @@ function load(k){ id = k; M = maps[k]; for(const f of ['doors', 'names', 'wallbu
   $('#mName').value = M.name || ''; $('#mW').value = W_(); $('#mH').value = H_();
   for(const [el, f] of [['#oParts', 'parts'], ['#oUParts', 'upgParts'], ['#oEggs', 'eggs'], ['#oDogs', 'dogs']]) $(el).checked = M[f] !== false;
   try{ localStorage.setItem('iz_maker_last', k); }catch(e){}
-  listMaps(); fit(); draw(); checks(); doorsUI(); setTool(tool); }
+  if(!hasFloor(FL)) FL = 0; listMaps(); fit(); floorsUI(); draw(); checks(); doorsUI(); setTool(tool); }
 function newMap(m){ const k = 'm' + Date.now().toString(36); maps[k] = m; saveAll(); load(k); }
+function floorsUI(){ const el = $('#floors');
+  el.innerHTML = '<span class="small">Floor:</span>' + [1, 0, -1].map(lv => `<button data-f="${lv}" class="${lv === FL ? 'on' : ''}">${lv > 0 ? '⬆ ' : lv < 0 ? '⬇ ' : ''}${FLNAME[lv]}${lv && !hasFloor(lv) ? ' ＋' : ''}</button>`).join('')
+    + (FL ? `<button class="x warn" id="bDelFl">Remove ${FLNAME[FL]}</button>` : '');
+  el.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { const lv = +b.dataset.f; if(lv && !hasFloor(lv)){ snapshot(); ensureFloor(lv); maps[id] = M; saveAll(); flash(lv > 0 ? 'Upstairs added: it starts as open sky. Paint walls and floor, then go back down and add 🪜 Stairs to reach it.' : 'Basement added: it starts as solid dirt. Paint the rooms, then add 🪜 Stairs from it up to the ground floor.'); } FL = lv; floorsUI(); draw(); checks(); });
+  const d = $('#bDelFl'); if(d) d.onclick = () => { if(!confirm(`Remove the ${FLNAME[FL]} and everything on it?`)) return; snapshot(); const lv = FL;
+    if(lv > 0) delete M.up; else delete M.down; const off = o => o && (o.lv || 0) === lv;
+    M.box = M.box.filter(o => !off(o)); M.wallbuys = M.wallbuys.filter(o => !off(o)); for(const k in M.perks) if(off(M.perks[k])) delete M.perks[k]; if(off(M.upg)) M.upg = null; if(off(M.power)) M.power = null; if(off(M.spawn)) M.spawn = null;
+    M.barrels = M.barrels.filter(b => (b[3] || 0) !== lv); M.bulbs = M.bulbs.filter(b => (b[2] || 0) !== lv); M.names = M.names.filter(b => (b[3] || 0) !== lv);
+    M.stairs = (M.stairs || []).filter(st => { const lo = st.lv || 0; return lo !== lv && lo + 1 !== lv; }); FL = 0; commit(); };
+}
 function fit(){ const bw = $('#gridBox').clientWidth - 2; cs = Math.max(12, Math.min(34, Math.floor(bw / W_()))); }
 $('#mapSel').onchange = e => load(e.target.value);
 $('#bNew').onclick = () => { const c = confirm('OK = start from a copy of Iitsty Outpost.\nCancel = start from a blank room.'); newMap(c ? stockCopy() : blank()); };
@@ -280,7 +343,9 @@ $('#bPlay').onclick = () => { if(!checks() && !confirm('The checks found problem
 $('#mName').oninput = e => { M.name = e.target.value.slice(0, 40); maps[id] = M; saveAll(); listMaps(); };
 for(const [el, f] of [['#oParts', 'parts'], ['#oUParts', 'upgParts'], ['#oEggs', 'eggs'], ['#oDogs', 'dogs']]) $(el).onchange = e => { M[f] = e.target.checked; commit(); };
 $('#bResize').onclick = () => { const nw = Math.max(12, Math.min(48, +$('#mW').value | 0)), nh = Math.max(10, Math.min(32, +$('#mH').value | 0)); snapshot();
-  const g = []; for(let z = 0; z < nh; z++){ let r = ''; for(let x = 0; x < nw; x++) r += (z < H_() && x < W_()) ? M.grid[z][x] : '#'; g.push(r); } M.grid = g;
+  const rs = (G, fillc) => { const g = []; for(let z = 0; z < nh; z++){ let r = ''; for(let x = 0; x < nw; x++) r += (z < G.length && x < G[0].length) ? G[z][x] : fillc; g.push(r); } return g; };
+  if(M.up) M.up.grid = rs(M.up.grid, ' '); if(M.down) M.down.grid = rs(M.down.grid, '#'); M.grid = rs(M.grid, '#');
+  if(M.stairs) M.stairs = M.stairs.filter(st => stairCells(st).concat([[st.x + st.dir[0] * 4, st.z + st.dir[1] * 4]]).every(([x, z]) => x >= 0 && z >= 0 && x < nw && z < nh));
   const inB = o => o && o.x < nw && o.z < nh; M.box = M.box.filter(inB); M.wallbuys = M.wallbuys.filter(inB); for(const k in M.perks) if(!inB(M.perks[k])) delete M.perks[k]; if(!inB(M.upg)) M.upg = null; if(!inB(M.power)) M.power = null; if(!inB(M.spawn)) M.spawn = null;
   M.barrels = M.barrels.filter(b => b[0] < nw && b[1] < nh); M.bulbs = M.bulbs.filter(b => b[0] < nw && b[1] < nh); M.names = M.names.filter(b => b[0] < nw && b[1] < nh); fit(); commit(); };
 $('#zIn').onclick = () => { cs = Math.min(48, cs + 4); draw(); }; $('#zOut').onclick = () => { cs = Math.max(8, cs - 4); draw(); };
