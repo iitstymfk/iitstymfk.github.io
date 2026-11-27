@@ -52,6 +52,9 @@ body.touch #parts{top:calc(6px + env(safe-area-inset-top));padding:3px 6px}body.
 body.touch #nades{display:none}
 #tNade .n{position:absolute;right:-4px;top:-4px;min-width:18px;height:18px;border-radius:9px;background:#c8102e;color:#fff;font-size:11px;line-height:18px;text-align:center;border:1px solid #fff8}
 #tNade.empty{opacity:.35}
+.gIco{display:inline-block;width:1em;height:1em;background:url(assets/icons/grenade.png) center/contain no-repeat;vertical-align:-.12em;filter:drop-shadow(0 0 2px #000a)}
+#tNade .gIco{width:26px;height:26px}
+#nades .gIco{width:16px;height:16px;margin-right:3px}
 #prompt{position:absolute;left:50%;top:62%;transform:translateX(-50%);background:rgba(0,0,0,.45);padding:6px 14px;border-radius:6px;font-size:19px;text-shadow:0 1px 2px #000;white-space:nowrap;display:none}
 #prompt b{color:#ffd84a}
 #ann{position:absolute;left:50%;top:26%;transform:translateX(-50%);font-family:Creepster,cursive;font-size:56px;color:#7dff5a;text-shadow:0 0 18px rgba(80,255,60,.6),3px 3px 0 #000;opacity:0;white-space:nowrap;transition:opacity .4s}
@@ -143,7 +146,7 @@ body.touch h1{font-size:46px}body.touch h1 span{font-size:60px}
   <div class="tb" id="tAds">AIM</div>
   <div class="tb" id="tReload">⟳</div>
   <div class="tb" id="tKnife">🔪</div>
-  <div class="tb" id="tNade">💣</div>
+  <div class="tb" id="tNade"><i class="gIco"></i></div>
   <div class="tb" id="tSwap">⇄</div>
   <div class="tb" id="tUse">USE</div>
   <div class="tb" id="tPause">❚❚</div>
@@ -2081,7 +2084,7 @@ function hudGun(){
   const g = P.guns[P.gi];
   if(!g){ $('#gunName').textContent = UPG.state !== 'idle' ? '(weapon in the upgrade machine)' : ''; $('#mag').textContent = '-'; $('#res').textContent = '-'; }
   else { const st = gs(g); $('#gunName').textContent = st.name; $('#gunName').classList.toggle('up', g.up); $('#mag').textContent = g.mag; $('#res').textContent = g.res; $('#mag').classList.toggle('low', g.mag <= Math.ceil(st.mag * .25)); }
-  $('#nades').textContent = '💣'.repeat(P.nades); { const tn = $('#tNade'); if(tn && tn._n !== P.nades){ tn._n = P.nades; tn.innerHTML = `💣<span class="n">${P.nades}</span>`; tn.classList.toggle('empty', !P.nades); } }
+  $('#nades').innerHTML = '<i class="gIco"></i>'.repeat(P.nades); { const tn = $('#tNade'); if(tn && tn._n !== P.nades){ tn._n = P.nades; tn.innerHTML = `<i class="gIco"></i><span class="n">${P.nades}</span>`; tn.classList.toggle('empty', !P.nades); } }
 }
 function hudPerks(){ $('#perks').innerHTML = P.perks.map(k => `<i style="background:${PERKS[k].color}33;color:${PERKS[k].color}" title="${PERKS[k].name}">${PERKS[k].icon}</i>`).join(''); }
 function drawRound(r, flash = true){ const el = $('#round'); if(r <= 5){ let h = '<span class="tal">'; for(let i = 0; i < Math.min(r, 4); i++) h += '<i></i>'; if(r === 5) h += '<i class="sl"></i>'; el.innerHTML = h + '</span>'; } else el.textContent = r; if(flash){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }
