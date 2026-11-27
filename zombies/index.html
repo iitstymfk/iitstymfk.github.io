@@ -674,7 +674,7 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
 }
 
 /* ---------- lights ---------- */
-const hemi = new THREE.HemisphereLight(0x6070a0, 0x2a1c12, 0.75); scene.add(hemi); hemi.userData.keep = true;
+const hemi = new THREE.HemisphereLight(0x6070a0, LAB ? 0x141c24 : 0x2a1c12, LAB ? 0.9 : 0.75); scene.add(hemi); hemi.userData.keep = true;
 const flashlight = new THREE.SpotLight(0xfff1d6, LQ ? 24 : 28, 28, 0.5, 0.7, 1.7); camera.add(flashlight); flashlight.position.set(0.15, -0.1, 0); flashlight.target.position.set(0, 0, -5); camera.add(flashlight.target);
 const muzzleLight = new THREE.PointLight(0xffa040, 0, 9, 1.6); scene.add(muzzleLight); muzzleLight.userData.keep = true;
 const boomLight = new THREE.PointLight(0xff7a20, 0, 14, 1.4); scene.add(boomLight); boomLight.userData.keep = true;
@@ -722,7 +722,7 @@ function updShadows(dt){
 }
 function bulbBase(b){ if(power) return LQ ? 60 : 55; return b.room === 0 ? (LQ ? 45 : 44) : 5; }
 function setBulb(b, k){ b.light.intensity = k; const u = b.light.userData; if(u.fill) u.fill.intensity = k * .45; if(u.cone) u.cone.material.opacity = .085 * k / 50; b.bulb.color.copy(b.lit).multiplyScalar(.4 + 3.2 * k / 50); }
-function setBulbColors(){ for(const b of BULBS){ const lit = power || b.room === 0; const c = lit ? 0xffb873 : 0xff2a14; b.light.color.set(c); if(b.light.userData.fill) b.light.userData.fill.color.set(c); if(b.light.userData.cone) b.light.userData.cone.material.color.set(lit ? 0xffb060 : 0xff2010); b.lit = new THREE.Color(lit ? 0xffd9a0 : 0xff3010); b.glow.material.color.set(lit ? 0xffb060 : 0xff2010); } }
+function setBulbColors(){ for(const b of BULBS){ const lit = power || b.room === 0; const c = lit ? (LAB ? 0xbfdcff : 0xffb873) : 0xff2a14; b.light.color.set(c); if(b.light.userData.fill) b.light.userData.fill.color.set(c); if(b.light.userData.cone) b.light.userData.cone.material.color.set(lit ? (LAB ? 0x9cc8ff : 0xffb060) : 0xff2010); b.lit = new THREE.Color(lit ? (LAB ? 0xe0f0ff : 0xffd9a0) : 0xff3010); b.glow.material.color.set(lit ? (LAB ? 0x9cc8ff : 0xffb060) : 0xff2010); } }
 setBulbColors();
 
 /* ---------- floating dust ---------- */
