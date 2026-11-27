@@ -1289,7 +1289,7 @@ const PERKS = {
 };
 const PERK_MESH = [];
 const PERKTEX = (() => { const L = new THREE.TextureLoader(), C = {}; return u => C[u] || (C[u] = L.load(u, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = HQ ? 8 : 2; })); })();
-const PERKMAT = { chrome: new THREE.MeshStandardMaterial({ map: PERKTEX('assets/tex/perk/chrome.jpg'), color: 0xdadde2, roughness: .22, metalness: .9 }), dark: new THREE.MeshStandardMaterial({ color: 0x141210, roughness: .7, metalness: .4 }),
+const PERKMAT = { chrome: new THREE.MeshStandardMaterial({ map: PERKTEX('assets/tex/perk/chrome.jpg'), color: 0xb0b4ba, roughness: .32, metalness: .85 }), dark: new THREE.MeshStandardMaterial({ color: 0x141210, roughness: .7, metalness: .4 }),
   rivet: new THREE.MeshStandardMaterial({ map: PERKTEX('assets/tex/perk/rivet.jpg'), roughness: .5, metalness: .7 }), glass: new THREE.MeshStandardMaterial({ color: 0xaaccdd, roughness: .03, metalness: .1, transparent: true, opacity: .16, depthWrite: false }) };
 for(const k in PERKS){ const pl = MAPD.perks && MAPD.perks[k]; if(pl){ PERKS[k].x = pl.x; PERKS[k].z = pl.z; PERKS[k].face = pl.face || openSide(pl.x, pl.z); PERKS[k].placed = true; } }
 for(const k in PERKS){
@@ -1300,8 +1300,8 @@ for(const k in PERKS){
   // a little display case of glowing bottles, dispenser slot, coin panel and a riveted kick plate
   const T = n => PERKTEX(`assets/tex/perk/${n}.jpg`), front = T(k + '_front'), side = T(k + '_side'), glowMap = T(k + '_glow'), marq = T(k + '_marquee');
   const chromeM = PERKMAT.chrome, darkM = PERKMAT.dark;
-  const sideM = new THREE.MeshStandardMaterial({ map: side, roughness: .55, metalness: .25 });
-  const frontM = new THREE.MeshStandardMaterial({ map: front, roughness: .5, metalness: .2, emissive: 0xffffff, emissiveMap: glowMap, emissiveIntensity: .05 });
+  const sideM = new THREE.MeshStandardMaterial({ map: side, color: 0xb8b8b8, roughness: .82, metalness: .05 }); // matte paint: the flashlight shouldn't blow it out
+  const frontM = new THREE.MeshStandardMaterial({ map: front, color: 0xb8b8b8, roughness: .82, metalness: .05, emissive: 0xffffff, emissiveMap: glowMap, emissiveIntensity: .05 });
   const body = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.95, .8), [sideM, sideM, darkM, darkM, frontM, darkM]); body.position.y = 1.0; body.castShadow = body.receiveShadow = true; g.add(body);
   const cap = new THREE.Mesh(new THREE.BoxGeometry(1.08, .07, .88), chromeM); cap.position.y = 1.99; g.add(cap);
   for(const sx of [-1, 1]) for(const sz of [-1, 1]){ const e = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 1.95, 8), chromeM); e.position.set(sx * .5, 1.0, sz * .4); g.add(e);
