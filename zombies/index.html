@@ -31,8 +31,9 @@ canvas#c{position:fixed;inset:0;width:100vw;height:100vh;display:block}
 .tal i{display:inline-block;width:.11em;height:.8em;background:currentColor;margin:0 .06em;border-radius:.04em;transform:rotate(3deg);box-shadow:inherit}
 .tal i:nth-child(2){transform:rotate(-2deg) translateY(.03em)}.tal i:nth-child(3){transform:rotate(5deg)}
 .tal i.sl{position:absolute;left:-.12em;top:.32em;width:1.15em;height:.1em;transform:rotate(-24deg);margin:0}
-#parts{position:absolute;left:calc(28px + env(safe-area-inset-left));bottom:158px;display:flex;gap:6px;align-items:center;font:600 13px Oswald,sans-serif;color:#ffd84a;text-shadow:0 1px 3px #000}#parts span{display:flex;gap:4px;align-items:center;margin-right:8px}#parts i{font-style:normal;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:#0008;border:1px solid #ffd84a55;font-size:17px}#parts i.no{opacity:.28;filter:grayscale(1)}
-body.touch #parts{left:calc(66px + env(safe-area-inset-left));top:116px;bottom:auto}
+#parts{position:absolute;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;justify-content:center;flex-wrap:wrap;max-width:70vw;padding:4px 8px;border-radius:12px;background:rgba(0,0,0,.35);gap:6px;align-items:center;font:600 13px Oswald,sans-serif;color:#ffd84a;text-shadow:0 1px 3px #000}#parts span{display:flex;gap:4px;align-items:center;margin-right:8px}#parts i{font-style:normal;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:#0008;border:1px solid #ffd84a55;font-size:17px}#parts i.no{opacity:.28;filter:grayscale(1)}
+#parts:empty{display:none}
+body.touch #parts{top:calc(6px + env(safe-area-inset-top));padding:3px 6px}body.touch #parts i{width:26px;height:26px;font-size:14px}
 #perks{position:absolute;left:calc(28px + env(safe-area-inset-left));bottom:118px;display:flex;gap:6px}
 #perks i{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-size:18px;box-shadow:0 0 10px currentColor,inset 0 0 0 2px rgba(255,255,255,.25)}
 #right{position:absolute;right:calc(26px + env(safe-area-inset-right));bottom:18px;text-align:right}
@@ -47,6 +48,9 @@ body.touch #parts{left:calc(66px + env(safe-area-inset-left));top:116px;bottom:a
 #ammo{font-size:30px;font-weight:600;text-shadow:0 2px 5px #000}
 #ammo b{font-size:38px}#ammo b.low{color:#ff4040}
 #nades{font-size:14px;color:#c8d27a;letter-spacing:2px}
+body.touch #nades{display:none}
+#tNade .n{position:absolute;right:-4px;top:-4px;min-width:18px;height:18px;border-radius:9px;background:#c8102e;color:#fff;font-size:11px;line-height:18px;text-align:center;border:1px solid #fff8}
+#tNade.empty{opacity:.35}
 #prompt{position:absolute;left:50%;top:62%;transform:translateX(-50%);background:rgba(0,0,0,.45);padding:6px 14px;border-radius:6px;font-size:19px;text-shadow:0 1px 2px #000;white-space:nowrap;display:none}
 #prompt b{color:#ffd84a}
 #ann{position:absolute;left:50%;top:26%;transform:translateX(-50%);font-family:Creepster,cursive;font-size:56px;color:#7dff5a;text-shadow:0 0 18px rgba(80,255,60,.6),3px 3px 0 #000;opacity:0;white-space:nowrap;transition:opacity .4s}
@@ -108,7 +112,7 @@ body.touch #perks{left:calc(66px + env(safe-area-inset-left));top:76px;bottom:au
 body.touch #perks i{width:28px;height:28px;font-size:15px}
 body.touch #right{top:8px;bottom:auto}
 body.touch #pts{font-size:30px}body.touch #ammo{font-size:22px}body.touch #ammo b{font-size:28px}
-body.touch #pus{bottom:auto;top:10px}
+body.touch #pus{bottom:auto;top:52px}
 body.touch #prompt{top:58%;font-size:16px}
 .ov{touch-action:pan-y}
 @media (max-height:520px){.panel{padding:12px 16px}h1,body.touch h1{font-size:34px}h1 span,body.touch h1 span{font-size:46px}.sub{display:none}button.big{font-size:22px;padding:6px;margin:6px 0}ol.lb{max-height:38vh}h3{margin:8px 0 4px}}
@@ -857,8 +861,8 @@ function setupArms(){
     Object.assign(ARMS, { ok: true, root, holder, mixer, A, B, kb, mode: 'hold', kAlt: false,
       rOff: new THREE.Euler(0, 0, 0), lOff: new THREE.Euler(0, 0, 0), kbPos: new THREE.Vector3(-.02, .085, 0), kbRot: new THREE.Euler(0, Math.PI, 0), knifeOff: new THREE.Vector3(-.17, .07, -.04), holdOff: new THREE.Vector3(0, -.14, .06), holdOffLong: new THREE.Vector3(0, -.04, .02), poleL: new THREE.Vector3(-.35, -1, .25), poleR: new THREE.Vector3(.45, -1, .2),
       grip: { y: -.22, z: .3, zs: .3 }, hip: new THREE.Vector3(.09, -.075, -.38), hipLong: new THREE.Vector3(.08, -.08, -.3),
-      lFixP: ARMS_basis([.9, .25, .3], [.5, -.7, -.5]), pistolL: new THREE.Vector3(-.03, .012, -.04),
-      lFix: (() => { const Y = new THREE.Vector3(.5, .1, -.9).normalize(), X = new THREE.Vector3(.3, 1, 0).normalize(); X.sub(Y.clone().multiplyScalar(X.dot(Y))).normalize(); return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, X.clone().cross(Y))); })(), fore: { y: -.2, z: .42 }, wristBack: .07, wristBend: .35, wristBendLong: 1 });
+      lFixP: ARMS_basis([.9, .25, .3], [.6, .5, -.6]), pistolL: new THREE.Vector3(-.04, -.03, -.03), poleLP: new THREE.Vector3(-.2, -1.4, .15),
+      lFix: (() => { const Y = new THREE.Vector3(.5, .1, -.9).normalize(), X = new THREE.Vector3(.3, 1, 0).normalize(); X.sub(Y.clone().multiplyScalar(X.dot(Y))).normalize(); return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, X.clone().cross(Y))); })(), fore: { y: -.2, z: .42 }, wristBack: .07, wristBend: 1, wristBendLong: 1 });
   }catch(e){ console.warn('arms setup', e); ARMS.ok = false; }
 }
 function ARMS_basis(x, y){ const Y = new THREE.Vector3(...y).normalize(), X = new THREE.Vector3(...x).normalize(); X.sub(Y.clone().multiplyScalar(X.dot(Y))).normalize(); return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, X.clone().cross(Y))); }
@@ -906,7 +910,7 @@ function updArms(dt, gunShown){
   const lWant = (P.sprint && !long) || P.reloadT > 0 ? 0 : 1; ARMS.lK = (ARMS.lK == null ? 1 : ARMS.lK) + (lWant - (ARMS.lK == null ? 1 : ARMS.lK)) * Math.min(1, dt * 10);
   if(ARMS.lK > .02){
     const restL = B['handL'].getWorldPosition(new THREE.Vector3()); const tgt = restL.lerp(lT, ARMS.lK);
-    ik2(B['upper_armL'], B['forearmL'], B['handL'], tgt, ARMS.poleL);
+    ik2(B['upper_armL'], B['forearmL'], B['handL'], tgt, long ? ARMS.poleL : ARMS.poleLP);
     // keep the wrist mostly in line with the forearm so the hand never folds over at a sharp angle
     let lQ = lW; const wb = long ? ARMS.wristBendLong : ARMS.wristBend;
     if(wb < 1){ const el = B['forearmL'].getWorldPosition(new THREE.Vector3()), hp = B['handL'].getWorldPosition(new THREE.Vector3()); const fd = hp.sub(el).normalize();
@@ -1641,7 +1645,7 @@ function hudGun(){
   const g = P.guns[P.gi];
   if(!g){ $('#gunName').textContent = UPG.state !== 'idle' ? '(weapon in the upgrade machine)' : ''; $('#mag').textContent = '-'; $('#res').textContent = '-'; }
   else { const st = gs(g); $('#gunName').textContent = st.name; $('#gunName').classList.toggle('up', g.up); $('#mag').textContent = g.mag; $('#res').textContent = g.res; $('#mag').classList.toggle('low', g.mag <= Math.ceil(st.mag * .25)); }
-  $('#nades').textContent = '💣'.repeat(P.nades);
+  $('#nades').textContent = '💣'.repeat(P.nades); { const tn = $('#tNade'); if(tn && tn._n !== P.nades){ tn._n = P.nades; tn.innerHTML = `💣<span class="n">${P.nades}</span>`; tn.classList.toggle('empty', !P.nades); } }
 }
 function hudPerks(){ $('#perks').innerHTML = P.perks.map(k => `<i style="background:${PERKS[k].color}33;color:${PERKS[k].color}" title="${PERKS[k].name}">${PERKS[k].icon}</i>`).join(''); }
 function drawRound(r, flash = true){ const el = $('#round'); if(r <= 5){ let h = '<span class="tal">'; for(let i = 0; i < Math.min(r, 4); i++) h += '<i></i>'; if(r === 5) h += '<i class="sl"></i>'; el.innerHTML = h + '</span>'; } else el.textContent = r; if(flash){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }
