@@ -362,10 +362,15 @@ const M = {
   metal: mat({ map: TEX.metal, roughness: .5, metalness: .6 }),
   pipe: mat({ color: 0x3a3d42, roughness: .45, metalness: .7 }),
   dark: mat({ color: 0x151515, roughness: .8, metalness: .2 }),
+  officeWall: mat({ map: TEX.brick, roughness: .9, metalness: 0, color: 0xb0a490 }), woodFloor: mat({ map: TEX.floor, roughness: .7, metalness: 0, color: 0x8a7a68 }), baseFloor: mat({ map: TEX.floor, roughness: .95, metalness: 0, color: 0x807a72 }),
 };
 TEX.floor.repeat.set(32*1.6/6.4, 22*1.6/6.4);
 { const TL = new THREE.TextureLoader(); const up = (t, mats, rep) => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; for(const m of mats){ m.map = t; if(m.bumpMap) m.bumpMap = t; m.needsUpdate = true; } };
   TL.load('assets/tex/floor_tile.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.62); });
+  // Foxtex (Foxhead): upstairs office panels + herringbone floor, basement stone slabs
+  TL.load('assets/tex/fox_office_wall.jpg', t => { t.repeat.set(1, 1.25); up(t, [M.officeWall]); M.officeWall.color.set(0xb0a490); });
+  TL.load('assets/tex/fox_wood_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.woodFloor]); M.woodFloor.color.set(0x8a7a68); });
+  TL.load('assets/tex/fox_base_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.baseFloor]); M.baseFloor.color.set(0x807a72); });
   TL.load('assets/tex/planks.jpg', t => { up(t, [M.wood]); M.wood.color.set(0x9a8a78); });
   TL.load('assets/tex/metal_rivet.jpg', t => { up(t, [M.metal]); M.metal.color.setScalar(.75); });
   TL.load('assets/tex/stone_block.jpg', t => { t.repeat.set(1, 1.5); up(t, [M.stone]); M.stone.color.set(0x6e6a64); }); }
@@ -561,13 +566,14 @@ const FLOORS = []; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++) if(G[
 const level = new THREE.Group(); scene.add(level); level.userData.keep = true; level.userData.visual = true;
 for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B.lv * WH, 0); B.g.userData.keep = true; B.g.userData.band = B; scene.add(B.g); }
 {
-  const cellGeo = (y, tile, down) => { const pos = [], uv = [], idx = []; let n = 0;
-    for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ const ch = G[z][x]; if(ch === ' ' || ch === '|' || (down ? ch === 'S' : ch === 'O')) continue; const B = bandOfCell(x); const x0 = (x - B.x0) * CELL, z0 = z * CELL, x1 = x0 + CELL, z1 = z0 + CELL; const yy = y + B.lv * WH;
+  const cellGeo = (y, tile, down, filt) => { const pos = [], uv = [], idx = []; let n = 0;
+    for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ const ch = G[z][x]; if(ch === ' ' || ch === '|' || (down ? ch === 'S' : ch === 'O')) continue; const B = bandOfCell(x); if(filt && !filt(B)) continue; const x0 = (x - B.x0) * CELL, z0 = z * CELL, x1 = x0 + CELL, z1 = z0 + CELL; const yy = y + B.lv * WH;
       pos.push(x0, yy, z0, x1, yy, z0, x1, yy, z1, x0, yy, z1); uv.push(x0 / tile, -z0 / tile, x1 / tile, -z0 / tile, x1 / tile, -z1 / tile, x0 / tile, -z1 / tile);
       if(down) idx.push(n, n + 1, n + 2, n, n + 2, n + 3); else idx.push(n, n + 2, n + 1, n, n + 3, n + 2); n += 4; }
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals(); return geo; };
   TEX.floor.repeat.set(1, 1); TEX.ceil.repeat.set(1, 1);
-  const floor = new THREE.Mesh(cellGeo(0.002, 6.4, false), M.floor); level.add(floor); floor.userData.visual = true;
+  const floor = new THREE.Mesh(cellGeo(0.002, 6.4, false, B => B.lv === 0), M.floor); level.add(floor); floor.userData.visual = true;
+  for(const [lv, m, tile] of [[1, M.woodFloor, 3.2], [-1, M.baseFloor, 3.2]]){ if(!BANDS.some(B => B.lv === lv)) continue; const f2 = new THREE.Mesh(cellGeo(0.002, tile, false, B => B.lv === lv), m); f2.receiveShadow = SHADOWS; f2.userData.visual = true; level.add(f2); }
   const ceil = new THREE.Mesh(cellGeo(WH, 3.66, true), M.ceil); level.add(ceil); ceil.userData.visual = true;
   // roofs: tops of rooms that have open sky above them on the next floor up
   if(BANDS.length > 1){ const pos = [], idx = []; let n = 0;
@@ -586,22 +592,22 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
     for(let z = 0; z < GH; z++) for(let x = 0; x < W0; x++) if(G[z][x] === ' ') q(x * CELL, z * CELL, (x + 1) * CELL, (z + 1) * CELL);
     const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gg.computeVertexNormals();
     const ground = new THREE.Mesh(gg, M.dirt); ground.position.y = -0.01; ground.receiveShadow = SHADOWS; ground.userData.visual = true; level.add(ground); }
-  let nW = 0, nS = 0, nWin = 0; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ if(G[z][x] === '#'){ if(bandOfCell(x).lv < 0) nS++; else nW++; } if(G[z][x] === 'W') nWin++; }
+  let nW = 0, nS = 0, nO = 0, nWin = 0; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ if(G[z][x] === '#'){ const lv = bandOfCell(x).lv; if(lv < 0) nS++; else if(lv > 0) nO++; else nW++; } if(G[z][x] === 'W') nWin++; }
   const wallG = new THREE.BoxGeometry(CELL, WH, CELL); wallG.translate(0, WH/2, 0);
-  const walls = new THREE.InstancedMesh(wallG, M.brick, nW), stoneW = new THREE.InstancedMesh(wallG, M.stone, Math.max(1, nS)); stoneW.count = nS; let si = 0;
+  const walls = new THREE.InstancedMesh(wallG, M.brick, nW), stoneW = new THREE.InstancedMesh(wallG, M.stone, Math.max(1, nS)); stoneW.count = nS; let si = 0; const offW = new THREE.InstancedMesh(wallG, M.officeWall, Math.max(1, nO)); offW.count = nO; let oi = 0;
   const lowG = new THREE.BoxGeometry(CELL, 0.9, CELL); lowG.translate(0, .45, 0);
   const hiG = new THREE.BoxGeometry(CELL, 0.9, CELL); hiG.translate(0, 2.3 + .45, 0);
   const lows = new THREE.InstancedMesh(lowG, M.brick, nWin), his = new THREE.InstancedMesh(hiG, M.brick, nWin);
   const m4 = new THREE.Matrix4(); let i = 0, j = 0;
   for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){
     const B = bandOfCell(x), vx = (x - B.x0 + .5) * CELL, vy = B.lv * WH;
-    if(G[z][x] === '#'){ m4.makeTranslation(vx, vy, (z+.5)*CELL); if(B.lv < 0) stoneW.setMatrixAt(si++, m4); else walls.setMatrixAt(i++, m4); }
+    if(G[z][x] === '#'){ m4.makeTranslation(vx, vy, (z+.5)*CELL); if(B.lv < 0) stoneW.setMatrixAt(si++, m4); else if(B.lv > 0) offW.setMatrixAt(oi++, m4); else walls.setMatrixAt(i++, m4); }
     if(G[z][x] === 'W'){ m4.makeTranslation(vx, vy, (z+.5)*CELL); lows.setMatrixAt(j, m4); his.setMatrixAt(j++, m4); }
   }
-  for(const m of [walls, stoneW, lows, his]){ m.castShadow = m.receiveShadow = SHADOWS; }
+  for(const m of [walls, stoneW, offW, lows, his]){ m.castShadow = m.receiveShadow = SHADOWS; }
   floor.receiveShadow = SHADOWS;
-  for(const m of [walls, stoneW, lows, his]) m.userData.visual = true;
-  level.add(walls, stoneW, lows, his);
+  for(const m of [walls, stoneW, offW, lows, his]) m.userData.visual = true;
+  level.add(walls, stoneW, offW, lows, his);
   // crates
   const crG = new THREE.BoxGeometry(1.3, 1.25, 1.3); crG.translate(0, .625, 0);
   for(const [x, z] of CRATES){ const c = new THREE.Mesh(crG, M.crate); c.castShadow = c.receiveShadow = SHADOWS; c.position.copy(wpos(x, z)); c.rotation.y = rand(-.2, .2); level.add(c);
