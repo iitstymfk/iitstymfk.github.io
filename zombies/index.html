@@ -401,6 +401,7 @@ function stockMap(){
     perks: { revive: { x: 13, z: 20, face: [0, -1] }, tough: { x: 16, z: 20, face: [0, -1] }, rapid: { x: 1, z: 8, face: [1, 0] }, speed: { x: 30, z: 8, face: [-1, 0] }, stamina: { x: 16, z: 1, face: [0, 1] } },
     box: [ { x: 7, z: 1, face: [0, 1] }, { x: 24, z: 20, face: [0, -1] }, { x: 27, z: 9, face: [0, -1] }, { x: 36, z: 20, face: [0, -1] }, { x: 21, z: 8, face: [0, -1], lv: 1 } ],
     upg: { x: 7, z: 2, face: [0, 1], lv: -1 }, power: { x: 30, z: 19 }, parts: true, eggs: true,
+    zips: [ { a: [17, 11], b: [29, 17] } ],
     barrels: [[1, 11, 1], [13, 1, 0], [29, 11, 1], [29, 1, 0], [14, 19, 0], [32, 9, 1], [38, 11, 0], [2, 7, 1, -1], [12, 2, 0, -1], [30, 8, 0, 1]],
     bulbs: [[4.5,15.5],[10.5,15.5],[4.5,5],[10.5,5],[20,15.5],[26.5,15.5],[20,5],[26.5,5],[35.5,5],[35.5,15.5],[23,5,1],[28,5,1],[5,5,-1],[10.5,5,-1]],
     pipes: [[1,14,12],[1,14,2],[16,30,12],[16,30,2],[1,14,19.5],[16,30,8.5],[32,38,2],[32,38,19.5]] };
@@ -1086,6 +1087,37 @@ if(POWER){
   INTER.push({ pos: c.clone().add(new THREE.Vector3(-ws[0] * .6, 0, -ws[1] * .6)), r: 2.2, prompt(){ if(power) return null; if(PARTS.on && !PARTS.built) return PARTS.have < PARTS.list.length ? [`The power switch is missing parts (${PARTS.have}/${PARTS.list.length}). Search the map!`, 0, true] : [`Press <b>${KEY}</b> to build the power switch`, 0]; return [`Press <b>${KEY}</b> to turn on the power`, 0]; },
     use(){ if(power) return; if(PARTS.on && !PARTS.built){ if(PARTS.have < PARTS.list.length) return; PARTS.built = true; POWER.lever.visible = true; SND.buy(); hudParts(); ann('SWITCH BUILT', '#ffd84a'); return; } power = true; POWER.lever.rotation.x = -.9; SND.powerOn(); setBulbColors(); perkSigns(); hemi.intensity = .9; scene.fog.density = .042; ann('POWER ON', '#ffd84a'); flashScreen(.25); } });
 }
+/* ---------- zip lines: pay, grab the handle, slide over the zombies (you can shoot while riding, they can't reach you) ---------- */
+const ZIPS = [];
+{
+  const ZM_ = { post: mat({ color: 0x3a3a3e, roughness: .5, metalness: .7 }), cable: mat({ color: 0x202024, roughness: .4, metalness: .8 }), yel: mat({ color: 0xc9a820, roughness: .6 }) };
+  for(const zd of (MAPD.zips || [])){
+    const lv = zd.lv || 0, B = BANDS.find(b => b.lv === lv); if(!B) continue; const off = B.x0;
+    const A = wpos(zd.a[0] + off, zd.a[1]), Bp = wpos(zd.b[0] + off, zd.b[1]); const yA = WH - .22, yB = WH - .55;
+    for(const [p, y] of [[A, yA], [Bp, yB]]){ const post = new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, WH, 10), ZM_.post); post.position.set(p.x, WH / 2, p.z); post.castShadow = SHADOWS; level.add(post);
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(.095, .095, .5, 10), ZM_.yel); band.position.set(p.x, 1.1, p.z); level.add(band);
+      const wheel = new THREE.Mesh(new THREE.TorusGeometry(.12, .03, 6, 14), ZM_.post); wheel.position.set(p.x, y + .05, p.z); level.add(wheel); }
+    const a3 = new THREE.Vector3(A.x, yA, A.z), b3 = new THREE.Vector3(Bp.x, yB, Bp.z), len = a3.distanceTo(b3);
+    const cable = new THREE.Mesh(new THREE.CylinderGeometry(.018, .018, len, 6), ZM_.cable); cable.position.copy(a3).lerp(b3, .5);
+    cable.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b3.clone().sub(a3).normalize()); level.add(cable);
+    // the handle (trolley) waits at whichever end it was last ridden to
+    const handle = new THREE.Group(); const bar = new THREE.Mesh(new THREE.BoxGeometry(.5, .05, .05), ZM_.yel); bar.position.y = -.42; handle.add(bar);
+    for(const sx of [-1, 1]){ const r = new THREE.Mesh(new THREE.BoxGeometry(.03, .42, .03), ZM_.post); r.position.set(sx * .2, -.21, 0); handle.add(r); }
+    handle.add(new THREE.Mesh(new THREE.BoxGeometry(.16, .1, .12), ZM_.post)); handle.position.copy(a3); handle.rotation.y = Math.atan2(b3.x - a3.x, b3.z - a3.z) + Math.PI / 2; level.add(handle);
+    const Z1 = { a3, b3, len, handle, at: 0, cost: zd.cost != null ? zd.cost : 250 }; ZIPS.push(Z1);
+    for(const end of [0, 1]){ const e = end ? b3 : a3;
+      INTER.push({ pos: new THREE.Vector3(e.x, 1.5, e.z), r: 1.7, prompt(){ if(P.zip) return null; if(!power) return ['The zip line needs power', 0, true]; return [`Press <b>${KEY}</b> to ride the zip line`, Z1.cost]; },
+        use(){ if(P.zip || !power) return; if(!spend(Z1.cost)) return; const from = end ? b3 : a3, to = end ? a3 : b3;
+          P.zip = { z: Z1, from, to, t: 0, dur: Math.max(1.6, Z1.len / 8.5) }; Z1.handle.position.copy(from); SND.buy();
+          tn({ f: 520, f2: 980, type: 'sawtooth', dur: P.zip.dur, vol: .035 }); tn({ f: 140, f2: 90, type: 'square', dur: .12, vol: .08 }); } }); }
+  }
+}
+function updZip(dt){
+  const zp = P.zip; zp.t += dt / zp.dur; const k = Math.min(1, zp.t); const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; // ease in/out
+  const c = zp.from.clone().lerp(zp.to, e); zp.z.handle.position.copy(c);
+  P.pos.x = c.x; P.pos.z = c.z; P.pos.y = 0; P.zipLift = Math.min(1, Math.min(zp.t, 1 - zp.t) * 6) * Math.max(0, c.y - .42 - 1.62 + .05);
+  if(zp.t >= 1){ P.zip = null; P.zipLift = 0; pushOut(P.pos, .3); P.pos.y = groundY(P.pos); flowDirty = true; tn({ f: 160, f2: 70, type: 'square', dur: .14, vol: .09 }); }
+}
 // mystery box
 const BOXLOCS = (MAPD.box || []).map(b => ({ x: b.x, z: b.z, face: b.face || openSide(b.x, b.z) }));
 const BOX = { loc: 0, uses: 0, state: 'idle', t: 0, offer: null, disp: null, swapT: 0 };
@@ -1504,7 +1536,7 @@ function updZombies(dt){
       if(z.screamT > 0){ z.screamT -= dt; moving = false; z.m.root.rotation.y = Math.atan2(P.pos.x - p.x, P.pos.z - p.z); }
       else if(dP > .85 && !P.down) moveToward(z, tg, z.speed * (z.atkT > 0 ? .3 : 1), dt); else { moving = false; z.m.root.rotation.y = Math.atan2(P.pos.x - p.x, P.pos.z - p.z); }
       if(STAIRS.length) p.y = groundY(p);
-      if(dP < (z.dog ? 1.0 : 1.15) && z.atkCD <= 0 && !P.down){ z.atkT = z.dog ? .25 : .45; z.swipeStart = true; if(!z.dog && Math.random() < .6) sfx('zatk', .6, p); z.atkCD = z.dog ? .75 : 1.15; z.swipe = true; }
+      if(dP < (z.dog ? 1.0 : 1.15) && z.atkCD <= 0 && !P.down && !P.zip){ z.atkT = z.dog ? .25 : .45; z.swipeStart = true; if(!z.dog && Math.random() < .6) sfx('zatk', .6, p); z.atkCD = z.dog ? .75 : 1.15; z.swipe = true; }
       // separation
       for(const o of Z){ if(o === z || o.dead || o.state !== 'in') continue; const op = o.m.root.position; const dx = p.x - op.x, dz = p.z - op.z, d = Math.hypot(dx, dz); if(d < .55 && d > 1e-4){ const push = (.55 - d) * .5; p.x += dx / d * push; p.z += dz / d * push; } }
       pushOut(p, .28);
@@ -1512,7 +1544,7 @@ function updZombies(dt){
       const pdx = P.pos.x - p.x, pdz = P.pos.z - p.z, pd = Math.hypot(pdx, pdz); if(pd < .58 && pd > 1e-4){ P.pos.x += pdx / pd * (.58 - pd); P.pos.z += pdz / pd * (.58 - pd); pushOut(P.pos, .3); }
     }
     if(z.atkCD > 0) z.atkCD -= dt;
-    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; const near = z.state === 'tear' ? Math.hypot(P.pos.x - z.win.inside.x, P.pos.z - z.win.inside.z) < 1.7 : Math.hypot(P.pos.x - p.x, P.pos.z - p.z) < 1.45; if(near) hurtPlayer(z.dog ? 34 : 50); } }
+    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; const near = z.state === 'tear' ? Math.hypot(P.pos.x - z.win.inside.x, P.pos.z - z.win.inside.z) < 1.7 : Math.hypot(P.pos.x - p.x, P.pos.z - p.z) < 1.45; if(near && !P.zip) hurtPlayer(z.dog ? 34 : 50); } }
     animZombie(z, dt, moving);
   }
 }
@@ -1887,13 +1919,13 @@ function update(dt){
   let speed = 4.2 * (d && d.slow ? d.slow : 1) * (stam ? 1.08 : 1) * (P.sprint ? 1.55 : 1) * (1 - P.ads * .4) * (P.down ? 0 : 1);
   const sy = Math.sin(P.yaw), cyw = Math.cos(P.yaw);
   const vx = (mx * cyw + mz * sy) * speed, vz = (-mx * sy + mz * cyw) * speed;
-  const opx = P.pos.x, opz = P.pos.z; P.pos.x += vx * dt; P.pos.z += vz * dt; if(stairPortal(P.pos, opx, opz)) flowDirty = true; pushOut(P.pos, .3); P.pos.y = groundY(P.pos);
+  if(P.zip) updZip(dt); else { const opx = P.pos.x, opz = P.pos.z; P.pos.x += vx * dt; P.pos.z += vz * dt; if(stairPortal(P.pos, opx, opz)) flowDirty = true; pushOut(P.pos, .3); P.pos.y = groundY(P.pos); }
   P.moving = ml * (P.down ? 0 : 1); if(P.moving > .1) P.step += dt * speed * 1.9;
   // ----- camera -----
   const bob = Math.sin(P.step) * .045 * Math.min(1, P.moving), eye = P.down ? .55 : 1.62;
-  camL.set(P.pos.x, P.pos.y + eye + bob, P.pos.z); L2V(camL, camera.position);
+  camL.set(P.pos.x, P.pos.y + eye + (P.zip ? 0 : bob) + (P.zipLift || 0), P.pos.z); L2V(camL, camera.position);
   if(P.shake > 0){ camera.position.x += rand(-1, 1) * P.shake * .08; camera.position.y += rand(-1, 1) * P.shake * .08; P.shake = Math.max(0, P.shake - dt * 1.5); }
-  camera.rotation.set(P.pitch, P.yaw, P.down ? .25 : 0);
+  camera.rotation.set(P.pitch, P.yaw, P.down ? .25 : P.zip ? Math.sin(P.zip.t * Math.PI) * .06 : 0);
   const scopeOn = d && d.scope && P.ads > .9;
   const fovT = (P.down ? 70 : 78) * (1 - P.ads * .25) * (scopeOn ? .32 : 1);
   camera.fov += (fovT - camera.fov) * Math.min(1, dt * 12); camera.updateProjectionMatrix();
@@ -2283,7 +2315,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { ZIPS, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
