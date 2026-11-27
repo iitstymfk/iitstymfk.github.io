@@ -800,7 +800,7 @@ function spawnGib(k, pos, sc = 1){ const src = (ASSETS.ext || {})[k]; if(!src) r
 function updGibs(dt){ for(let i = GIBS.length - 1; i >= 0; i--){ const g = GIBS[i], p = g.o.position; g.t += dt;
   if(g.t > 14){ g.o.scale.multiplyScalar(1 - dt * 2); if(g.t > 16){ g.o.removeFromParent(); GIBS.splice(i, 1); } continue; }
   if(g.v.lengthSq() > .01){ g.v.y -= 9.8 * dt; p.addScaledVector(g.v, dt); g.o.rotation.x += g.w.x * dt; g.o.rotation.y += g.w.y * dt; g.o.rotation.z += g.w.z * dt;
-    if(blocksAt(p.x, p.z)){ p.x -= g.v.x * dt; p.z -= g.v.z * dt; g.v.x *= -.4; g.v.z *= -.4; }
+    if(!inB(cx(p.x), cx(p.z)) || blocksAt(cx(p.x), cx(p.z))){ p.x -= g.v.x * dt; p.z -= g.v.z * dt; g.v.x *= -.4; g.v.z *= -.4; }
     if(p.y < .05){ p.y = .05; if(g.v.y < -1.5 && g.bled < 3){ g.bled++; floorBlood(p, .5); } g.v.y *= -.3; g.v.x *= .6; g.v.z *= .6; g.w.multiplyScalar(.5); if(Math.abs(g.v.y) < .4) g.v.set(0, 0, 0); } } } }
 function bloodBurst(pos, n = 8, big){
   for(let i = 0; i < n; i++) fx(pos, { color: 0x7a0000, v: new THREE.Vector3(rand(-1.5,1.5), rand(.5, 3), rand(-1.5,1.5)), g: 9, life: rand(.35, .7), size: big ? .16 : .09, size1: .03 });
@@ -1675,18 +1675,18 @@ function prisonerZombie(type){
 // a zombie with its OWN animation set (putrid zombie, Shroudling). cfg.map: role -> clip name(s)
 const BEAST = {
   putrid: { walkRef: .42, runRef: 2.4, map: { walk: ['Walk', 'Walk2', 'Walk4'], run: ['Walk3'], swipe: ['Attack', 'Attack2'], die: ['Death', 'Death2', 'Death3'], stumble: ['Hurt'], idle: ['Idle'] } },
-  shroud: { walkRef: .6, runRef: 3.1, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack1', 'Attack2'], die: ['Death'], stumble: ['Idle'], idle: ['Idle'], scream: ['Rage'] } },
+  shroud: { yaw: Math.PI / 2, walkRef: .6, runRef: 3.1, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack1', 'Attack2'], die: ['Death'], stumble: ['Idle'], idle: ['Idle'], scream: ['Rage'] } },
 };
 function beastZombie(key, type){
   const G = ASSETS[key], cfg = BEAST[key], root = new THREE.Group(), s = rand(.94, 1.06) * (key === 'shroud' ? 1.12 : 1); root.scale.setScalar(s);
-  const model = SkeletonUtils.clone(G.scene); model.scale.multiplyScalar(G.fit); root.add(model); let headBone = null;
+  const model = SkeletonUtils.clone(G.scene); model.scale.multiplyScalar(G.fit); if(cfg.yaw) model.rotation.y = cfg.yaw; root.add(model); let headBone = null;
   model.traverse(o => { if(o.isBone && /Head$|Head_\d+$/.test(o.name) && !headBone) headBone = o; });
   const head = new THREE.Object3D(); if(headBone){ const nub = headBone.children.find(c => c.isBone); if(nub) head.position.copy(nub.position).multiplyScalar(.5); } (headBone || model).add(head);
   const mixer = new THREE.AnimationMixer(model), A = {}, C = n => G.animations.find(a => a.name === n);
   for(const k in cfg.map){ const c = C(pick(cfg.map[k])); if(c) A[k] = mixer.clipAction(c); }
   for(const k of ['swipe', 'die', 'stumble', 'scream']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
   const sh = new THREE.Mesh(ZG.shadow, ZM.shadow); sh.scale.setScalar(key === 'shroud' ? 1.2 : .9); sh.position.y = .02; root.add(sh);
-  if(key === 'shroud'){ const gl = glowSprite(0xff2a10, 1.6, .25); gl.position.y = 1.4; root.add(gl); }
+  if(key === 'shroud'){ const gl = glowSprite(0xff2a10, 1.1, .12); gl.position.y = 1.2; root.add(gl); }
   scene.add(root);
   const m = { root, head, headBone, mixer, A, s, skinned: true, cur: null, walkRef: cfg.walkRef, runRef: cfg.runRef, beast: key };
   zPlay(m, type ? 'run' : 'walk', 0); if(m.cur) m.cur.time = Math.random() * m.cur.getClip().duration;
