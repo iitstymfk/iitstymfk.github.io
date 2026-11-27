@@ -1181,7 +1181,8 @@ function meleeMesh(k){ const c = MELEE[k], src = c && (ASSETS.ext || {})[c.n]; i
   o.scale.setScalar(c.len / h); const g = new THREE.Group(); if(c.flip){ o.rotation.z = Math.PI; o.position.y = c.len; } g.add(o); return g; }
 function setMeleeVM(){ if(!ARMS.ok) return; const kb = ARMS.kb; if(!kb.userData.knife) kb.userData.knife = [...kb.children];
   kb.clear(); const k = P.melee || 'knife', m = k !== 'knife' && meleeMesh(k);
-  if(m){ m.rotation.x = -Math.PI / 2; m.position.z = .07; m.scale.setScalar(1 / .8); kb.add(m); } else kb.add(...kb.userData.knife); }
+  // the knife swing is made for a short blade: long weapons are shown shorter so they don't fill the screen
+  if(m){ const L = MELEE[k].len, v = Math.min(L, .4) / L; m.rotation.x = -Math.PI / 2; m.position.z = .05; m.scale.setScalar(v / .8); kb.add(m); } else kb.add(...kb.userData.knife); }
 for(const wb of (MAPD.wallbuys || [])){ const c = MELEE[wb.k]; if(!c || !c.cost) continue;
   const [dx, dz] = wb.dx != null ? [wb.dx, wb.dz] : wallSide(wb.x, wb.z); const p = wpos(wb.x, wb.z, 1.5); p.x += dx * (CELL / 2 - .02); p.z += dz * (CELL / 2 - .02);
   const g = new THREE.Group(); g.position.copy(p); g.rotation.y = Math.atan2(-dx, -dz); level.add(g);
@@ -2658,7 +2659,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { ARMS, MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
