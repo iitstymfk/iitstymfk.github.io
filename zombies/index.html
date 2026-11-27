@@ -34,6 +34,10 @@ canvas#c{position:fixed;inset:0;width:100vw;height:100vh;display:block}
 .tal i.sl{position:absolute;left:-.12em;top:.32em;width:1.15em;height:.1em;transform:rotate(-24deg);margin:0}
 #parts{position:absolute;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);display:flex;justify-content:center;flex-wrap:wrap;max-width:70vw;padding:4px 8px;border-radius:12px;background:rgba(0,0,0,.35);gap:6px;align-items:center;font:600 13px Oswald,sans-serif;color:#ffd84a;text-shadow:0 1px 3px #000}#parts span{display:flex;gap:4px;align-items:center;margin-right:8px}#parts i{font-style:normal;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;background:#0008;border:1px solid #ffd84a55;font-size:17px}#parts i.no{opacity:.28;filter:grayscale(1)}
 #parts:empty{display:none}
+#shieldH{display:none;position:absolute;left:14px;bottom:calc(30px + env(safe-area-inset-bottom));width:120px;height:10px;border:1px solid #9fe8ffaa;border-radius:5px;background:#0008}
+#shieldH i{display:block;height:100%;background:linear-gradient(90deg,#3a90c0,#9fe8ff);border-radius:4px}
+#shieldH span{position:absolute;left:-2px;top:-22px;font-size:16px}
+body.touch #shieldH{left:auto;right:calc(12px + env(safe-area-inset-right));bottom:auto;top:calc(110px + env(safe-area-inset-top))}
 body.touch #parts{top:calc(6px + env(safe-area-inset-top));padding:3px 6px}body.touch #parts i{width:26px;height:26px;font-size:14px}
 #perks{position:absolute;left:calc(28px + env(safe-area-inset-left));bottom:118px;display:flex;gap:6px}
 #perks i{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-size:18px;box-shadow:0 0 10px currentColor,inset 0 0 0 2px rgba(255,255,255,.25)}
@@ -132,7 +136,7 @@ body.touch h1{font-size:46px}body.touch h1 span{font-size:60px}
   <div id="cross"><i></i><i></i><i></i><i></i></div>
   <div id="hitm"></div>
   <div id="round"></div>
-  <div id="perks"></div><div id="parts"></div>
+  <div id="perks"></div><div id="parts"></div><div id="shieldH"><i></i><span>🛡</span></div>
   <div id="right"><div id="pts"><div id="ptsPop"></div><span id="ptsN">500</span></div>
     <div id="gunName"></div><div id="ammo"><b id="mag">8</b> / <span id="res">80</span></div><div id="nades"></div></div>
   <div id="prompt"></div>
@@ -450,6 +454,7 @@ function stockMap(){
     box: [ { x: 7, z: 1, face: [0, 1] }, { x: 24, z: 20, face: [0, -1] }, { x: 27, z: 9, face: [0, -1] }, { x: 36, z: 20, face: [0, -1] }, { x: 21, z: 8, face: [0, -1], lv: 1 } ],
     upg: { x: 7, z: 2, face: [0, 1], lv: -1 }, power: { x: 30, z: 19 }, parts: true, eggs: true,
     zips: [ { a: [29, 12, 1], b: [18, 18, 0] } ],
+    traps: [ { cells: [[27, 20], [27, 19], [26, 20], [26, 19]], sw: [29, 20] } ],
     portals: [ { a: [34, 6], b: [4, 4, -1], name: 'Pack-a-Punch' } ],
     props: [
       { k: 'sofa', x: 8, z: 20, f: [0, -1] }, { k: 'lamp', x: 10, z: 20 }, { k: 'armchair', x: 2, z: 19, f: [1, -1] }, { k: 'crt', x: 12, z: 11, f: [0, 1] },
@@ -503,6 +508,7 @@ function labMap(){
     box: [ { x: 6, z: 1, face: [0, 1] }, { x: 19, z: 20, face: [0, -1] }, { x: 20, z: 1, face: [0, 1] }, { x: 33, z: 20, face: [0, -1] } ],
     upg: { x: 6, z: 2, face: [0, 1], lv: -1 }, power: { x: 38, z: 18 }, parts: true, eggs: true,
     zips: [ { a: [14, 11, 1], b: [21, 18, 0] } ],
+    traps: [ { cells: [[17, 20], [17, 19], [16, 20], [16, 19]], sw: [14, 20] } ],
     portals: [ { a: [37, 2], b: [5, 5, -1], name: 'Pack-a-Punch' } ],
     props: [
       { k: 'computer', x: 2, z: 1, f: [0, 1] }, { k: 'computer', x: 3, z: 1, f: [0, 1] }, { k: 'computer', x: 1, z: 6, f: [1, 0] }, { k: 'pcolumn', x: 9, z: 3 }, { k: 'pcolumn', x: 9, z: 5 }, { k: 'vent', x: 5, z: 5 },
@@ -1880,7 +1886,7 @@ function updZombies(dt){
       const pdx = P.pos.x - p.x, pdz = P.pos.z - p.z, pd = Math.hypot(pdx, pdz); if(pd < .58 && pd > 1e-4){ P.pos.x += pdx / pd * (.58 - pd); P.pos.z += pdz / pd * (.58 - pd); pushOut(P.pos, .3); }
     }
     if(z.atkCD > 0) z.atkCD -= dt;
-    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; z.atkN = (z.atkN || 0) + 1; const T1 = z.pl || TGTS[0]; const near = Math.hypot(T1.pos.x - p.x, T1.pos.z - p.z) < (z.state === 'tear' ? 1.55 : z.dog ? 1.25 : 1.3); if(near && !T1.zip && !T1.down){ const d = z.dog ? 34 : 50; if(T1.local) hurtPlayer(d); else netSend({ t: 'hurt', to: T1.id, d }); } } }
+    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; z.atkN = (z.atkN || 0) + 1; const T1 = z.pl || TGTS[0]; const near = Math.hypot(T1.pos.x - p.x, T1.pos.z - p.z) < (z.state === 'tear' ? 1.55 : z.dog ? 1.25 : 1.3); if(near && !T1.zip && !T1.down){ const d = z.dog ? 34 : 50; if(T1.local) hurtPlayer(d, p); else netSend({ t: 'hurt', to: T1.id, d, x: +p.x.toFixed(2), z: +p.z.toFixed(2) }); } } }
     animZombie(z, dt, moving);
   }
 }
@@ -1907,9 +1913,9 @@ function killZombie(z, head, kind, by){
   if(z.win && z.win.tearer === z) z.win.tearer = null;
   questKill(z);
   floorBlood(z.m.root.position, 1.2);
-  if(!by){ addPoints(kind === 'knife' ? 130 : kind === 'boom' ? 50 : head ? 100 : 60); if(z.boss) addPoints(1000); }
+  if(!by){ addPoints(kind === 'knife' ? 130 : kind === 'boom' || kind === 'trap' ? 50 : head ? 100 : 60); if(z.boss) addPoints(1000); }
   if(!z.dog){ const at = z.m.root.position.clone(); if(head){ const hp2 = new THREE.Vector3(); headL(z, hp2); spawnGib('gib_head', hp2, 1.5); } if(kind === 'boom' || kind === 'nuke' || (kind === 'gun' && Math.random() < .04)) for(const k of ['gib_p2', 'gib_p3', 'gib_p4']) if(Math.random() < .8) spawnGib(k, at.clone().setY(at.y + rand(.6, 1.3)), k === 'gib_p2' ? 2.2 : 1); } if(!by){ hitmark(true); SND.kill(head); } if(!z.dog) sfx(head ? 'head' : 'gore', head ? .55 : .4, z.m.root.position);
-  if(z.dog) DOGR.last = z.m.root.position.clone();
+  if(z.dog) DOGR.last = z.m.root.position.clone(); if(z.egg) labEggKill(z);
   if(!z.dog && kind !== 'nuke' && RS.drops < 4 && Math.random() < .03 && z.state === 'in' && (!NET.on || NET.host)) spawnPU(z.m.root.position);
 }
 
@@ -2130,8 +2136,9 @@ function msg(t){ const e = $('#msg'); e.textContent = t; e.style.opacity = 1; ms
 function flashScreen(o){ const e = $('#flashW'); e.style.transition = 'none'; e.style.opacity = o; void e.offsetWidth; e.style.transition = 'opacity .8s'; e.style.opacity = 0; }
 let hitT = 0;
 function hitmark(kill){ const e = $('#hitm'); e.classList.toggle('kill', kill); e.style.opacity = 1; hitT = .14; }
-function hurtPlayer(d){
+function hurtPlayer(d, from){
   if(P.invuln > 0 || P.down || G_STATE !== 'play') return;
+  if(shieldBlock(d, from)) return;
   P.hp -= d; P.hurtT = now; SND.hurt(); if(Math.random() < .5) sfx('pgasp', .3); P.shake = Math.max(P.shake, .25);
   if(P.hp <= 0) goDown();
 }
@@ -2332,7 +2339,7 @@ function update(dt){
     if(RS.toSpawn <= 0 && alive === 0){ RS.breakT = 9; SND.roundEnd(); if(DOGR.on){ DOGR.on = false; scene.fog.color.set(0x06080c); spawnPU(DOGR.last || P.pos, 'ammo', true); } }
   }
   netTick(dt);
-  updZombies(dt); updProj(dt); updPU(dt); updBox(dt); updUpg(dt); updQuest(dt); updFires(dt); updPortals(dt); updShadows(dt); updAmb(dt); updFX(dt); if(BANDS.length > 1 || scene.children.length > 12) rebandScene();
+  updZombies(dt); updTraps(dt); updProj(dt); updPU(dt); updBox(dt); updUpg(dt); updQuest(dt); updFires(dt); updPortals(dt); updShadows(dt); updAmb(dt); updFX(dt); if(BANDS.length > 1 || scene.children.length > 12) rebandScene();
   // doors sliding away
   for(const k in DOORS){ const D = DOORS[k]; if(D.open && D.mesh){ D.anim += dt; D.mesh.position.y = D.anim * D.anim * 3; if(D.anim > 1.6){ D.mesh.removeFromParent(); D.mesh = null; } } }
   // flicker
@@ -2453,7 +2460,33 @@ const PARTS = makePartSet(!!(MAPD.parts && POWER), 'power switch', 0xffd84a, [ {
 const UPARTS = makePartSet(!!((MAPD.upgParts ?? MAPD.parts) && UPG.on), 'Upgrade machine', 0xb04dff, [ { n: 'Power Core', ic: '🔋', m: 'core' }, { n: 'Drive Gear', ic: '⚙️', m: 'gear' }, { n: 'Vacuum Tube', ic: '💡', m: 'tube' } ]);
 if(PARTS.on) POWER.lever.visible = false;
 if(UPARTS.on){ UPG.g.visible = true; UPG.broken = true; UPG.sign.visible = false; }
-function hudParts(){ const e = $('#parts'); if(!e) return; const row = (S, ic) => (!S.on || S.built || !S.list.length) ? '' : `<span>${ic} ${S.list.map(p => `<i class="${p.got ? '' : 'no'}" title="${p.n}">${p.ic}</i>`).join('')}</span>`; e.innerHTML = row(PARTS, '⚡') + row(UPARTS, '⬆'); }
+/* ---------- buildable Zombie Shield: 3 parts around the map, build it at the workbench, wear it on your back ---------- */
+PARTMODELS.door = g => { bx(g, .55, .42, .06, mat({ color: 0x5a6a5a, roughness: .6, metalness: .5 }), 0, .22, 0); bx(g, .3, .14, .02, mat({ color: 0x223, roughness: .1, metalness: .2 }), 0, .34, .035); };
+PARTMODELS.frame = g => { for(const x of [-.18, .18]) bx(g, .04, .5, .04, M.metal, x, .25, 0); for(const y of [.1, .42]) bx(g, .4, .04, .04, M.metal, 0, y, 0); };
+PARTMODELS.clamp = g => { bx(g, .18, .06, .1, VM.red, 0, .05, 0); cy(g, .02, .24, M.metal, 0, .14, 0); bx(g, .12, .03, .03, M.metal, 0, .26, 0); };
+const SPARTS = makePartSet(MAPD.shield !== false && MAPD.parts !== false, 'Zombie Shield', 0x6ad0ff, [ { n: 'Car Door', ic: '🚪', m: 'door' }, { n: 'Mannequin Frame', ic: '🦴', m: 'frame' }, { n: 'Clamp', ic: '🗜️', m: 'clamp' } ]);
+const SHIELD = { max: 1500 };
+if(SPARTS.on){ const c = pickSpots(1, nextToWall)[0];
+  if(c){ const g = new THREE.Group(); g.position.copy(wpos(c[0], c[1])); level.add(g); const wd = mat({ color: 0x6a4a2a, roughness: .8 });
+    bx(g, 1.2, .08, .6, wd, 0, .82, 0); for(const [x, z] of [[-.52, -.24], [.52, -.24], [-.52, .24], [.52, .24]]) bx(g, .07, .82, .07, wd, x, .41, z);
+    bx(g, .3, .12, .2, M.metal, -.3, .92, 0); cy(g, .05, .3, VM.red, .25, .9, 0).rotation.z = Math.PI / 2;
+    const show = new THREE.Group(); PARTMODELS.door(show); show.position.set(0, .86, 0); show.visible = false; g.add(show);
+    const gl = glowSprite(0x6ad0ff, 1.2, .35); gl.position.y = 1.3; g.add(gl); SHIELD.bench = g;
+    INTER.push({ pos: wpos(c[0], c[1], 1), r: 2, prompt(){
+        if(P.shield) return null;
+        if(!SPARTS.built){ if(SPARTS.have < SPARTS.list.length) return [`Workbench: find the 3 shield parts (${SPARTS.have}/${SPARTS.list.length})`, 0, true]; return [`Press <b>${KEY}</b> to build the Zombie Shield`, 0]; }
+        return [`Press <b>${KEY}</b> to take the Zombie Shield`, 0]; },
+      use(){ if(P.shield) return; if(!SPARTS.built){ if(SPARTS.have < SPARTS.list.length) return; SPARTS.built = true; show.visible = true; hudParts(); ann('SHIELD BUILT', '#6ad0ff'); SND.buy(); return; }
+        P.shield = { hp: SHIELD.max }; hudShield(); SND.buy(); msg('Zombie Shield on your back: it blocks hits from behind'); } }); } }
+function hudShield(){ const e = $('#shieldH'); if(!e) return; if(!P.shield){ e.style.display = 'none'; return; } e.style.display = 'block'; e.firstChild.style.width = Math.max(0, P.shield.hp / SHIELD.max * 100) + '%'; }
+// returns true when the shield took the hit
+function shieldBlock(d, from){
+  if(!P.shield || !from) return false; const f = new THREE.Vector3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw)), to = new THREE.Vector3(from.x - P.pos.x, 0, from.z - P.pos.z).normalize();
+  if(f.dot(to) > -.2) return false; // in front or to the side
+  P.shield.hp -= d; tn({ f: 300, f2: 180, type: 'square', dur: .08, vol: .1 }); P.shake = Math.max(P.shake, .12);
+  if(P.shield.hp <= 0){ P.shield = null; msg('Your shield broke! Grab another at the workbench.'); SND.boardBreak(); } hudShield(); return true; }
+
+function hudParts(){ const e = $('#parts'); if(!e) return; const row = (S, ic) => (!S.on || S.built || !S.list.length) ? '' : `<span>${ic} ${S.list.map(p => `<i class="${p.got ? '' : 'no'}" title="${p.n}">${p.ic}</i>`).join('')}</span>`; e.innerHTML = row(PARTS, '⚡') + row(UPARTS, '⬆') + (typeof SPARTS !== 'undefined' ? row(SPARTS, '🛡') : ''); }
 // ---- Easter eggs ----
 const EGG = { on: MAPD.eggs !== false, skulls: [], shot: 0, chest: null, souls: 0, need: 12, done: false, bears: [], squeezed: 0, song: false, jars: [], altars: [], lastBear: null };
 const skullTex = textTex([{ t: '💀', font: '86px serif', y: 64 }], 128, 128);
@@ -2544,6 +2577,60 @@ function questKill(z){
   tn({ f: 600, f2: 300, type: 'sine', dur: .25, vol: .1 });
   if(EGG.souls >= EGG.need){ C.open = true; EGG.done = true; ann('THE CHEST IS FULL', '#5aff8a'); sfx('st_egg', .5); SND.boxSpin && SND.boxSpin(); const m = gunModel('frost', false, false); m.rotation.y = Math.PI / 2; if(m.userData.real){ m.scale.setScalar(.6 / m.userData.len); m.children[0].position.z = 0; } m.position.y = .85; C.g.add(m); C.gun = m; }
 }
+/* ---------- traps: pay at the switch (needs power), the floor grid electrocutes everything on it for 20s ---------- */
+const TRAPS = [];
+for(const T0 of (MAPD.traps || [])){ const B = BANDS.find(b => b.lv === (T0.lv || 0)); if(!B) continue;
+  const cells = T0.cells.map(([x, z]) => [x + B.x0, z]), set = new Set(cells.map(c => c[0] + ',' + c[1]));
+  const g = new THREE.Group(); level.add(g); const grate = mat({ color: 0x3a3c40, roughness: .5, metalness: .8 }), arcs = [];
+  for(const [x, z] of cells){ const p = wpos(x, z); const pl = new THREE.Mesh(new THREE.BoxGeometry(CELL * .96, .04, CELL * .96), grate); pl.position.set(p.x, .02, p.z); pl.receiveShadow = true; g.add(pl);
+    for(let i = -2; i <= 2; i++){ const r = new THREE.Mesh(new THREE.BoxGeometry(CELL * .9, .03, .03), M.metal); r.position.set(p.x, .05, p.z + i * CELL * .18); g.add(r); }
+    for(let i = 0; i < 3; i++){ const a = glowSprite(0x8ad8ff, .8, 0); a.position.set(p.x + rand(-.5, .5), rand(.1, .9), p.z + rand(-.5, .5)); g.add(a); arcs.push(a); } }
+  const sw = wpos(T0.sw[0] + B.x0, T0.sw[1], 1.2), [dx, dz] = wallSide(T0.sw[0] + B.x0, T0.sw[1]); sw.x += dx * (CELL / 2 - .05); sw.z += dz * (CELL / 2 - .05);
+  const box = new THREE.Group(); box.position.copy(sw); box.rotation.y = Math.atan2(-dx, -dz); level.add(box); bx(box, .35, .5, .12, mat({ color: 0x8a1a12, roughness: .6, metalness: .4 }), 0, 0, 0);
+  const lamp = glowSprite(0xff3020, .5, .8); lamp.position.set(0, .32, .1); box.add(lamp);
+  const L = power ? null : null; const light = new THREE.PointLight(0x8ad8ff, 0, 6, 1.6); light.position.copy(wpos(cells[0][0], cells[0][1], .6)); level.add(light);
+  const TR = { set, arcs, lamp, light, on: 0, cd: 0, i: TRAPS.length, cost: T0.cost || 1000 }; TRAPS.push(TR);
+  INTER.push({ pos: sw.clone(), r: 1.9, prompt(){ if(!power) return ['The trap needs power', 0, true]; if(TR.on > 0) return ['Trap running…', 0, true]; if(TR.cd > 0) return [`Trap cooling down (${Math.ceil(TR.cd)}s)`, 0, true]; return [`Press <b>${KEY}</b> to switch on the electric trap`, TR.cost]; },
+    use(){ if(!power || TR.on > 0 || TR.cd > 0 || !spend(TR.cost)) return; trapOn(TR); if(NET.on) netSend({ t: 'trap', i: TR.i }); } });
+}
+function trapOn(TR){ TR.on = 20; TR.cd = 0; tn({ f: 60, f2: 120, type: 'sawtooth', dur: .8, vol: .15 }); msg('Electric trap on!'); }
+function updTraps(dt){
+  for(const TR of TRAPS){
+    if(TR.on > 0){ TR.on -= dt; if(TR.on <= 0){ TR.cd = 45; }
+      for(const a of TR.arcs){ a.material.opacity = Math.random() < .5 ? rand(.4, 1) : 0; a.scale.setScalar(rand(.4, 1.1)); } TR.light.intensity = rand(3, 9); TR.lamp.material.color.set(0x40ff60);
+      if(Math.random() < dt * 6) tn({ f: rand(800, 2000), f2: 200, type: 'square', dur: .05, vol: .03 });
+      if(!NET.on || NET.host) for(const z of Z){ if(z.dead || z.net) continue; const p = z.m.root.position; if(TR.set.has(cx(p.x) + ',' + cx(p.z)) && Math.abs(p.y) < .5){
+        for(let k = 0; k < 6; k++) fx(p.clone().setY(rand(.3, 1.6)), { add: true, color: 0x9ae0ff, v: new THREE.Vector3(rand(-2, 2), rand(0, 3), rand(-2, 2)), life: .3, size: .12, size1: .02 });
+        killZombie(z, false, 'trap'); } }
+      if(TR.set.has(cx(P.pos.x) + ',' + cx(P.pos.z)) && !P.zip) hurtPlayer(dt * 70); }
+    else { for(const a of TR.arcs) a.material.opacity = 0; TR.light.intensity = 0; if(TR.cd > 0){ TR.cd -= dt; TR.lamp.material.color.set(0xff3020); } else TR.lamp.material.color.set(power ? 0xffd040 : 0x401010); }
+  }
+}
+
+/* ---------- Black Site Lab Easter egg: drain the specimen tanks, feed the samples to the synthesis terminal, survive what wakes up ---------- */
+const LABEGG = { on: LAB && MAPD.labEgg !== false, samples: 0, have: 0, fed: false, bossLeft: 0, done: false, tanks: [] };
+if(LABEGG.on){
+  for(const p of (MAPD.props || [])) if(PROPCAT[p.k] && PROPCAT[p.k].tank){ const B = BANDS.find(b => b.lv === (p.lv || 0)); const at = wpos(p.x + B.x0, p.z, 1.2);
+    const T = { at, drained: false }; LABEGG.tanks.push(T);
+    INTER.push({ pos: at, r: 1.9, prompt(){ if(T.drained) return null; if(!power) return ['The tank is sealed (no power)', 0, true]; return [`Press <b>${KEY}</b> to drain the specimen tank`, 0]; },
+      use(){ if(T.drained || !power) return; T.drained = true; LABEGG.have++; sfx('st_egg', .35); for(let k = 0; k < 16; k++) fx(at.clone(), { add: true, color: 0x5affb0, v: new THREE.Vector3(rand(-1.5, 1.5), rand(0, 2), rand(-1.5, 1.5)), g: 4, life: .8, size: .15, size1: .02 });
+        msg(`Alien sample ${LABEGG.have}/${LABEGG.tanks.length}` + (LABEGG.have === LABEGG.tanks.length ? ' — take them to the synthesis terminal in the Server Room' : '')); } }); }
+  const comp = (MAPD.props || []).find(p => p.k === 'computer' && !(p.lv) && p.x < 13 && p.z < 10);
+  if(comp){ const at = wpos(comp.x, comp.z, 1.1);
+    INTER.push({ pos: at, r: 1.9, prompt(){ if(LABEGG.fed || LABEGG.done) return null; if(LABEGG.have < LABEGG.tanks.length) return [`Synthesis terminal: needs ${LABEGG.tanks.length} alien samples (${LABEGG.have})`, 0, true]; return [`Press <b>${KEY}</b> to start the synthesis`, 0]; },
+      use(){ if(LABEGG.fed || LABEGG.have < LABEGG.tanks.length) return; LABEGG.fed = true; ann('SYNTHESIS STARTED', '#5affb0'); sfx('st_special', .5); flashScreen(.4); msg('Something is coming. Kill whatever comes out of the dark.');
+        if(!NET.on || NET.host){ for(const k of ['hollow', 'shroud']) if(ASSETS[k]) spawnBoss(k); } else netSend({ t: 'synth' }); } }); }
+}
+function spawnBoss(k){ const wins = WINS.filter(w => openRooms.has(w.room)); const w = pick(wins.length ? wins : WINS); if(!w) return;
+  const m = beastZombie(k, 2); m.root.position.copy(w.spawn);
+  const z = { m, type: 2, hp: Math.max(RS.zhp, 1500) * (k === 'hollow' ? 5 : 7), tilt: 0, speed: k === 'hollow' ? 4 : 3.2, state: 'out', win: w, t: 0, atkT: 0, atkCD: 0, phase: 0, dead: false, groanT: 1, wait: 0, boss: true, egg: true };
+  Z.push(z); LABEGG.bossLeft++; ann(k === 'hollow' ? 'THE HOLLOW WALKER' : 'THE SHROUDLING', k === 'hollow' ? '#8a9cff' : '#ff4a2a'); }
+function labEggKill(z){ if(!z.egg || !LABEGG.on || LABEGG.done) return; LABEGG.bossLeft--; if(LABEGG.bossLeft > 0) return; LABEGG.done = true;
+  const at = MAPD.upg ? wpos(MAPD.upg.x + (BANDS.find(b => b.lv === (MAPD.upg.lv || 0)) || BANDS[0]).x0, MAPD.upg.z + 1) : P.pos.clone();
+  ann('SPECIMENS DESTROYED', '#5affb0'); setTimeout(() => { eggReward(at); }, 1500); if(NET.on && NET.host) netSend({ t: 'labegg' }); }
+function eggReward(at){ wonderAltar(at, 'plasma', '#5affb0'); const A = EGG.altars[EGG.altars.length - 1]; if(A){ const it = INTER[INTER.length - 1]; const use0 = it.use; it.use = () => { if(A.taken) return; A.taken = true; A.g.removeFromParent(); giveGun(newGun('plasma', true)); SND.buy(); ann('NOVA CANNON', '#5affb0'); }; it.prompt = () => A.taken ? null : [`Press <b>${KEY}</b> to take the Nova Cannon`, 0]; }
+  msg('A reward waits by the Upgrade machine in Containment'); }
+
 function updQuest(dt){
   for(const p of [...PARTS.list, ...UPARTS.list]){ if(p.got) continue; p.gl.material.opacity = .35 + Math.sin(now * 3 + p.c[0]) * .2; }
   for(const S of EGG.skulls){ if(S.hit) continue; S.gl.material.opacity = .15 + Math.sin(now * 2.3 + S.p.x) * .1; }
@@ -2792,7 +2879,10 @@ function netMsg(m){
     case 'z': netSnap(m); break;
     case 'hit': if(NET.host){ const z = Z.find(q => q.id === m.id && !q.dead); if(z) hurtZombie(z, m.d, !!m.h, m.k, null, from); } break;
     case 'kill': { const z = Z.find(q => q.id === m.id); if(z && !z.dead) killZombie(z, !!m.h, m.k, m.by === NET.id ? null : m.by); break; }
-    case 'hurt': hurtPlayer(m.d); break;
+    case 'hurt': hurtPlayer(m.d, m.x != null ? { x: m.x, z: m.z } : null); break;
+    case 'trap': if(TRAPS[m.i]) trapOn(TRAPS[m.i]); break;
+    case 'synth': if(NET.host && LABEGG.on && !LABEGG.bossLeft && !LABEGG.done){ LABEGG.fed = true; ann('SYNTHESIS STARTED', '#5affb0'); for(const k of ['hollow', 'shroud']) if(ASSETS[k]) spawnBoss(k); } break;
+    case 'labegg': if(LABEGG.on && !LABEGG.done){ LABEGG.done = true; eggReward(MAPD.upg ? wpos(MAPD.upg.x + (BANDS.find(b => b.lv === (MAPD.upg.lv || 0)) || BANDS[0]).x0, MAPD.upg.z + 1) : P.pos.clone()); } break;
     case 'door': if(DOORS[m.k] && !DOORS[m.k].open) openDoor(m.k, true); break;
     case 'power': if(!power) powerOn(true); break;
     case 'fix': if(NET.host){ const w = WINS[m.w]; if(w && w.hp < 5){ setBoard(w, w.hp, true); w.hp++; } } break;
@@ -2870,7 +2960,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { NET, makeAvatar, ARMS, MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { SPARTS, TRAPS, LABEGG, NET, makeAvatar, ARMS, MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
