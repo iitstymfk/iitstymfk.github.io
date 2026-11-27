@@ -30,3 +30,6 @@
 ## Props (Sketchfab downloads by Tyler; licenses per their Sketchfab pages, credit lines to be added by Tyler)
 - `assets/props.glb` combines: antique office desk, traditional pool table, vintage living room furniture pack, paintings & posters collection, retro PS1 room props pack. Reduced and repacked.
 - `assets/zombie/female.glb`: "Fuse female zombie 1" (Mixamo/Fuse character), reduced to 14k triangles.
+
+## Argus (special-round monster, chosen per map in the Map Maker)
+- `assets/zombie/argus.glb`: Argus model with animations from Age of Mythology: Retold (fan-shared XNALara/Sketchfab download). Used by Tyler for a private, non-commercial game.

@@ -77,7 +77,8 @@ textarea{width:100%;min-height:90px;background:#0e0e11;color:var(--fg);border:1p
       <label>Find parts to build the power switch <input type="checkbox" id="oParts"></label>
       <label>Find parts to fix the Upgrade machine <input type="checkbox" id="oUParts"></label>
       <label>Easter eggs (skulls, soul chest, teddies) <input type="checkbox" id="oEggs"></label>
-      <label>Hellhound rounds <input type="checkbox" id="oDogs"></label>
+      <label>Special rounds (Max Ammo) <input type="checkbox" id="oDogs"></label>
+      <label>Special round monster <select id="oSpecial"><option value="dogs">🐕 Hellhounds</option><option value="argus">👁 Argus</option></select></label>
       <div class="small">No power switch on the map = power starts on.</div>
     </div>
     <div class="card"><h3>Doors &amp; prices</h3><div id="doors"></div><div class="small">Each door letter is one door. Paint several cells with the same letter for a wide door.</div></div>
@@ -339,6 +340,7 @@ function listMaps(){ const s = $('#mapSel'); s.innerHTML = Object.entries(maps).
 function load(k){ id = k; M = maps[k]; for(const f of ['doors', 'names', 'wallbuys', 'perks', 'box', 'barrels', 'bulbs']) if(!M[f]) M[f] = f === 'doors' || f === 'perks' ? {} : []; undo = [];
   $('#mName').value = M.name || ''; $('#mW').value = W_(); $('#mH').value = H_();
   for(const [el, f] of [['#oParts', 'parts'], ['#oUParts', 'upgParts'], ['#oEggs', 'eggs'], ['#oDogs', 'dogs']]) $(el).checked = M[f] !== false;
+  $('#oSpecial').value = M.special || 'dogs';
   try{ localStorage.setItem('iz_maker_last', k); }catch(e){}
   if(!hasFloor(FL)) FL = 0; listMaps(); fit(); floorsUI(); draw(); checks(); doorsUI(); setTool(tool); }
 function newMap(m){ const k = 'm' + Date.now().toString(36); maps[k] = m; saveAll(); load(k); }
@@ -361,6 +363,7 @@ $('#bDel').onclick = () => { if(!confirm(`Delete "${M.name}"? This can't be undo
 $('#bPlay').onclick = () => { if(!checks() && !confirm('The checks found problems. Play anyway?')) return; maps[id] = M; saveAll(); location.href = './?map=' + encodeURIComponent(id); };
 $('#mName').oninput = e => { M.name = e.target.value.slice(0, 40); maps[id] = M; saveAll(); listMaps(); };
 for(const [el, f] of [['#oParts', 'parts'], ['#oUParts', 'upgParts'], ['#oEggs', 'eggs'], ['#oDogs', 'dogs']]) $(el).onchange = e => { M[f] = e.target.checked; commit(); };
+$('#oSpecial').onchange = e => { if(e.target.value === 'dogs') delete M.special; else M.special = e.target.value; commit(); };
 $('#bResize').onclick = () => { const nw = Math.max(12, Math.min(48, +$('#mW').value | 0)), nh = Math.max(10, Math.min(32, +$('#mH').value | 0)); snapshot();
   const rs = (G, fillc) => { const g = []; for(let z = 0; z < nh; z++){ let r = ''; for(let x = 0; x < nw; x++) r += (z < G.length && x < G[0].length) ? G[z][x] : fillc; g.push(r); } return g; };
   if(M.up) M.up.grid = rs(M.up.grid, ' '); if(M.down) M.down.grid = rs(M.down.grid, '#'); M.grid = rs(M.grid, '#');
