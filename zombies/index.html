@@ -1707,10 +1707,14 @@ function moveToward(z, target, speed, dt){
 // Play the prisoner's animations on another Mixamo body. Their bones have different local axes, so each rotation key is
 // moved through world space (both rigs rest in a T-pose): local' = inv(tgtParentRest)*srcParentRest * local * inv(srcRest)*tgtRest.
 // Only the hips move; every other position/scale key is dropped (it carries the prisoner's own limb lengths).
-function retargetClips(src, tgt){
+function retargetClips(src, tgt, restClip){
+  // restClip: a T-pose clip on the source; its node pose is an idle pose, but the target rests in a T-pose
+  let saved = null; const rc = restClip && src.animations.find(c => c.name === restClip);
+  if(rc){ saved = []; src.scene.traverse(o => { if(o.isBone) saved.push([o, o.quaternion.clone(), o.position.clone()]); }); const mx = new THREE.AnimationMixer(src.scene); mx.clipAction(rc).play(); mx.update(0); mx.stopAllAction(); }
   const nk = n => n.replace(/^mixamorig\d*:?/, '').replace(/_\d+$/, '');
   const info = g => { g.scene.updateMatrixWorld(true); const m = {}; g.scene.traverse(o => { if(o.isBone && !m[nk(o.name)]){ const wq = new THREE.Quaternion(), pq = new THREE.Quaternion(), wp = new THREE.Vector3(); o.getWorldQuaternion(wq); o.parent.getWorldQuaternion(pq); o.getWorldPosition(wp); m[nk(o.name)] = { name: o.name, wq, pq, wp, pm: o.parent.matrixWorld.clone() }; } }); return m; };
   const S = info(src), T = info(tgt), ratio = S.Hips && T.Hips ? T.Hips.wp.y / S.Hips.wp.y : 1;
+  if(saved){ for(const [o, q, p] of saved){ o.quaternion.copy(q); o.position.copy(p); } src.scene.updateMatrixWorld(true); }
   return src.animations.map(c => { const tracks = [];
     for(const t of c.tracks){ const dot = t.name.lastIndexOf('.'), bn = nk(t.name.slice(0, dot)), prop = t.name.slice(dot + 1); if(!S[bn] || !T[bn]) continue; const tn2 = T[bn].name + '.' + prop;
       if(prop === 'quaternion'){ const a = T[bn].pq.clone().invert().multiply(S[bn].pq), b = S[bn].wq.clone().invert().multiply(T[bn].wq), v = t.values.slice(), q = new THREE.Quaternion();
@@ -2742,8 +2746,8 @@ async function makeAvatar(a){
   const g = await SKINDATA[a.skin] || await SKINDATA.tactical, base = await SKINDATA.tactical; if(!g) return;
   const root = new THREE.Group(), model = SkeletonUtils.clone(g.scene); model.scale.multiplyScalar(g.fit); root.add(model);
   model.traverse(o => { if(o.isMesh){ o.castShadow = SHADOWS; o.frustumCulled = false; } });
-  const clips = g === base ? g.animations : (g._clips || (g._clips = retargetClips(base, g)));
-  const mixer = new THREE.AnimationMixer(model), A = {}; for(const c of clips){ if(/idle/i.test(c.name)) A.idle = mixer.clipAction(c); if(/walk/i.test(c.name)) A.walk = mixer.clipAction(c); }
+  const clips = g === base ? g.animations : (g._clips || (g._clips = retargetClips(base, g, 'T-Pose')));
+  const mixer = new THREE.AnimationMixer(model), A = {}; for(const c of clips){ if(/t.?pose/i.test(c.name)) continue; if(/idle/i.test(c.name)) A.idle = mixer.clipAction(c); if(/walk/i.test(c.name)) A.walk = mixer.clipAction(c); }
   if(A.idle) A.idle.play(); if(A.walk){ A.walk.play(); A.walk.setEffectiveWeight(0); }
   const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex([{ t: a.name, font: '700 34px Oswald', color: '#9fe8ff', y: 32 }], 256, 64), transparent: true, depthWrite: false, depthTest: false })); tag.scale.set(1.1, .275, 1); tag.position.y = 2.15; tag.renderOrder = 9; root.add(tag);
   const help = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex([{ t: '✚', font: '700 52px Oswald', color: '#ff4040', y: 34 }], 64, 64), transparent: true, depthWrite: false, depthTest: false })); help.scale.setScalar(.45); help.position.y = 1.2; help.visible = false; help.renderOrder = 9; root.add(help);
@@ -2863,7 +2867,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { ARMS, MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { NET, makeAvatar, ARMS, MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
