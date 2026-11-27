@@ -67,3 +67,7 @@
 - **The Hollow Walker - Animated Horror Character** (Hollow Walker boss) — Dreadworks (Fab, CC BY).
 - **Abandoned Prison — Horror Props Bundle** and **Abandoned Power Plant — Horror Props and Environment Bundle** — SAMOOSAA (Fab, CC BY).
 - Downloaded but not used yet: Male Zombie 1 / Female Zombie - Animated (Tony Flanagan, CC BY — one animation each), Flesh Mutant Monster (Andrey Ryzhko, Fab Standard License), Mutant (May3d, Fab Standard License — the FBX has no animations).
+
+## Perk machines (Nov 27)
+- Metal textures (chipped paint, brushed steel, rivets, rust): **Screaming Brain Studios — Tiny Texture Pack 3**, CC0.
+- Fonts baked into the machine art: **Bungee** (David Jonathan Ross) and **Oswald** (Vernon Adams), SIL Open Font License.
