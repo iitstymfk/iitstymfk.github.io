@@ -402,6 +402,7 @@ function stockMap(){
     box: [ { x: 7, z: 1, face: [0, 1] }, { x: 24, z: 20, face: [0, -1] }, { x: 27, z: 9, face: [0, -1] }, { x: 36, z: 20, face: [0, -1] }, { x: 21, z: 8, face: [0, -1], lv: 1 } ],
     upg: { x: 7, z: 2, face: [0, 1], lv: -1 }, power: { x: 30, z: 19 }, parts: true, eggs: true,
     zips: [ { a: [17, 11], b: [29, 17] } ],
+    portals: [ { a: [34, 6], b: [4, 4, -1], name: 'Pack-a-Punch' } ],
     barrels: [[1, 11, 1], [13, 1, 0], [29, 11, 1], [29, 1, 0], [14, 19, 0], [32, 9, 1], [38, 11, 0], [2, 7, 1, -1], [12, 2, 0, -1], [30, 8, 0, 1]],
     bulbs: [[4.5,15.5],[10.5,15.5],[4.5,5],[10.5,5],[20,15.5],[26.5,15.5],[20,5],[26.5,5],[35.5,5],[35.5,15.5],[23,5,1],[28,5,1],[5,5,-1],[10.5,5,-1]],
     pipes: [[1,14,12],[1,14,2],[16,30,12],[16,30,2],[1,14,19.5],[16,30,8.5],[32,38,2],[32,38,19.5]] };
@@ -1090,15 +1091,16 @@ if(POWER){
 /* ---------- zip lines: pay, grab the handle, slide over the zombies (you can shoot while riding, they can't reach you) ---------- */
 const ZIPS = [];
 {
-  const ZM_ = { post: mat({ color: 0x3a3a3e, roughness: .5, metalness: .7 }), cable: mat({ color: 0x202024, roughness: .4, metalness: .8 }), yel: mat({ color: 0xc9a820, roughness: .6 }) };
+  const ZM_ = { post: mat({ color: 0x3a3a3e, roughness: .5, metalness: .7 }), cable: mat({ color: 0x9a9aa2, roughness: .35, metalness: .9, emissive: 0x15151a }), yel: mat({ color: 0xc9a820, roughness: .6 }) };
   for(const zd of (MAPD.zips || [])){
     const lv = zd.lv || 0, B = BANDS.find(b => b.lv === lv); if(!B) continue; const off = B.x0;
     const A = wpos(zd.a[0] + off, zd.a[1]), Bp = wpos(zd.b[0] + off, zd.b[1]); const yA = WH - .22, yB = WH - .55;
     for(const [p, y] of [[A, yA], [Bp, yB]]){ const post = new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, WH, 10), ZM_.post); post.position.set(p.x, WH / 2, p.z); post.castShadow = SHADOWS; level.add(post);
       const band = new THREE.Mesh(new THREE.CylinderGeometry(.095, .095, .5, 10), ZM_.yel); band.position.set(p.x, 1.1, p.z); level.add(band);
-      const wheel = new THREE.Mesh(new THREE.TorusGeometry(.12, .03, 6, 14), ZM_.post); wheel.position.set(p.x, y + .05, p.z); level.add(wheel); }
+      const wheel = new THREE.Mesh(new THREE.TorusGeometry(.12, .03, 6, 14), ZM_.post); wheel.position.set(p.x, y + .05, p.z); level.add(wheel);
+      const lamp = glowSprite(0x40ff70, .6, .55); lamp.position.set(p.x, y + .22, p.z); level.add(lamp); }
     const a3 = new THREE.Vector3(A.x, yA, A.z), b3 = new THREE.Vector3(Bp.x, yB, Bp.z), len = a3.distanceTo(b3);
-    const cable = new THREE.Mesh(new THREE.CylinderGeometry(.018, .018, len, 6), ZM_.cable); cable.position.copy(a3).lerp(b3, .5);
+    const cable = new THREE.Mesh(new THREE.CylinderGeometry(.026, .026, len, 6), ZM_.cable); cable.position.copy(a3).lerp(b3, .5);
     cable.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b3.clone().sub(a3).normalize()); level.add(cable);
     // the handle (trolley) waits at whichever end it was last ridden to
     const handle = new THREE.Group(); const bar = new THREE.Mesh(new THREE.BoxGeometry(.5, .05, .05), ZM_.yel); bar.position.y = -.42; handle.add(bar);
@@ -1111,6 +1113,37 @@ const ZIPS = [];
           P.zip = { z: Z1, from, to, t: 0, dur: Math.max(1.6, Z1.len / 8.5) }; Z1.handle.position.copy(from); SND.buy();
           tn({ f: 520, f2: 980, type: 'sawtooth', dur: P.zip.dur, vol: .035 }); tn({ f: 140, f2: 90, type: 'square', dur: .12, vol: .08 }); } }); }
   }
+}
+/* ---------- portals: two linked pads (e.g. to the Pack-a-Punch room). Need power; each jump recharges for a while ---------- */
+const PORTALS = [];
+{
+  const ringM = () => new THREE.MeshBasicMaterial({ color: 0x555060 });
+  for(const pd of (MAPD.portals || [])){
+    const pads = [pd.a, pd.b].map(c => { const B = BANDS.find(b => b.lv === (c[2] || 0)); if(!B) return null; const w = wpos(c[0] + B.x0, c[1]); return { x: c[0], z: c[1], lv: c[2] || 0, pos: w }; });
+    if(pads.some(p => !p)) continue; const P1 = { pads, cd: 0, name: pd.name || 'Portal', fx: [] }; PORTALS.push(P1);
+    pads.forEach((pad, i) => {
+      const g = new THREE.Group(); g.position.copy(pad.pos);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(.62, .07, 8, 32), ringM()); ring.rotation.x = Math.PI / 2; ring.position.y = .06; g.add(ring);
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(.7, .78, .08, 32), mat({ color: 0x24222a, roughness: .5, metalness: .7 })); base.position.y = .03; g.add(base);
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(.56, 32), new THREE.MeshBasicMaterial({ map: glowTex, color: 0x9a40ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })); disc.rotation.x = -Math.PI / 2; disc.position.y = .09; g.add(disc);
+      const swirl = []; for(let k = 0; k < 3; k++){ const sp = glowSprite(k === 1 ? 0x40c0ff : 0xb060ff, 1.1 - k * .2, 0); sp.position.y = .9 + k * .5; g.add(sp); swirl.push(sp); }
+      const L = LQ ? null : new THREE.PointLight(0x9a50ff, 0, 5, 1.6); if(L){ L.position.y = 1.2; g.add(L); }
+      level.add(g); P1.fx.push({ ring, disc, swirl, L, g });
+      const other = pads[1 - i];
+      INTER.push({ pos: pad.pos.clone().setY(1.5), r: 1.3, prompt(){ if(!power) return [`${P1.name} portal: needs power`, 0, true]; if(P1.cd > 0) return [`Portal recharging… ${Math.ceil(P1.cd)}s`, 0, true]; return [`Press <b>${KEY}</b> to teleport (${i ? 'back' : P1.name})`, 0]; },
+        use(){ if(!power || P1.cd > 0 || P.zip) return; P1.cd = 30; flashScreen(.85);
+          tn({ f: 90, f2: 900, type: 'sawtooth', dur: .7, vol: .12, echo: .5 }); tn({ f: 1800, f2: 200, type: 'sine', dur: .9, vol: .08 });
+          const o = other.pos; const B = BANDS.find(b => b.lv === other.lv); P.pos.set(o.x + .9, 0, o.z); pushOut(P.pos, .3); P.pos.y = groundY(P.pos); flowDirty = true;
+          for(let k = 0; k < 16; k++) fx(o.clone().setY(rand(.2, 2.4)).add(new THREE.Vector3(rand(-.5, .5), 0, rand(-.5, .5))), { add: true, color: pick([0xb060ff, 0x60c0ff]), life: rand(.3, .7), size: .3, size1: .02, v: new THREE.Vector3(0, rand(.5, 2), 0) });
+          ann(i ? 'RETURNED' : P1.name.toUpperCase(), '#c080ff'); } });
+    });
+  }
+}
+function updPortals(dt){
+  for(const P1 of PORTALS){ if(P1.cd > 0) P1.cd -= dt; const on = power ? (P1.cd > 0 ? .25 : 1) : 0;
+    for(const f of P1.fx){ f.disc.material.opacity = on * (.55 + Math.sin(now * 5) * .15); f.ring.material.color.set(on ? (P1.cd > 0 ? 0x6a5080 : 0xc080ff) : 0x555060);
+      f.swirl.forEach((sp, k) => { sp.material.opacity = on * .5; sp.position.x = Math.cos(now * (2 + k) + k * 2) * .35; sp.position.z = Math.sin(now * (2 + k) + k * 2) * .35; });
+      if(f.L) f.L.intensity = on * (4 + Math.sin(now * 7) * 1.2); } }
 }
 function updZip(dt){
   const zp = P.zip; zp.t += dt / zp.dur; const k = Math.min(1, zp.t); const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; // ease in/out
@@ -1962,7 +1995,7 @@ function update(dt){
     else if(RS.toSpawn > 0 && alive < maxAlive() && RS.spawnT <= 0){ spawnZombie(); RS.spawnT = Math.max(.35, 2 - RS.round * .15) * rand(.7, 1.3); }
     if(RS.toSpawn <= 0 && alive === 0){ RS.breakT = 9; SND.roundEnd(); if(DOGR.on){ DOGR.on = false; scene.fog.color.set(0x06080c); spawnPU(DOGR.last || P.pos, 'ammo', true); } }
   }
-  updZombies(dt); updProj(dt); updPU(dt); updBox(dt); updUpg(dt); updQuest(dt); updFires(dt); updFX(dt); if(BANDS.length > 1 || scene.children.length > 12) rebandScene();
+  updZombies(dt); updProj(dt); updPU(dt); updBox(dt); updUpg(dt); updQuest(dt); updFires(dt); updPortals(dt); updFX(dt); if(BANDS.length > 1 || scene.children.length > 12) rebandScene();
   // doors sliding away
   for(const k in DOORS){ const D = DOORS[k]; if(D.open && D.mesh){ D.anim += dt; D.mesh.position.y = D.anim * D.anim * 3; if(D.anim > 1.6){ D.mesh.removeFromParent(); D.mesh = null; } } }
   // flicker
@@ -2315,7 +2348,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { ZIPS, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { ZIPS, PORTALS, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
