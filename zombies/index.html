@@ -223,6 +223,7 @@ async function loadAssets(onProg){
   for(const n of [7, 8, 10]) jobs.push(load(`assets/zombie/zom${n}.glb`).then(g => { inPlace(g, ['Walk', 'Run', 'Crawl', 'Running Crawl']); prepBeast(g, .98); ASSETS['zom' + n] = g; }).catch(e => console.warn('zom' + n, e)).finally(tick));
   jobs.push(load('assets/zombie/hollow.glb').then(g => { prepBeast(g, 1.12); ASSETS.hollow = g; }).catch(e => console.warn('hollow', e)).finally(tick));
   jobs.push(load('assets/zombie/shroudling.glb').then(g => { prepBeast(g, 1.15); ASSETS.shroud = g; }).catch(e => console.warn('shroud', e)).finally(tick));
+  jobs.push(load('assets/fabprops.glb').then(g => { ASSETS.ext = ASSETS.ext || {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .6; m.material.roughness = Math.max(.45, m.material.roughness); } } }); ASSETS.ext[o.name] = o; } }).catch(e => console.warn('fabprops', e)).finally(tick));
   jobs.push(load('assets/melee.glb').then(g => { ASSETS.ext = ASSETS.ext || {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh && m.material){ m.material.roughness = .6; m.material.envMapIntensity = .6; } }); ASSETS.ext[o.name] = o; } setMeleeVM(); }).catch(e => console.warn('melee', e)).finally(tick));
   // morgue furniture + gore chunks (head / body pieces for gibs)
   jobs.push(load('assets/morgue.glb').then(g => { ASSETS.ext = ASSETS.ext || {}; for(const o of [...g.scene.children]){ const b = new THREE.Box3().setFromObject(o), c = b.getCenter(new THREE.Vector3());
@@ -453,6 +454,9 @@ function stockMap(){
       { k: 'msink', x: 32, z: 11, f: [1, 0] }, { k: 'mcabinet', x: 38, z: 11, f: [-1, 0] }, { k: 'slamp', x: 35, z: 15, f: [0, 1], y: 1.95 }, { k: 'mbench', x: 34, z: 18, f: [0, -1] },
       { k: 'monitor', x: 27, z: 3, f: [0, 1], y: .78, lv: 1 },
       { k: 'jerry', x: 9, z: 7, f: [0, -1], lv: -1 }, { k: 'sheet2', x: 2, z: 6, d: [-1, 0], lv: -1 },
+      { k: 'transformer', x: 27, z: 14, f: [0, 1] }, { k: 'valve', x: 29, z: 16, f: [-1, 0] }, { k: 'steamvent', x: 21, z: 11 }, { k: 'drums', x: 21, z: 20, f: [0, -1] },
+      { k: 'weights', x: 3, z: 16, f: [1, 0] }, { k: 'messtable', x: 9, z: 5, f: [0, 1] }, { k: 'laundry', x: 10, z: 8 },
+      { k: 'bunk', x: 11, z: 5, f: [0, -1], lv: -1 }, { k: 'toilet', x: 13, z: 2, f: [-1, 0], lv: -1 }, { k: 'csink', x: 12, z: 2, f: [0, 1], lv: -1 },
       { k: 'shelf', x: 2, z: 4, f: [1, 0], lv: -1 }, { k: 'guitar', x: 3, z: 2, f: [0, 1], lv: -1 }, { k: 'amp', x: 5, z: 2, f: [0, 1], lv: -1 }, { k: 'poster2', x: 13, z: 6, d: [1, 0], lv: -1 },
     ],
     barrels: [[1, 11, 1], [13, 1, 0], [29, 11, 1], [29, 1, 0], [14, 19, 0], [32, 9, 1], [38, 11, 0], [2, 7, 1, -1], [12, 2, 0, -1], [30, 8, 0, 1]],
@@ -492,7 +496,7 @@ function labMap(){
       { k: 'computer', x: 2, z: 1, f: [0, 1] }, { k: 'computer', x: 3, z: 1, f: [0, 1] }, { k: 'computer', x: 1, z: 6, f: [1, 0] }, { k: 'pcolumn', x: 9, z: 3 }, { k: 'pcolumn', x: 9, z: 5 }, { k: 'vent', x: 5, z: 5 },
       { k: 'tank1', x: 16, z: 4, f: [1, 0] }, { k: 'tank2', x: 20, z: 6, f: [0, -1] }, { k: 'alien3', x: 22, z: 3, f: [-1, 1] }, { k: 'computer', x: 18, z: 1, f: [0, 1] }, { k: 'flight', x: 18, z: 4, f: [0, 1] },
       { k: 'column', x: 17, z: 13 }, { k: 'column', x: 22, z: 13 }, { k: 'column', x: 17, z: 18 }, { k: 'column', x: 22, z: 18 }, { k: 'computer', x: 15, z: 11, f: [0, 1] }, { k: 'vent', x: 19, z: 15 }, { k: 'flight', x: 20, z: 16, f: [0, 1] },
-      { k: 'pipes', x: 30, z: 13, f: [0, 1] }, { k: 'barrel2', x: 36, z: 12 }, { k: 'barrel2', x: 37, z: 20 }, { k: 'pcolumn', x: 31, z: 17 }, { k: 'pcolumn', x: 34, z: 17 }, { k: 'computer', x: 38, z: 16, f: [-1, 0] },
+      { k: 'pipes', x: 30, z: 13, f: [0, 1] }, { k: 'batteries', x: 33, z: 12, f: [0, 1] }, { k: 'transformer', x: 35, z: 19, f: [0, -1] }, { k: 'valve', x: 29, z: 15, f: [1, 0] }, { k: 'switchgear', x: 38, z: 20, f: [-1, 0] }, { k: 'barrel2', x: 36, z: 12 }, { k: 'barrel2', x: 37, z: 20 }, { k: 'pcolumn', x: 31, z: 17 }, { k: 'pcolumn', x: 34, z: 17 }, { k: 'computer', x: 38, z: 16, f: [-1, 0] },
       { k: 'crate4', x: 28, z: 2, f: [0, 1] }, { k: 'crate3', x: 28, z: 2, f: [1, 1], y: 1.01 }, { k: 'crate4', x: 29, z: 2, f: [0, 1] }, { k: 'crate3', x: 38, z: 9, f: [0, 1] }, { k: 'labdoor', x: 29, z: 9, d: [0, 1] },
       { k: 'flight', x: 6, z: 20, f: [0, -1] }, { k: 'computer', x: 11, z: 20, f: [0, -1] }, { k: 'labdoor', x: 1, z: 14, d: [-1, 0] },
       { k: 'tank1', x: 11, z: 3, f: [-1, 0], lv: -1 }, { k: 'barrel2', x: 2, z: 9, lv: -1 }, { k: 'crate4', x: 12, z: 5, f: [-1, 0], lv: -1 }, { k: 'vent', x: 7, z: 6, lv: -1 },
@@ -551,6 +555,10 @@ const PROPCAT = { sofa: { long: 'x' }, pool: { long: 'z' }, desk: { base: Math.P
   // morgue furniture (assets/morgue.glb)
   autopsy: { n: 'mg_table', long: 'z', s: .9 }, corpse: { n: 'mg_body', soft: true, s: .62 }, mlockers: { n: 'mg_lockers', wall: true, y: 0, s: .5 }, trolley: { n: 'mg_trolley' }, msink: { n: 'mg_sink' },
   mcabinet: { n: 'mg_cabinet', s: .85 }, scales: { n: 'mg_scales' }, slamp: { n: 'mg_lamp', soft: true, s: .8, light: true, lc: 0xdff0ff, ly: .2 }, mbench: { n: 'mg_bench', long: 'x', s: .8 },
+  // Abandoned Prison + Power Plant bundles (SAMOOSAA, Fab, CC BY) - assets/fabprops.glb
+  bunk: { n: 'pr_bunk_bed', long: 'x' }, toilet: { n: 'pr_cell_toilet' }, csink: { n: 'pr_cell_sink' }, messtable: { n: 'pr_mess_table', long: 'x', s: .85 }, weights: { n: 'pr_weight_bench', long: 'x', s: .8 },
+  pshelf: { n: 'pr_prison_bookshelf' }, laundry: { n: 'pr_laundry_bin' }, gdesk: { n: 'pr_guard_desk' }, plocker: { n: 'pr_prison_locker' },
+  transformer: { n: 'pp_transformerunit' }, valve: { n: 'pp_valvewheelstand' }, steamvent: { n: 'pp_steamventpipe' }, drums: { n: 'pp_oildrumpower', s: .85 }, batteries: { n: 'pp_batterybank' }, switchgear: { n: 'pp_switchgearcabinet' },
   // Black Site Lab pieces (assets/lab_props.glb)
   computer: { n: 'lab_Prop_Computer' }, crate3: { n: 'lab_Prop_Crate3' }, crate4: { n: 'lab_Prop_Crate4', s: .9 }, barrel2: { n: 'lab_Prop_Barrel_Large' },
   flight: { n: 'lab_Prop_Light_Floor', soft: true, light: true, lc: 0x7fd8ff, ly: .35 }, vent: { n: 'lab_Prop_Vent_Big', soft: true, s: .75 },

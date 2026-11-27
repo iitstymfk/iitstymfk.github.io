@@ -61,3 +61,9 @@
 - **Gore pieces** (head / body chunks used for gibs) — Sketchfab "gore", author not confirmed.
 - **Simple Horror Melee Weapons Pack** (bat, axe, machete, cleaver, hammer) — itch.io "Retro PSX-like horror melee weapons pack", see its page for the author.
 - Saved but not used yet: **Chainsaw Brute** and **Lobotomy** (FPS Creator) — yopp_3D (Sketchfab), CC BY.
+
+## From Fab (Nov 27)
+- **Zombie Number 7, 8, 10 - Animated** — Tony Flanagan (Fab, CC BY).
+- **The Hollow Walker - Animated Horror Character** (Hollow Walker boss) — Dreadworks (Fab, CC BY).
+- **Abandoned Prison — Horror Props Bundle** and **Abandoned Power Plant — Horror Props and Environment Bundle** — SAMOOSAA (Fab, CC BY).
+- Downloaded but not used yet: Male Zombie 1 / Female Zombie - Animated (Tony Flanagan, CC BY — one animation each), Flesh Mutant Monster (Andrey Ryzhko, Fab Standard License), Mutant (May3d, Fab Standard License — the FBX has no animations).
