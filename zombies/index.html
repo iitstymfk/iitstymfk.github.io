@@ -1796,29 +1796,48 @@ function gridRay(o, d, maxT){
   }
   return tMax;
 }
+// A ray that can leave its floor: through an opening ('O': atrium / stair hole) down into the floor below,
+// or up through one into the floor above. Each floor lives at its own logical x offset, so each piece of the ray
+// is a straight copy of the original shifted by s (t stays the same along the whole ray).
+const isHoleCell = (x, z) => inB(x, z) && G[z][x] === 'O';
+function bandHop(pos){ const x = cx(pos.x), z = cx(pos.z), B = bandOfCell(x); if(!inB(x, z)) return false;
+  if(pos.y < 0 && isHoleCell(x, z)){ const D = BANDS.find(b => b.lv === B.lv - 1); if(!D) return false; pos.x += (D.x0 - B.x0) * CELL; pos.y += WH; return true; }
+  if(pos.y > WH && openAbove(x, z)){ const U = BANDS.find(b => b.lv === B.lv + 1); pos.x += (U.x0 - B.x0) * CELL; pos.y -= WH; return true; }
+  return false; }
+let lastRaySegs = [];
+function crossRay(o, d, maxT){
+  const segs = []; let s = new THREE.Vector3(), t0 = 0;
+  for(let k = 0; k < 4; k++){
+    const p = o.clone().add(s).addScaledVector(d, t0), t = t0 + gridRay(p, d, maxT - t0); segs.push({ s: s.clone(), t0, t1: t });
+    if(t >= maxT - 1e-4) break;
+    const q = o.clone().add(s).addScaledVector(d, t + .003);
+    if(!((q.y < 0 && d.y < 0) || (q.y > WH && d.y > 0)) || !bandHop(q)) break;
+    s = q.sub(o).addScaledVector(d, -(t + .003)); t0 = t + .003;
+  }
+  lastRaySegs = segs; return segs[segs.length - 1].t1;
+}
+const segEnd = (o, d, t) => { const S = lastRaySegs[lastRaySegs.length - 1]; return o.clone().add(S ? S.s : new THREE.Vector3()).addScaledVector(d, t); };
+function zombiesOnSegs(o, d, segs){ const out = [], oo = new THREE.Vector3();
+  for(const z of Z){ if(z.dead) continue; const p = z.m.root.position, s = z.m.s; headL(z, hp);
+    for(const S of segs){ oo.copy(o).add(S.s); const th = !z.headless ? raySphere(oo, d, hp, .17 * s) : Infinity; const tb = rayCyl(oo, d, p.x, p.z, .3 * s, p.y + .05, p.y + (z.crawl ? .6 : 1.5) * s); const t = Math.min(th, tb);
+      if(t >= S.t0 - .05 && t < S.t1){ out.push({ z, t, head: th <= tb }); break; } } }
+  return out.sort((a, b) => a.t - b.t); }
 const hp = new THREE.Vector3();
 function headL(z, out){ z.m.head.getWorldPosition(out); const B = z.band; if(B){ out.x += B.x0 * CELL; out.y -= B.lv * WH; } return out; }
 function hitscan(o, d, dmg, headMult, pierce, kind){
-  const wallT = gridRay(o, d, 70); const nrm = lastRayNormal.clone();
-  const hits = [];
-  for(const z of Z){
-    if(z.dead) continue; const p = z.m.root.position; const s = z.m.s;
-    headL(z, hp);
-    let th = !z.headless ? raySphere(o, d, hp, .17 * s) : Infinity;
-    let tb = rayCyl(o, d, p.x, p.z, .3 * s, p.y + .05, p.y + (z.crawl ? .6 : 1.5) * s);
-    const t = Math.min(th, tb); if(t < wallT) hits.push({ z, t, head: th <= tb });
-  }
-  questRay(o, d, wallT);
-  hits.sort((a, b) => a.t - b.t);
+  const wallT = crossRay(o, d, 70); const nrm = lastRayNormal.clone(), segs = lastRaySegs;
+  const hits = zombiesOnSegs(o, d, segs);
+  questRay(o, d, segs[0].t1);
+  const segAt = t => { let S = segs[0]; for(const q of segs) if(t >= q.t0 - .05) S = q; return S.s; };
   let n = 0, k = 1;
-  for(const h of hits){ if(n >= pierce) break; const at = o.clone().addScaledVector(d, h.t); hurtZombie(h.z, dmg * k * (h.head ? headMult : 1), h.head, kind, at); n++; k *= .75; }
-  if(n < pierce || !hits.length){ if(wallT < 70){ const pt = o.clone().addScaledVector(d, wallT - .02); sparks(pt, nrm); } }
+  for(const h of hits){ if(n >= pierce) break; const at = o.clone().add(segAt(h.t)).addScaledVector(d, h.t); hurtZombie(h.z, dmg * k * (h.head ? headMult : 1), h.head, kind, at); n++; k *= .75; }
+  if(n < pierce || !hits.length){ if(wallT < 70){ const pt = o.clone().add(segs[segs.length - 1].s).addScaledVector(d, wallT - .02); sparks(pt, nrm); } }
 }
 /* ---------- wonder weapon effects ---------- */
 function zombiesOnRay(o, d, maxT){ const out = []; for(const z of Z){ if(z.dead) continue; const p = z.m.root.position; const s = z.m.s; headL(z, hp); const th = !z.headless ? raySphere(o, d, hp, .17 * s) : Infinity; const tb = rayCyl(o, d, p.x, p.z, .3 * s, p.y + .05, p.y + (z.crawl ? .6 : 1.5) * s); const t = Math.min(th, tb); if(t < maxT) out.push({ z, t, head: th <= tb }); } return out.sort((a, b) => a.t - b.t); }
 function beamFx(a, b, col, n = 10, size = .14){ for(let i = 0; i <= n; i++){ const p = a.clone().lerp(b, i / n); fx(p, { add: true, color: col, life: .12 + Math.random() * .1, size, size1: size * .2 }); } }
 function radBeam(o, d, dmg, w, up){
-  const wallT = gridRay(o, d, 70); questRay(o, d, wallT); const hits = zombiesOnRay(o, d, wallT); const end = o.clone().addScaledVector(d, Math.min(wallT, hits.length ? 70 : wallT));
+  const wallT = crossRay(o, d, 70); questRay(o, d, lastRaySegs[0].t1); const hits = zombiesOnSegs(o, d, lastRaySegs); const end = o.clone().addScaledVector(d, Math.min(wallT, hits.length ? 70 : wallT));
   beamFx(o.clone().addScaledVector(d, .5), o.clone().addScaledVector(d, Math.min(wallT, 30)), up ? 0xb0ff60 : 0x5aff3a, 18, .1);
   let n = 0; for(const h of hits){ if(n >= w.pierce) break; const at = o.clone().addScaledVector(d, h.t); h.z.rad = up ? 6 : 4; h.z.radDps = dmg * (up ? 1.2 : .8); hurtZombie(h.z, dmg * (h.head ? w.head : 1), h.head, 'gun', at); n++; }
   if(wallT < 70) sparks(o.clone().addScaledVector(d, wallT - .02), lastRayNormal.clone());
@@ -1826,7 +1845,7 @@ function radBeam(o, d, dmg, w, up){
 }
 function radSpread(z){ const p = z.m.root.position; for(const o of Z){ if(o.dead || o === z || o.rad > 0) continue; if(o.m.root.position.distanceTo(p) < 3.2){ o.rad = 3; o.radDps = z.radDps * .8; beamFx(p.clone().setY(1), o.m.root.position.clone().setY(1), 0x6aff4a, 6, .12); } } }
 function stormBolt(o, d, dmg, up){
-  const wallT = gridRay(o, d, 70); questRay(o, d, wallT); const hits = zombiesOnRay(o, d, wallT); const start = o.clone().addScaledVector(d, .5);
+  const wallT = crossRay(o, d, 70); questRay(o, d, lastRaySegs[0].t1); const hits = zombiesOnSegs(o, d, lastRaySegs); const start = o.clone().addScaledVector(d, .5);
   const jag = (a, b) => { let prev = a.clone(); const n = 6; for(let i = 1; i <= n; i++){ const p = a.clone().lerp(b, i / n); if(i < n) p.add(new THREE.Vector3(rand(-.25, .25), rand(-.25, .25), rand(-.25, .25))); beamFx(prev, p, up ? 0xd0a0ff : 0x8ac8ff, 3, .12); prev = p; } };
   boomLight.position.copy(o).addScaledVector(d, 4); L2V(boomLight.position); boomLight.color.set(0x8ab8ff); boomLight.intensity = 14; boomT = .1; setTimeout(() => boomLight.color.set(0xff7a20), 150);
   tn({ f: 1800, f2: 120, type: 'sawtooth', dur: .25, vol: .1 });
@@ -1907,13 +1926,13 @@ function updProj(dt){
       p.v.y -= 18 * dt; const nx = pos.x + p.v.x * dt, nz = pos.z + p.v.z * dt;
       if(solid(cx(nx), cx(pos.z)) && blocksAt(cx(nx), cx(pos.z), pos.y)) p.v.x *= -.45; else pos.x = nx;
       if(solid(cx(pos.x), cx(nz)) && blocksAt(cx(pos.x), cx(nz), pos.y)) p.v.z *= -.45; else pos.z = nz;
-      pos.y += p.v.y * dt; if(pos.y < .07){ pos.y = .07; if(Math.abs(p.v.y) > 1.5) tn({ f: 300, type: 'triangle', dur: .04, vol: .15 }); p.v.y *= -.38; p.v.x *= .7; p.v.z *= .7; }
-      if(pos.y > WH - .1){ pos.y = WH - .1; p.v.y *= -.3; }
+      pos.y += p.v.y * dt; if(pos.y < .07 && isHoleCell(cx(pos.x), cx(pos.z))){ if(pos.y < 0) bandHop(pos); } else if(pos.y < .07){ pos.y = .07; if(Math.abs(p.v.y) > 1.5) tn({ f: 300, type: 'triangle', dur: .04, vol: .15 }); p.v.y *= -.38; p.v.x *= .7; p.v.z *= .7; }
+      if(pos.y > WH - .1 && !(openAbove(cx(pos.x), cx(pos.z)) && bandHop(pos))){ if(pos.y > WH - .1){ pos.y = WH - .1; p.v.y *= -.3; } }
       p.s.rotation.x += dt * 8;
       if(p.life <= 0){ explode(pos.clone(), p.r, p.dmg, 'nade', 40); p.s.removeFromParent(); PROJ.splice(i, 1); }
     } else {
       const step = p.v.clone().multiplyScalar(dt); const L = step.length(); const dir = step.clone().divideScalar(L);
-      const wt = gridRay(pos, dir, L); let hit = wt < L;
+      const wt = crossRay(pos, dir, L); let hit = wt < L; pos.add(lastRaySegs[lastRaySegs.length - 1].s);
       if(!hit) for(const z of Z){ if(z.dead) continue; const zp = z.m.root.position; if(Math.hypot(zp.x - pos.x, zp.z - pos.z) < .45 && pos.y > zp.y && pos.y < zp.y + 1.8){ hit = true; break; } }
       pos.addScaledVector(dir, Math.min(wt, L));
       if(Math.random() < .6) fx(pos, { add: true, color: p.s.material.color.getHex(), life: .25, size: .2, size1: .02 });
@@ -2564,7 +2583,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { ZIPS, PORTALS, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
