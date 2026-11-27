@@ -1261,7 +1261,7 @@ const ZIPS = [];
     for(const e of [0, 1]){ const E1 = e ? EB : EA, O = e ? EA : EB, down = O.lv < E1.lv ? ' down' : O.lv > E1.lv ? ' up' : '';
       INTER.push({ pos: new THREE.Vector3(E1.L.x, 1.5, E1.L.z), r: 1.7, prompt(){ if(P.zip) return null; if(!power) return ['The zip line needs power', 0, true]; return [`Press <b>${KEY}</b> to ride the zip line${down}`, Z1.cost]; },
         use(){ if(P.zip || !power) return; if(!spend(Z1.cost)) return; const from = e ? b3 : a3, to = e ? a3 : b3;
-          P.zip = { z: Z1, from, to, dest: O, t: 0, dur: Math.max(1.8, Z1.len / 8) }; Z1.handle.position.copy(from); SND.buy();
+          P.zip = { z: Z1, from, to, dest: O, t: 0, dur: Math.max(1.8, Z1.len / 8) }; Z1.handle.position.copy(from); Z1.handle.visible = false; /* it'd sit right in your eyes */ SND.buy();
           tn({ f: 520, f2: 980, type: 'sawtooth', dur: P.zip.dur, vol: .035 }); tn({ f: 140, f2: 90, type: 'square', dur: .12, vol: .08 }); } }); }
   }
 }
@@ -1302,7 +1302,7 @@ function updZip(dt){
   // hanging under the handle; which floor's logical space we're in follows our feet
   const feet = c.y - .42 - 1.62 + .05, lv = Math.max(zp.z.lvs[0], Math.min(zp.z.lvs[1], Math.floor((feet + .4) / WH))), B = BANDS.find(b => b.lv === lv);
   P.pos.x = c.x + B.x0 * CELL; P.pos.z = c.z; P.pos.y = 0; P.zipLift = Math.min(1, Math.min(zp.t, 1 - zp.t) * 6) * Math.max(0, feet - lv * WH);
-  if(zp.t >= 1){ P.zip = null; P.zipLift = 0; P.pos.copy(zp.dest.L); pushOut(P.pos, .3); P.pos.y = groundY(P.pos); flowDirty = true; tn({ f: 160, f2: 70, type: 'square', dur: .14, vol: .09 }); }
+  if(zp.t >= 1){ P.zip = null; P.zipLift = 0; zp.z.handle.visible = true; P.pos.copy(zp.dest.L); pushOut(P.pos, .3); P.pos.y = groundY(P.pos); flowDirty = true; tn({ f: 160, f2: 70, type: 'square', dur: .14, vol: .09 }); }
 }
 // mystery box
 const BOXLOCS = (MAPD.box || []).map(b => ({ x: b.x, z: b.z, face: b.face || openSide(b.x, b.z) }));
