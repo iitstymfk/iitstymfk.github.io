@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="assets/icon192.png"><meta name="theme-color" content="#000000">
 <title>Iitsty Zombies</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧟</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -152,6 +153,7 @@ body.touch h1{font-size:46px}body.touch h1 span{font-size:60px}
   <div class="sub">Map: <select id="mapSel" style="font:600 15px Oswald;background:#1a1a1e;color:#eee;border:1px solid #444;border-radius:8px;padding:4px 6px"></select> · <a href="maker.html" style="color:#ffd84a">🛠 Map Maker</a><br>survive as many rounds as you can</div>
   <input id="nm" maxlength="20" placeholder="Your name for the scoreboard" autocomplete="off">
   <button id="play" class="big">PLAY</button>
+  <div id="appTip" class="small" style="display:none;color:#bbb;font-size:13px;margin:4px 0">📱 No full-screen popup: Chrome menu ⋮ → <b>Add to Home screen</b>, then play from the Zombies icon.</div>
   <div class="row"><button id="bSet">⚙ Settings</button><button id="bHelp">? How to play</button></div>
   <div id="settings" class="box hidden">
     <label>Look sensitivity <input id="sSens" type="range" min="0.3" max="2.5" step="0.05"></label>
@@ -1727,7 +1729,8 @@ function startGame(){
   audio(); startAmbient();
   opts.name = $('#nm').value.trim().slice(0, 20); LS.set('name', opts.name);
   $('#menu').classList.add('hidden'); $('#hud').classList.remove('hidden'); if(isTouch) $('#touch').classList.remove('hidden');
-  if(isTouch){ document.documentElement.requestFullscreen?.().catch(() => {}); screen.orientation?.lock?.('landscape').catch(() => {}); }
+  const asApp = matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if(isTouch && !asApp){ document.documentElement.requestFullscreen?.().catch(() => {}); screen.orientation?.lock?.('landscape').catch(() => {}); }
   else lockPtr();
   P.guns = [newGun('pistol')]; P.gi = 0; setVM(); hudGun(); hudPts(); hudPerks();
   const SP = MAPD.spawn || { x: 1, z: 1 }; P.pos.copy(wpos(SP.x, SP.z)); P.yaw = SP.yaw != null ? SP.yaw : Math.PI;
@@ -2123,5 +2126,6 @@ requestAnimationFrame(frame);
 window.__iz = { BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
+<script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
 </body>
 </html>
