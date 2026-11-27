@@ -2218,7 +2218,7 @@ function decorSVG(){
     for(let i = 0; i < near.length; i++) for(let j = i + 1; j < near.length; j++){ const a = near[i], b = near[j]; if(a[0] * b[0] + a[1] * b[1] === 0) corners.push([x, z, a, b]); }
   }
   const art = ['turnback', 'hear', 'escape', 'lookup', 'n115', 'notsafe', 'hands', 'hands', 'tally', 'bio', 'missing', 'crack', 'crack', 'grime', 'grime', 'grime', 'stripes'];
-  const size = { turnback: [1.5, .56], hear: [1.6, .6], escape: [1.5, .56], lookup: [1.3, .5], n115: [1.1, .42], notsafe: [1.6, .6], hands: [.7, .7], tally: [.8, .5], bio: [.5, .62], missing: [.45, .6], crack: [.9, .9], grime: [.8, 1.6], stripes: [1.5, .28] };
+  const size = { turnback: [2.1, .79], hear: [2.2, .83], escape: [2.1, .79], lookup: [1.8, .68], n115: [1.5, .56], notsafe: [2.2, .83], hands: [.85, .85], tally: [.8, .5], bio: [.5, .62], missing: [.45, .6], crack: [.9, .9], grime: [.8, 1.6], stripes: [1.5, .28] };
   const height = { grime: WH - .82, stripes: 1.05, crack: null, hands: null, n115: null };
   const used = new Set(); const n = Math.round(faces.length * (LQ ? .08 : .16));
   for(let i = 0; i < n && faces.length; i++){
