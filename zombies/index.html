@@ -220,6 +220,7 @@ async function loadAssets(onProg){
   // putrid zombie + Shroudling: their own animations (3ds Max biped rigs, from FPS Creator packs on Sketchfab)
   jobs.push(load('assets/zombie/putrid.glb').then(g => { prepBeast(g, .98); ASSETS.putrid = g; }).catch(e => console.warn('putrid', e)).finally(tick));
   jobs.push(load('assets/zombie/shroudling.glb').then(g => { prepBeast(g, 1.15); ASSETS.shroud = g; }).catch(e => console.warn('shroud', e)).finally(tick));
+  jobs.push(load('assets/melee.glb').then(g => { ASSETS.ext = ASSETS.ext || {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh && m.material){ m.material.roughness = .6; m.material.envMapIntensity = .6; } }); ASSETS.ext[o.name] = o; } setMeleeVM(); }).catch(e => console.warn('melee', e)).finally(tick));
   // morgue furniture + gore chunks (head / body pieces for gibs)
   jobs.push(load('assets/morgue.glb').then(g => { ASSETS.ext = ASSETS.ext || {}; for(const o of [...g.scene.children]){ const b = new THREE.Box3().setFromObject(o), c = b.getCenter(new THREE.Vector3());
       for(const ch of o.children) ch.position.sub(new THREE.Vector3(c.x - o.position.x, b.min.y - o.position.y, c.z - o.position.z)); if(o.isMesh) o.geometry.translate(o.position.x - c.x, o.position.y - b.min.y, o.position.z - c.z);
@@ -424,7 +425,8 @@ function stockMap(){
     doors: { D: 750, E: 1000, F: 1250, H: 1250, J: 1500, K: 1500, L: 1000 },
     names: [[7, 16, 'Spawn Room'], [7, 5, 'Storage'], [23, 15, 'Generator Room'], [23, 5, 'Lab'], [35, 5, 'Workshop'], [35, 15, 'Morgue'], [25, 5, 'Offices', 1], [7, 5, 'Boiler Room', -1]],
     spawn: { x: 7, z: 16, yaw: Math.PI },
-    wallbuys: [ { k: 'rifle', x: 14, z: 12 }, { k: 'smg', x: 1, z: 18 }, { k: 'shotgun', x: 14, z: 8 }, { k: 'ar', x: 30, z: 12 }, { k: 'revolver', x: 38, z: 7 }, { k: 'sniper', x: 30, z: 5, lv: 1 }, { k: 'lmg', x: 13, z: 4, lv: -1 } ],
+    wallbuys: [ { k: 'rifle', x: 14, z: 12 }, { k: 'smg', x: 1, z: 18 }, { k: 'shotgun', x: 14, z: 8 }, { k: 'ar', x: 30, z: 12 }, { k: 'revolver', x: 38, z: 7 }, { k: 'sniper', x: 30, z: 5, lv: 1 }, { k: 'lmg', x: 13, z: 4, lv: -1 },
+      { k: 'bat', x: 3, z: 11 }, { k: 'hammer', x: 1, z: 6 }, { k: 'axe', x: 16, z: 12 }, { k: 'machete', x: 32, z: 7 }, { k: 'cleaver', x: 38, z: 17 }, { k: 'boneknife', x: 2, z: 5, lv: -1 } ],
     perks: { revive: { x: 13, z: 20, face: [0, -1] }, tough: { x: 16, z: 20, face: [0, -1] }, rapid: { x: 1, z: 8, face: [1, 0] }, speed: { x: 30, z: 8, face: [-1, 0] }, stamina: { x: 16, z: 1, face: [0, 1] } },
     box: [ { x: 7, z: 1, face: [0, 1] }, { x: 24, z: 20, face: [0, -1] }, { x: 27, z: 9, face: [0, -1] }, { x: 36, z: 20, face: [0, -1] }, { x: 21, z: 8, face: [0, -1], lv: 1 } ],
     upg: { x: 7, z: 2, face: [0, 1], lv: -1 }, power: { x: 30, z: 19 }, parts: true, eggs: true,
@@ -473,7 +475,8 @@ function labMap(){
     doors: { D: 750, E: 750, F: 1250, H: 1000, K: 1500, J: 1500, L: 1000 },
     names: [[6, 16, 'Intake'], [6, 4, 'Server Room'], [20, 15, 'Main Lab'], [20, 5, 'Specimen Hall'], [33, 5, 'Armory'], [33, 15, 'Reactor'], [19, 11, 'Catwalk', 1], [6, 5, 'Containment', -1]],
     spawn: { x: 6, z: 16, yaw: Math.PI },
-    wallbuys: [ { k: 'smg', x: 1, z: 18 }, { k: 'rifle', x: 12, z: 12 }, { k: 'shotgun', x: 1, z: 3 }, { k: 'ar', x: 14, z: 12 }, { k: 'revolver', x: 38, z: 3 }, { k: 'lmg', x: 38, z: 7 }, { k: 'sniper', x: 38, z: 13 } ],
+    wallbuys: [ { k: 'smg', x: 1, z: 18 }, { k: 'rifle', x: 12, z: 12 }, { k: 'shotgun', x: 1, z: 3 }, { k: 'ar', x: 14, z: 12 }, { k: 'revolver', x: 38, z: 3 }, { k: 'lmg', x: 38, z: 7 }, { k: 'sniper', x: 38, z: 13 },
+      { k: 'bat', x: 12, z: 19 }, { k: 'machete', x: 1, z: 8 }, { k: 'axe', x: 27, z: 13 }, { k: 'boneknife', x: 2, z: 4, lv: -1 } ],
     perks: { revive: { x: 2, z: 20, face: [0, -1] }, tough: { x: 24, z: 20, face: [0, -1] }, rapid: { x: 12, z: 2, face: [-1, 0] }, speed: { x: 25, z: 2, face: [-1, 0] }, stamina: { x: 33, z: 1, face: [0, 1] } },
     box: [ { x: 6, z: 1, face: [0, 1] }, { x: 19, z: 20, face: [0, -1] }, { x: 20, z: 1, face: [0, 1] }, { x: 33, z: 20, face: [0, -1] } ],
     upg: { x: 6, z: 2, face: [0, 1], lv: -1 }, power: { x: 38, z: 18 }, parts: true, eggs: true,
@@ -1167,6 +1170,26 @@ for(const wb of WALLBUYS){
   INTER.push({ pos: p, r: 2.0, prompt(){ const own = P.guns.find(g => g.k === wb.k); if(own) return [`Press <b>${KEY}</b> for ${gs(own).name} ammo`, own.up ? 4500 : price / 2]; return [`Press <b>${KEY}</b> to buy ${W[wb.k].name}`, price]; },
     use(){ const own = P.guns.find(g => g.k === wb.k); if(own){ const c = own.up ? 4500 : price / 2; const s = gs(own); if(own.res >= s.res && own.mag >= s.mag) return msg('Ammo is already full'); if(!spend(c)) return; own.res = s.res; SND.buy(); hudGun(); }
       else { if(!spend(price)) return; giveGun(newGun(wb.k)); SND.buy(); } } });
+}
+// melee weapons: bought off the wall, they replace the knife (more damage, a bit more reach)
+const MELEE = { knife: { name: 'Combat Knife', dmg: 150, reach: 1.9 },
+  hammer: { name: 'Claw Hammer', n: 'mel_hammer', len: .36, dmg: 350, cost: 1000, reach: 1.9 }, cleaver: { name: 'Meat Cleaver', n: 'mel_cleaver', len: .33, dmg: 550, cost: 1250, reach: 1.9, flip: true },
+  bat: { name: 'Nail Bat', n: 'mel_bat', len: .8, dmg: 450, cost: 1500, reach: 2.25 }, machete: { name: 'Machete', n: 'mel_machete', len: .6, dmg: 750, cost: 2000, reach: 2.1 },
+  axe: { name: 'Fire Axe', n: 'mel_axe', len: .74, dmg: 1100, cost: 2500, reach: 2.25 }, boneknife: { name: 'Bone Knife', n: 'mel_boneknife', len: .42, dmg: 1800, cost: 3000, reach: 2 } };
+// a melee model, handle at the origin, pointing +Y, real size
+function meleeMesh(k){ const c = MELEE[k], src = c && (ASSETS.ext || {})[c.n]; if(!src) return null; const o = src.clone(), b = new THREE.Box3().setFromObject(o), h = b.max.y - b.min.y;
+  o.scale.setScalar(c.len / h); const g = new THREE.Group(); if(c.flip){ o.rotation.z = Math.PI; o.position.y = c.len; } g.add(o); return g; }
+function setMeleeVM(){ if(!ARMS.ok) return; const kb = ARMS.kb; if(!kb.userData.knife) kb.userData.knife = [...kb.children];
+  kb.clear(); const k = P.melee || 'knife', m = k !== 'knife' && meleeMesh(k);
+  if(m){ m.rotation.x = -Math.PI / 2; m.position.z = .07; m.scale.setScalar(1 / .8); kb.add(m); } else kb.add(...kb.userData.knife); }
+for(const wb of (MAPD.wallbuys || [])){ const c = MELEE[wb.k]; if(!c || !c.cost) continue;
+  const [dx, dz] = wb.dx != null ? [wb.dx, wb.dz] : wallSide(wb.x, wb.z); const p = wpos(wb.x, wb.z, 1.5); p.x += dx * (CELL / 2 - .02); p.z += dz * (CELL / 2 - .02);
+  const g = new THREE.Group(); g.position.copy(p); g.rotation.y = Math.atan2(-dx, -dz); level.add(g);
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(1.25, .95), new THREE.MeshBasicMaterial({ map: textTex([{ t: c.name.toUpperCase(), font: '700 30px Oswald', color: '#e8dcc0', y: 214 }, { t: c.cost + '', font: '700 26px Oswald', color: '#ffd84a', y: 244 }], 256, 256, { bg: 'rgba(20,14,10,.6)' }), transparent: true, depthWrite: false })); board.position.z = .005; g.add(board);
+  const tryMount = () => { const m = meleeMesh(wb.k); if(!m) return false; m.rotation.z = -Math.PI / 2 + .35; m.position.set(-c.len * .45, -.05, .05); g.add(m); return true; };
+  if(!tryMount()){ const iv = setInterval(() => { if(tryMount()) clearInterval(iv); }, 500); }
+  INTER.push({ pos: p, r: 2.0, prompt(){ if(P.melee === wb.k) return [`You already carry the ${c.name}`, 0, true]; return [`Press <b>${KEY}</b> to buy the ${c.name}`, c.cost]; },
+    use(){ if(P.melee === wb.k || !spend(c.cost)) return; P.melee = wb.k; setMeleeVM(); SND.buy(); msg(`${c.name}: melee does ${c.dmg} damage`); } });
 }
 // doors
 for(const k in DOORS){
@@ -2215,9 +2238,9 @@ function update(dt){
   P.ads += ((P.adsHeld && !P.sprint && P.reloadT <= 0 && P.knifeT <= 0 && !P.down && g) ? 1 : -1) * dt * 7; P.ads = clamp(P.ads, 0, 1);
   if(P.swapT > 0) P.swapT -= dt;
   if(P.reloadT > 0){ P.reloadT -= dt; if(P.reloadT <= 0 && g){ const st = gs(g); const n = Math.min(st.mag - g.mag, g.res); g.mag += n; g.res -= n; hudGun(); } }
-  if(P.knifeT > 0){ P.knifeT -= dt; if(!P.knifeHit && P.knifeT < .38){ P.knifeHit = true; let best = null, bd = 1.9; const f = new THREE.Vector3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw));
+  if(P.knifeT > 0){ P.knifeT -= dt; if(!P.knifeHit && P.knifeT < .38){ P.knifeHit = true; const MW = MELEE[P.melee || 'knife'] || MELEE.knife; let best = null, bd = MW.reach; const f = new THREE.Vector3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw));
       for(const z of Z){ if(z.dead) continue; const zp = z.m.root.position; const dx = zp.x - P.pos.x, dz = zp.z - P.pos.z, dd = Math.hypot(dx, dz); if(dd < bd && (dx * f.x + dz * f.z) / dd > .55){ bd = dd; best = z; } }
-      if(best){ if(!sfx('knife', .6)) SND.stab(); hurtZombie(best, 150, false, 'knife', best.m.root.position.clone().setY(1.2)); } questKnife(); } }
+      if(best){ if(!sfx('knife', .6)) SND.stab(); hurtZombie(best, MW.dmg, false, 'knife', best.m.root.position.clone().setY(1.2)); } questKnife(); } }
   if(P.nadeT > 0) P.nadeT -= dt;
   if(P.drinkT > 0){ P.drinkT -= dt; if(P.drinkT <= 0 && P.drinkPerk){ P.perks.push(P.drinkPerk); if(P.drinkPerk === 'tough') P.hp = maxHp(); P.drinkPerk = null; hudPerks(); } }
   if(P.firing && !P.sprint) fireGun();
@@ -2635,7 +2658,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
