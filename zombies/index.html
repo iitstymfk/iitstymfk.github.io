@@ -214,10 +214,11 @@ const GUNMETA = {"pistol":{"len":0.215,"h":0.136,"my":0.046},"revolver":{"len":0
 const ASSETS = { guns: {}, zombie: null, grenade: null, barrel: null, arms: null, ready: false };
 async function loadAssets(onProg){
   const L = new GLTFLoader(); const load = u => new Promise((res, rej) => L.load(u, res, undefined, rej));
-  const jobs = [], total = Object.keys(GUNMETA).length + 5; let done = 0; const tick = () => onProg && onProg(++done, total);
+  const jobs = [], total = Object.keys(GUNMETA).length + 6; let done = 0; const tick = () => onProg && onProg(++done, total);
   for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh && o.material){ o.castShadow = false; const m = o.material; m.vertexColors = false; if(m.name === 'gunmetal'){ m.roughness = .5; m.metalness = .5; } m.envMapIntensity = .55; m.needsUpdate = true; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
   jobs.push(load('assets/arms/arms_rig.glb').then(g => { ASSETS.arms = g; }).catch(e => console.warn('arms', e)).finally(tick));
   jobs.push(load('assets/zombie/prisoner3.glb').then(g => { prepPrisoner(g); ASSETS.zombie2 = g; }).catch(e => console.warn('prisoner', e)).finally(tick));
+  jobs.push(load('assets/zombie/hellhound.glb').then(g => { prepDog(g); ASSETS.dog = g; }).catch(e => console.warn('hellhound', e)).finally(tick));
   jobs.push(load('assets/zombie/skeleton-zombie.glb').then(g => { ASSETS.zombie = g; }).catch(e => console.warn('zombie', e)).finally(tick));
   jobs.push(load('assets/scifi/Prop_Grenade.gltf').then(g => { ASSETS.grenade = g.scene; }).catch(() => {}).finally(tick));
   jobs.push(load('assets/scifi/Prop_Barrel1.gltf').then(g => { ASSETS.barrel = g.scene; }).catch(() => {}).finally(tick));
@@ -228,6 +229,12 @@ function prepPrisoner(g){
   for(const c of g.animations){ for(const t of c.tracks){ if(/Hips\.position$/.test(t.name)){ const v = t.values; const x0 = v[0], y0 = v[1]; for(let i = 0; i < v.length; i += 3){ v[i] = x0; v[i + 1] = y0; } } } }
   g.scene.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g.scene); const h = b.max.y - b.min.y; g.fit = h > 0 ? 1.82 / Math.max(h, 1.7) : 1;
   g.scene.traverse(o => { if(o.isMesh){ o.frustumCulled = false; o.castShadow = SHADOWS; const m = o.material; if(m){ m.roughness = .9; m.metalness = 0; m.envMapIntensity = .3; m.color && m.color.multiplyScalar(.85); } } });
+}
+// Quaternius German Shepherd (Zombie Apocalypse Kit, CC0) turned into a hellhound: charred fur with an ember glow
+function prepDog(g){
+  g.scene.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g.scene); const h = b.max.y - b.min.y; g.fit = h > 0 ? .78 / h : 1;
+  g.scene.traverse(o => { if(o.isMesh){ o.frustumCulled = false; o.castShadow = SHADOWS; const m = o.material = o.material.clone();
+    m.color && m.color.setRGB(.32, .2, .17); if(m.emissive){ m.emissive.set(0x5a1404); m.emissiveIntensity = .45; } m.roughness = .85; m.metalness = 0; m.envMapIntensity = .25; } });
 }
 function fitTo(o, size, axis){ o.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(o), v = b.getSize(new THREE.Vector3()); o.scale.multiplyScalar(size / (axis === 'y' ? v.y : Math.max(v.x, v.y, v.z))); return o; }
 function lockPtr(){ try{ const r = canvas.requestPointerLock?.(); if(r && r.catch) r.catch(() => {}); }catch{} }
@@ -1262,6 +1269,7 @@ function spawnZombie(){
 /* ---------- hellhound rounds: every few rounds the zombies stop and fire dogs come; kill them all for a Max Ammo ---------- */
 const DOGM = { body: mat({ color: 0x1a1512, roughness: .85, emissive: 0x2a0802, emissiveIntensity: .35 }), ember: new THREE.MeshBasicMaterial({ color: 0xff5a10 }), eye: new THREE.MeshBasicMaterial({ color: 0xffd040 }) };
 function dogMesh(){
+  if(ASSETS.dog) return dogMeshGLB();
   const root = new THREE.Group(); const s = rand(.95, 1.08); root.scale.setScalar(s); const B = new THREE.Group(); B.position.y = .52; root.add(B);
   const box = (w, h, d, m, p, x, y, z) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); p.add(o); return o; };
   box(.34, .32, .78, DOGM.body, B, 0, 0, 0); box(.3, .26, .3, DOGM.body, B, 0, .05, .36);
@@ -1275,6 +1283,35 @@ function dogMesh(){
   const sh = new THREE.Mesh(ZG.shadow, ZM.shadow); sh.scale.set(.6, 1, 1.1); sh.position.y = .02; root.add(sh);
   scene.add(root);
   return { root, B, head, headG, jaw, legs, tail, glow, s: .7, dog: true };
+}
+function dogMeshGLB(){
+  const G2 = ASSETS.dog, root = new THREE.Group(); const s = rand(.95, 1.1);
+  const model = SkeletonUtils.clone(G2.scene); model.scale.multiplyScalar(G2.fit * s); root.add(model);
+  let hb = null; model.traverse(o => { if(o.isBone && o.name === 'Head') hb = o; });
+  const head = new THREE.Object3D(); (hb || model).add(head);
+  const eyes = []; for(let i = 0; i < 2; i++){ const gl = new THREE.Sprite(ZM.glowRed); gl.scale.setScalar(.11); root.add(gl); eyes.push(gl); }
+  const glow = glowSprite(0xff5010, 1.3, .35); glow.position.y = .5; root.add(glow);
+  const sh = new THREE.Mesh(ZG.shadow, ZM.shadow); sh.scale.set(.6, 1, 1.1); sh.position.y = .02; root.add(sh);
+  const mixer = new THREE.AnimationMixer(model), A = {}, C = n => G2.animations.find(a => a.name === n);
+  for(const [k, n] of [['run', 'Run'], ['walk', 'Walk'], ['idle', 'Idle_2_HeadLow'], ['bite', 'Attack'], ['hit', 'HitReact_Left']]){ const c = C(n); if(c) A[k] = mixer.clipAction(c); }
+  for(const k of ['bite', 'hit']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = false; }
+  scene.add(root);
+  const m = { root, head, mixer, A, eyes, glow, s: .7, dog: true, glb: true, cur: null };
+  if(A.run){ A.run.play(); A.run.time = Math.random(); m.cur = A.run; }
+  return m;
+}
+const _dv = new THREE.Vector3(), _dr = new THREE.Vector3();
+function animDogGLB(z, dt, moving){
+  const m = z.m, A = m.A; z.phase += dt;
+  const want = moving ? 'run' : 'idle';
+  if(z.swipeStart && A.bite){ z.swipeStart = false; A.bite.reset().setEffectiveWeight(1).fadeIn(.05).play(); }
+  if(A[want] && m.cur !== A[want]){ const nx = A[want]; nx.reset().play(); if(m.cur) m.cur.crossFadeTo(nx, .15, false); m.cur = nx; }
+  if(A.run) A.run.timeScale = clamp(z.speed / 4.6, .7, 1.4);
+  m.mixer.update(dt);
+  // ember eyes follow the head bone
+  m.root.updateMatrixWorld(true); m.head.getWorldPosition(_dv); m.root.worldToLocal(_dv);
+  m.eyes.forEach((e, i) => { e.position.set((i ? 1 : -1) * .05, _dv.y + .02, _dv.z + .1); });
+  m.glow.material.opacity = .28 + Math.sin(now * 9 + z.phase) * .08;
 }
 const DOGR = { next: 5 + Math.floor(Math.random() * 3), on: false, left: 0, last: null };
 function isDogRound(r){ return MAPD.dogs !== false && r === DOGR.next; }
@@ -1290,6 +1327,7 @@ function spawnDog(){
   Z.push(z); RS.toSpawn--;
 }
 function animDog(z, dt, moving){
+  if(z.m.glb) return animDogGLB(z, dt, moving);
   const m = z.m; z.phase += dt * (moving ? 15 : 3); const ph = z.phase, a = moving ? .75 : .05;
   m.legs.forEach(([L, K], i) => { const o = (i === 0 || i === 3) ? 0 : Math.PI; L.rotation.x = Math.sin(ph + o) * a; K.rotation.x = Math.max(0, Math.sin(ph + o + 1.2)) * a * 1.2; });
   m.B.position.y = .52 + Math.abs(Math.sin(ph)) * (moving ? .05 : .01); m.tail.rotation.y = Math.sin(ph * .7) * .4;

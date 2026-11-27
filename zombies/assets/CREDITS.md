@@ -17,3 +17,6 @@
 ## Blood effects (from Tyler's Assets.zip)
 - `assets/fx/blood_decals.png`: atlas built from bloodsplats_0001–0007 (128x128 blood splats pack, OpenGameArt).
 - `assets/fx/blood_overlay.png`: darkened from BloodOverlay_0.png.
+
+## Hellhound
+- `assets/zombie/hellhound.glb`: German Shepherd from the **Zombie Apocalypse Kit by Quaternius** (CC0, https://quaternius.com/packs/zombieapocalypsekit.html), repacked to GLB and darkened in code.
