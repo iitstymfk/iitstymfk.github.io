@@ -232,9 +232,9 @@ function prepPrisoner(g){
 }
 // Quaternius German Shepherd (Zombie Apocalypse Kit, CC0) turned into a hellhound: charred fur with an ember glow
 function prepDog(g){
-  g.scene.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g.scene); const h = b.max.y - b.min.y; g.fit = h > 0 ? .78 / h : 1;
+  g.scene.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g.scene); const h = b.max.y - b.min.y; g.fit = h > 0 ? .9 / h : 1;
   g.scene.traverse(o => { if(o.isMesh){ o.frustumCulled = false; o.castShadow = SHADOWS; const m = o.material = o.material.clone();
-    m.color && m.color.setRGB(.32, .2, .17); if(m.emissive){ m.emissive.set(0x5a1404); m.emissiveIntensity = .45; } m.roughness = .85; m.metalness = 0; m.envMapIntensity = .25; } });
+    m.color && m.color.setRGB(.17, .1, .08); if(m.emissive){ m.emissive.set(0x4a0e02); m.emissiveIntensity = .3; } m.roughness = .85; m.metalness = 0; m.envMapIntensity = .25; } });
 }
 function fitTo(o, size, axis){ o.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(o), v = b.getSize(new THREE.Vector3()); o.scale.multiplyScalar(size / (axis === 'y' ? v.y : Math.max(v.x, v.y, v.z))); return o; }
 function lockPtr(){ try{ const r = canvas.requestPointerLock?.(); if(r && r.catch) r.catch(() => {}); }catch{} }
