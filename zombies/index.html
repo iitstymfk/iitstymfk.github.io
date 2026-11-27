@@ -219,7 +219,7 @@ async function loadAssets(onProg){
   jobs.push(load('assets/arms/arms_rig.glb').then(g => { ASSETS.arms = g; }).catch(e => console.warn('arms', e)).finally(tick));
   jobs.push(load('assets/props.glb').then(g => { ASSETS.props = {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .35; } } }); ASSETS.props[o.name] = o; } }).catch(e => console.warn('props', e)).finally(tick));
   jobs.push(load('assets/zombie/female.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material){ const m = o.material; if(/hair/i.test(m.name)){ m.transparent = false; m.alphaTest = .5; m.side = THREE.DoubleSide; } else { m.transparent = false; m.opacity = 1; } } }); ASSETS.female = g; }).catch(e => console.warn('female', e)).finally(tick));
-  jobs.push(load('assets/zombie/rotter.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material && o.material.color) o.material.color.multiplyScalar(.9); }); ASSETS.rotter = g; }).catch(e => console.warn('rotter', e)).finally(tick));
+  jobs.push(load('assets/zombie/rotter.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material && o.material.color) o.material.color.multiplyScalar(1.5); }); ASSETS.rotter = g; }).catch(e => console.warn('rotter', e)).finally(tick));
   jobs.push(load('assets/zombie/prisoner3.glb').then(g => { prepPrisoner(g); ASSETS.zombie2 = g; }).catch(e => console.warn('prisoner', e)).finally(tick));
   jobs.push(load('assets/zombie/hellhound.glb').then(g => { prepDog(g); ASSETS.dog = g; }).catch(e => console.warn('hellhound', e)).finally(tick));
   jobs.push(load('assets/zombie/skeleton-zombie.glb').then(g => { ASSETS.zombie = g; }).catch(e => console.warn('zombie', e)).finally(tick));
@@ -280,11 +280,7 @@ if(POST){
         float n = fract(sin(dot(vUv * (time + 1.7), vec2(12.9898, 78.233))) * 43758.5453); c += (n - .5) * grain;
         gl_FragColor = vec4(clamp(c, 0., 1.), 1.); }` });
   composer.addPass(gradePass);
-  // Ultra: ambient occlusion (soft contact shadows in corners, under crates and machines)
-  if(QL >= 3) import('three/addons/postprocessing/GTAOPass.js').then(({ GTAOPass }) => {
-    try{ const ao = new GTAOPass(scene, camera, innerWidth, innerHeight); ao.output = GTAOPass.OUTPUT.Default; ao.blendIntensity = .9;
-      ao.updateGtaoMaterial({ radius: .6, distanceExponent: 1.6, thickness: 1.5, scale: 1.2, samples: 12 }); ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
-      composer.insertPass(ao, 1); window.__ao = ao; }catch(e){ console.warn('AO off', e); } }).catch(e => console.warn('AO load', e));
+  // (GTAO ambient occlusion was removed: it made skinned zombies and some props invisible)
 }
 addEventListener('resize', resize); resize();
 
@@ -574,7 +570,13 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
   for(const st of STAIRS){ const n = st.len * 4, B = bandOfCell(st.start[0]);
     for(let k = 0; k < n; k++){ const h = WH * (k + 1) / n, along = (k + .5) / n * st.len * CELL; const g = new THREE.Mesh(new THREE.BoxGeometry(st.dir[0] ? st.len * CELL / n + .01 : CELL * .98, h, st.dir[1] ? st.len * CELL / n + .01 : CELL * .98), M.wood);
       const sx = (st.start[0] + .5) * CELL + st.dir[0] * (along - CELL / 2), sz = (st.start[1] + .5) * CELL + st.dir[1] * (along - CELL / 2); g.position.set(sx, h / 2, sz); g.castShadow = g.receiveShadow = SHADOWS; level.add(g); } }
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(220, 220), M.dirt); ground.rotation.x = -Math.PI/2; ground.position.set(W0*CELL/2, -0.01, GH*CELL/2); ground.userData.visual = true; level.add(ground);
+  { // outside ground: only where the ground floor is open sky, plus a big border around the map (so it never covers stair holes or sits on the basement ceiling)
+    const pos = [], uv = [], q = (x0, z0, x1, z1) => { pos.push(x0, 0, z0, x0, 0, z1, x1, 0, z1, x0, 0, z0, x1, 0, z1, x1, 0, z0); uv.push(x0 / 220, z0 / 220, x0 / 220, z1 / 220, x1 / 220, z1 / 220, x0 / 220, z0 / 220, x1 / 220, z1 / 220, x1 / 220, z0 / 220); };
+    const Wd = W0 * CELL, Hd = GH * CELL, E = 100;
+    q(-E, -E, Wd + E, 0); q(-E, Hd, Wd + E, Hd + E); q(-E, 0, 0, Hd); q(Wd, 0, Wd + E, Hd);
+    for(let z = 0; z < GH; z++) for(let x = 0; x < W0; x++) if(G[z][x] === ' ') q(x * CELL, z * CELL, (x + 1) * CELL, (z + 1) * CELL);
+    const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gg.computeVertexNormals();
+    const ground = new THREE.Mesh(gg, M.dirt); ground.position.y = -0.01; ground.receiveShadow = SHADOWS; ground.userData.visual = true; level.add(ground); }
   let nW = 0, nS = 0, nWin = 0; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ if(G[z][x] === '#'){ if(bandOfCell(x).lv < 0) nS++; else nW++; } if(G[z][x] === 'W') nWin++; }
   const wallG = new THREE.BoxGeometry(CELL, WH, CELL); wallG.translate(0, WH/2, 0);
   const walls = new THREE.InstancedMesh(wallG, M.brick, nW), stoneW = new THREE.InstancedMesh(wallG, M.stone, Math.max(1, nS)); stoneW.count = nS; let si = 0;
@@ -1581,9 +1583,9 @@ function updZombies(dt){
       const toWin = Math.atan2(w.n.x, w.n.z); z.m.root.rotation.y = toWin;
       if(w.hp > 0){
         if(!w.tearer || w.tearer.dead || w.tearer.state !== 'tear') w.tearer = z;
-        if(w.tearer === z){ z.t += dt; if(z.t > 1.05){ z.t = 0; w.hp--; setBoard(w, w.hp, false, true); SND.boardBreak(); z.atkT = .45; z.swipeStart = true; } }
-        const dIn = Math.hypot(P.pos.x - w.inside.x, P.pos.z - w.inside.z);
-        if(dIn < 1.5 && z.atkCD <= 0 && w.tearer === z){ z.atkT = .45; z.swipeStart = true; if(Math.random() < .6) sfx('zatk', .55, p); z.atkCD = 1.3; z.swipe = true; }
+        if(w.tearer === z){ z.t += dt; if(z.t > Math.max(1.15, 2.3 - RS.round * .05)){ z.t = 0; w.hp--; setBoard(w, w.hp, false, true); SND.boardBreak(); z.atkT = .45; z.swipeStart = true; } }
+        const dIn = Math.hypot(P.pos.x - p.x, P.pos.z - p.z); // only hit you if you're standing right at the window
+        if(dIn < 1.45 && z.atkCD <= 0 && w.tearer === z){ z.atkT = .45; z.swipeStart = true; if(Math.random() < .6) sfx('zatk', .55, p); z.atkCD = 1.3; z.swipe = true; }
       } else if(!w.tearer || w.tearer === z || w.tearer.dead || w.tearer.state !== 'climb'){ w.tearer = z; z.state = 'climb'; z.t = 0; z.from = p.clone(); }
     } else if(z.state === 'climb'){
       z.t += dt / .9; const k = Math.min(1, z.t);
@@ -1603,7 +1605,7 @@ function updZombies(dt){
       const pdx = P.pos.x - p.x, pdz = P.pos.z - p.z, pd = Math.hypot(pdx, pdz); if(pd < .58 && pd > 1e-4){ P.pos.x += pdx / pd * (.58 - pd); P.pos.z += pdz / pd * (.58 - pd); pushOut(P.pos, .3); }
     }
     if(z.atkCD > 0) z.atkCD -= dt;
-    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; const near = z.state === 'tear' ? Math.hypot(P.pos.x - z.win.inside.x, P.pos.z - z.win.inside.z) < 1.7 : Math.hypot(P.pos.x - p.x, P.pos.z - p.z) < 1.45; if(near && !P.zip) hurtPlayer(z.dog ? 34 : 50); } }
+    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; const near = Math.hypot(P.pos.x - p.x, P.pos.z - p.z) < (z.state === 'tear' ? 1.55 : z.dog ? 1.25 : 1.3); if(near && !P.zip) hurtPlayer(z.dog ? 34 : 50); } }
     animZombie(z, dt, moving);
   }
 }
@@ -2297,6 +2299,7 @@ function decorSVG(){
   for(const k in PERKS) if(PERKS[k].x != null) mark(PERKS[k].x, PERKS[k].z);
   for(const b of BOXLOCS) mark(b.x, b.z); for(const w of WALLBUYS) mark(w.x, w.z);
   if(MAPD.upg) mark(MAPD.upg.x, MAPD.upg.z); if(MAPD.power) mark(MAPD.power.x, MAPD.power.z);
+  for(const P1 of PROPS) for(const [x, z] of P1.cells){ mark(x, z); mark(x + 1, z); mark(x - 1, z); mark(x, z + 1); mark(x, z - 1); }
   const isWall = c => c === '#', isFloor = c => c === '.' || c === 'C';
   const faces = [], corners = [];
   for(let z = 1; z < GH - 1; z++) for(let x = 1; x < GW - 1; x++){
@@ -2311,7 +2314,7 @@ function decorSVG(){
   const art = ['turnback', 'hear', 'escape', 'lookup', 'n115', 'notsafe', 'hands', 'hands', 'tally', 'bio', 'missing', 'crack', 'crack', 'grime', 'grime', 'grime', 'stripes'];
   const size = { turnback: [2.1, .79], hear: [2.2, .83], escape: [2.1, .79], lookup: [1.8, .68], n115: [1.5, .56], notsafe: [2.2, .83], hands: [.85, .85], tally: [.8, .5], bio: [.5, .62], missing: [.45, .6], crack: [.9, .9], grime: [.8, 1.6], stripes: [1.5, .28] };
   const height = { grime: WH - .82, stripes: 1.05, crack: null, hands: null, n115: null };
-  const used = new Set(); const n = Math.round(faces.length * (LQ ? .08 : .16));
+  const used = new Set(); const n = Math.round(faces.length * (LQ ? .06 : .11));
   for(let i = 0; i < n && faces.length; i++){
     const [x, z, d] = faces.splice(Math.floor(R() * faces.length), 1)[0]; const key = x + ',' + z; if(used.has(key)) continue; used.add(key);
     const k = art[Math.floor(R() * art.length)]; const [w, h] = size[k]; const B = bandOfCell(x);
