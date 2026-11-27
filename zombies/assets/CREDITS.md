@@ -52,3 +52,12 @@
 
 ## Black Site Lab map
 - **Modular Sci-Fi MegaKit** — Quaternius (quaternius.com), CC0. Props (computers, crates, barrels, columns, pipe racks, floor lights, vents, metal door, alien specimens) and the wall/floor textures (Trim_01 panel, PaddedWall deck plates, recoloured).
+
+## Nov 27 additions
+- **Putrid Zombie** — temptecn (Sketchfab), CC BY. https://sketchfab.com/3d-models/none-7b6d264e523c42ac8f7690668eaeeade
+- **The Shroudling FPSC Pack** (Shroudling boss) — temptecn (Sketchfab), CC BY. https://sketchfab.com/3d-models/none-679193a6555c4a2d8d4d0a96b7af6b48
+- **Morgue Room** (autopsy table, corpse, trolley, sink, cabinet, scales, bench, surgical lamp) — Ljm.3d (Sketchfab), CC BY (best match). https://sketchfab.com/3d-models/none-480e1d39395547389da4ac299883e711
+- **Bone Knife** — Sketchfab, author not confirmed (candidates: sirerdees / normalmapenjoyer, CC BY). Check your download page.
+- **Gore pieces** (head / body chunks used for gibs) — Sketchfab "gore", author not confirmed.
+- **Simple Horror Melee Weapons Pack** (bat, axe, machete, cleaver, hammer) — itch.io "Retro PSX-like horror melee weapons pack", see its page for the author.
+- Saved but not used yet: **Chainsaw Brute** and **Lobotomy** (FPS Creator) — yopp_3D (Sketchfab), CC BY.
