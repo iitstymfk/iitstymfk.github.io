@@ -33,3 +33,6 @@
 
 ## Argus (special-round monster, chosen per map in the Map Maker)
 - `assets/zombie/argus.glb`: Argus model with animations from Age of Mythology: Retold (fan-shared XNALara/Sketchfab download). Used by Tyler for a private, non-commercial game.
+
+## Atomic Realm: Post-Apocalyptic World (free packs: Starter, Gas Station, Interiors, Into The Wild, Pharmacy)
+- Assets by Atomic Realm, https://atomicrealm.itch.io/ (from https://atomicrealm.itch.io/post-apocalyptic-world). Credit required; commercial and non-commercial use allowed; not redistributed as a pack.
