@@ -153,7 +153,7 @@ function setCell(x, z, c){ const g = GR(); const r = g[z]; g[z] = r.slice(0, x) 
 const onF = o => o && ((o.lv || 0) === FL);
 function stairCells(st){ const out = []; for(let i = 0; i < (st.len || 4); i++) out.push([st.x + st.dir[0] * i, st.z + st.dir[1] * i]); return out; }
 function stairAt(x, z){ for(let i = 0; i < (M.stairs || []).length; i++){ const st = M.stairs[i]; const lo = st.lv || 0; if(lo !== FL && lo + 1 !== FL) continue; if(stairCells(st).some(c => c[0] === x && c[1] === z)) return i; } return -1; }
-const isDoor = c => /^[A-Z]$/.test(c || '') && c !== 'W' && c !== 'C' && c !== 'M';
+const isDoor = c => /^[A-Z]$/.test(c || '') && c !== 'W' && c !== 'C' && c !== 'M' && c !== 'S' && c !== 'O';
 const walk = c => c === '.';
 function wallSide(x, z){ for(const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1]]){ const c = at(x + dx, z + dz); if(c === '#' || c === undefined) return [dx, dz]; } return null; }
 function openSide(x, z){ let best = null, bn = -1; for(const [dx, dz] of [[0,1],[0,-1],[1,0],[-1,0]]){ const b = at(x - dx, z - dz); const wb = b === '#' || b === 'W' || b === undefined || b === ' ' || isDoor(b); let n = 0; for(let k = 1; k <= 3; k++){ if(at(x + dx * k, z + dz * k) !== '.') break; n++; } const sc = n + (wb ? 10 : 0); if(n > 0 && sc > bn){ bn = sc; best = [dx, dz]; } } return best || [0, 1]; }
@@ -184,7 +184,7 @@ function removeThing(k, i){
   else if(k === 'stairs') M.stairs.splice(i, 1); else if(k === 'upg') M.upg = null; else if(k === 'power') M.power = null; else if(k === 'barrel') M.barrels.splice(i, 1); else if(k === 'light') M.bulbs.splice(i, 1); else if(k === 'name') M.names.splice(i, 1);
 }
 function allCells(){ return [M.grid, gridOf(1), gridOf(-1)].filter(Boolean).map(g => g.join('')).join(''); }
-function nextDoorLetter(){ const used = new Set(Object.keys(M.doors)); for(const c of allCells()) if(isDoor(c)) used.add(c); for(const c of 'ABDEFGHIJKLNOPQRSTUVXYZ') if(!used.has(c)) return c; return 'Z'; }
+function nextDoorLetter(){ const used = new Set(Object.keys(M.doors)); for(const c of allCells()) if(isDoor(c)) used.add(c); for(const c of 'ABDEFGHIJKLNPQRTUVXYZ') if(!used.has(c)) return c; return 'Z'; }
 // ---------- UI ----------
 function buildTools(){
   const T = $('#tools'); T.innerHTML = '';

@@ -442,7 +442,7 @@ function stairPortal(pos, ox, oz){ if(!STAIRS.length) return 0; const mx = pos.x
       if(edge < .34){ pos.x -= st.du * CELL + d[0] * .42; pos.z -= d[1] * .42; return -1; } } }
   return 0; }
 const G = MAPD.grid.map(r => r.split('')), RID = []; for(let z = 0; z < GH; z++) RID.push(new Array(GW).fill(-1));
-const isDoorCh = c => /^[A-Z]$/.test(c) && c !== 'W' && c !== 'C' && c !== 'M';
+const isDoorCh = c => /^[A-Z]$/.test(c) && c !== 'W' && c !== 'C' && c !== 'M' && c !== 'S' && c !== 'O';
 // rooms = floor areas split by walls, doors and windows; the room you start in is room 0
 {
   const open = c => c === '.' || c === 'C' || c === 'S'; let nid = 0; const sp = MAPD.spawn || { x: 1, z: 1 };
