@@ -239,7 +239,7 @@ async function loadAssets(onProg){
   for(const n of [7, 8, 10]) jobs.push(load(`assets/zombie/zom${n}.glb`).then(g => { inPlace(g, ['Walk', 'Run', 'Crawl', 'Running Crawl']); prepBeast(g, .98); ASSETS['zom' + n] = g; }).catch(e => console.warn('zom' + n, e)).finally(tick));
   // Chainsaw Brute (yopp_3D, CC BY): FPS Creator model, every move in one long clip -> cut into moves (24 fps frames)
   jobs.push(load('assets/zombie/brute.glb').then(g => { const c = g.animations[0], S = (n, a, b) => THREE.AnimationUtils.subclip(c, n, a, b, 24);
-    g.animations = [S('Idle', 0, 22), S('Walk', 24, 48), S('Run', 488, 510), S('Attack', 600, 646), S('Death', 286, 334), S('Hit', 262, 278)]; prepBeast(g, 1.05); ASSETS.brute = g; }).catch(e => console.warn('brute', e)).finally(tick));
+    g.animations = [S('Idle', 0, 22), S('Walk', 24, 48), S('Run', 488, 510), S('Attack', 600, 646), S('Death', 286, 334), S('Hit', 262, 278)]; prepBeast(g, 1.05); prepSkin(g, 2.05); ASSETS.brute = g; }).catch(e => console.warn('brute', e)).finally(tick));
   jobs.push(load('assets/zombie/hollow.glb').then(g => { prepBeast(g, 1.12); g.scene.traverse(o => { if(o.isMesh && o.material && o.material.color) o.material.color.multiplyScalar(.35); }); ASSETS.hollow = g; }).catch(e => console.warn('hollow', e)).finally(tick));
   jobs.push(load('assets/zombie/shroudling.glb').then(g => { prepBeast(g, 1.15); ASSETS.shroud = g; }).catch(e => console.warn('shroud', e)).finally(tick));
   jobs.push(load('assets/fabprops.glb').then(g => { ASSETS.ext = ASSETS.ext || {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .6; m.material.roughness = Math.max(.45, m.material.roughness); } } }); ASSETS.ext[o.name] = o; } }).catch(e => console.warn('fabprops', e)).finally(tick));
@@ -1760,7 +1760,7 @@ const BEAST = {
 const BOSSNAME = { shroud: ['THE SHROUDLING', '#ff4a2a'], hollow: ['THE HOLLOW WALKER', '#8a9cff'], brute: ['THE CHAINSAW BRUTE', '#ff9a2a'] };
 function beastZombie(key, type){
   const G = ASSETS[key], cfg = BEAST[key] || BEAST.flan, root = new THREE.Group(), s = rand(.94, 1.06) * (key === 'shroud' ? 1.12 : 1); root.scale.setScalar(s);
-  const model = SkeletonUtils.clone(G.scene); model.scale.multiplyScalar(G.fit); if(cfg.yaw) model.rotation.y = cfg.yaw; root.add(model); let headBone = null;
+  const model = SkeletonUtils.clone(G.scene); model.scale.multiplyScalar(G.fit); if(G.yoff) model.position.y = G.yoff; if(cfg.yaw) model.rotation.y = cfg.yaw; root.add(model); let headBone = null;
   model.traverse(o => { if(o.isBone && /Head$|Head_\d+$/.test(o.name) && !headBone) headBone = o; });
   const head = new THREE.Object3D(); if(headBone){ const nub = headBone.children.find(c => c.isBone); if(nub) head.position.copy(nub.position).multiplyScalar(.5); } (headBone || model).add(head);
   const mixer = new THREE.AnimationMixer(model), A = {}, C = n => G.animations.find(a => a.name === n);
