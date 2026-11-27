@@ -61,7 +61,7 @@ body.touch #nades{display:none}
 #pus i.blink{animation:blink .4s infinite}
 @keyframes blink{50%{opacity:.25}}
 #low{position:absolute;left:50%;top:calc(50% + 36px);transform:translateX(-50%);font-size:16px;font-weight:600;color:#ffd84a;text-shadow:0 1px 3px #000;letter-spacing:.1em}
-#dmg{position:absolute;inset:0;background:url(assets/fx/blood_overlay.png) center/100% 100% no-repeat,radial-gradient(ellipse at center,transparent 45%,rgba(120,0,0,.7) 100%);mix-blend-mode:multiply;opacity:0}
+#dmg{position:absolute;inset:0;background:url(assets/fx/blood_overlay.png) center/100% 100% no-repeat,radial-gradient(ellipse at center,transparent 45%,rgba(120,0,0,.7) 100%);opacity:0}
 #downV{position:absolute;inset:0;background:rgba(60,0,0,.55);backdrop-filter:grayscale(1);opacity:0;transition:opacity .4s}
 #scope{position:absolute;inset:0;display:none;background:radial-gradient(circle at center,transparent 0,transparent 31vmin,#000 31.4vmin)}
 #scope:before,#scope:after{content:"";position:absolute;background:#000;left:50%;top:50%}
@@ -1875,7 +1875,7 @@ function update(dt){
   if(boomT > 0){ boomT -= dt; boomLight.intensity = Math.max(0, boomT / .25 * 30); }
   // ----- health regen -----
   if(!P.down && now - P.hurtT > 3 && P.hp < maxHp()) P.hp = Math.min(maxHp(), P.hp + dt * 60);
-  const hk = 1 - P.hp / maxHp(); $('#dmg').style.opacity = P.down ? 0 : clamp(hk * 1.2 + (now - P.hurtT < .3 ? .4 : 0), 0, 1);
+  const hk = 1 - P.hp / maxHp(); $('#dmg').style.opacity = P.down ? 0 : clamp(hk * .9 + (now - P.hurtT < .3 ? .3 : 0), 0, .85);
   if(P.hp < maxHp() * .4 && !P.down){ heartT -= dt; if(heartT <= 0){ SND.heart(); heartT = 1; } }
   // ----- interaction -----
   curInter = P.down ? null : findInter();
