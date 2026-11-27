@@ -36,3 +36,4 @@
 
 ## Atomic Realm: Post-Apocalyptic World (free packs: Starter, Gas Station, Interiors, Into The Wild, Pharmacy)
 - Assets by Atomic Realm, https://atomicrealm.itch.io/ (from https://atomicrealm.itch.io/post-apocalyptic-world). Credit required; commercial and non-commercial use allowed; not redistributed as a pack.
+- Desk: "Table" by eucocker (@eucocker) on Sketchfab, CC BY: https://sketchfab.com/3d-models/table-303cfebd25eb4ea3bd06d052106aea41
