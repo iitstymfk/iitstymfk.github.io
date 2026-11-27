@@ -61,7 +61,7 @@ body.touch #nades{display:none}
 #pus i.blink{animation:blink .4s infinite}
 @keyframes blink{50%{opacity:.25}}
 #low{position:absolute;left:50%;top:calc(50% + 36px);transform:translateX(-50%);font-size:16px;font-weight:600;color:#ffd84a;text-shadow:0 1px 3px #000;letter-spacing:.1em}
-#dmg{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(170,0,0,.85) 100%);opacity:0}
+#dmg{position:absolute;inset:0;background:url(assets/fx/blood_overlay.png) center/100% 100% no-repeat,radial-gradient(ellipse at center,transparent 45%,rgba(120,0,0,.7) 100%);mix-blend-mode:multiply;opacity:0}
 #downV{position:absolute;inset:0;background:rgba(60,0,0,.55);backdrop-filter:grayscale(1);opacity:0;transition:opacity .4s}
 #scope{position:absolute;inset:0;display:none;background:radial-gradient(circle at center,transparent 0,transparent 31vmin,#000 31.4vmin)}
 #scope:before,#scope:after{content:"";position:absolute;background:#000;left:50%;top:50%}
@@ -270,6 +270,11 @@ if(POST){
         float n = fract(sin(dot(vUv * (time + 1.7), vec2(12.9898, 78.233))) * 43758.5453); c += (n - .5) * grain;
         gl_FragColor = vec4(clamp(c, 0., 1.), 1.); }` });
   composer.addPass(gradePass);
+  // Ultra: ambient occlusion (soft contact shadows in corners, under crates and machines)
+  if(QL >= 3) import('three/addons/postprocessing/GTAOPass.js').then(({ GTAOPass }) => {
+    try{ const ao = new GTAOPass(scene, camera, innerWidth, innerHeight); ao.output = GTAOPass.OUTPUT.Default; ao.blendIntensity = .9;
+      ao.updateGtaoMaterial({ radius: .6, distanceExponent: 1.6, thickness: 1.5, scale: 1.2, samples: 12 }); ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
+      composer.insertPass(ao, 1); window.__ao = ao; }catch(e){ console.warn('AO off', e); } }).catch(e => console.warn('AO load', e));
 }
 addEventListener('resize', resize); resize();
 
@@ -342,6 +347,7 @@ function mat(p){
 const M = {
   floor: mat({ map: TEX.floor, bumpMap: TEX.floor, bumpScale: 1.2, roughness: .9, metalness: 0 }),
   brick: mat({ map: TEX.brick, bumpMap: TEX.brick, bumpScale: 2, roughness: .95, metalness: 0 }),
+  stone: mat({ map: TEX.brick, bumpMap: TEX.brick, bumpScale: 3, roughness: .9, metalness: 0, color: 0x9a9690 }),
   wood: mat({ map: TEX.wood, bumpMap: TEX.wood, bumpScale: 1.5, roughness: .85, metalness: 0 }),
   crate: mat({ map: TEX.crate, roughness: .85, metalness: 0 }),
   ceil: mat({ map: TEX.ceil, roughness: 1, metalness: 0 }),
@@ -354,7 +360,8 @@ TEX.floor.repeat.set(32*1.6/6.4, 22*1.6/6.4);
 { const TL = new THREE.TextureLoader(); const up = (t, mats, rep) => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; for(const m of mats){ m.map = t; if(m.bumpMap) m.bumpMap = t; m.needsUpdate = true; } };
   TL.load('assets/tex/floor_tile.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.62); });
   TL.load('assets/tex/planks.jpg', t => { up(t, [M.wood]); M.wood.color.set(0x9a8a78); });
-  TL.load('assets/tex/metal_rivet.jpg', t => { up(t, [M.metal]); M.metal.color.setScalar(.75); }); }
+  TL.load('assets/tex/metal_rivet.jpg', t => { up(t, [M.metal]); M.metal.color.setScalar(.75); });
+  TL.load('assets/tex/stone_block.jpg', t => { t.repeat.set(.5, .5); up(t, [M.stone]); M.stone.color.set(0x8a8680); }); }
 TEX.dirt.repeat.set(30, 30); TEX.ceil.repeat.set(14, 10);
 
 /* ================= map ================= */
@@ -533,22 +540,22 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
     for(let k = 0; k < n; k++){ const h = WH * (k + 1) / n, along = (k + .5) / n * st.len * CELL; const g = new THREE.Mesh(new THREE.BoxGeometry(st.dir[0] ? st.len * CELL / n + .01 : CELL * .98, h, st.dir[1] ? st.len * CELL / n + .01 : CELL * .98), M.wood);
       const sx = (st.start[0] + .5) * CELL + st.dir[0] * (along - CELL / 2), sz = (st.start[1] + .5) * CELL + st.dir[1] * (along - CELL / 2); g.position.set(sx, h / 2, sz); g.castShadow = g.receiveShadow = SHADOWS; level.add(g); } }
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(220, 220), M.dirt); ground.rotation.x = -Math.PI/2; ground.position.set(W0*CELL/2, -0.01, GH*CELL/2); ground.userData.visual = true; level.add(ground);
-  let nW = 0, nWin = 0; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ if(G[z][x] === '#') nW++; if(G[z][x] === 'W') nWin++; }
+  let nW = 0, nS = 0, nWin = 0; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ if(G[z][x] === '#'){ if(bandOfCell(x).lv < 0) nS++; else nW++; } if(G[z][x] === 'W') nWin++; }
   const wallG = new THREE.BoxGeometry(CELL, WH, CELL); wallG.translate(0, WH/2, 0);
-  const walls = new THREE.InstancedMesh(wallG, M.brick, nW);
+  const walls = new THREE.InstancedMesh(wallG, M.brick, nW), stoneW = new THREE.InstancedMesh(wallG, M.stone, Math.max(1, nS)); stoneW.count = nS; let si = 0;
   const lowG = new THREE.BoxGeometry(CELL, 0.9, CELL); lowG.translate(0, .45, 0);
   const hiG = new THREE.BoxGeometry(CELL, 0.9, CELL); hiG.translate(0, 2.3 + .45, 0);
   const lows = new THREE.InstancedMesh(lowG, M.brick, nWin), his = new THREE.InstancedMesh(hiG, M.brick, nWin);
   const m4 = new THREE.Matrix4(); let i = 0, j = 0;
   for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){
     const B = bandOfCell(x), vx = (x - B.x0 + .5) * CELL, vy = B.lv * WH;
-    if(G[z][x] === '#'){ m4.makeTranslation(vx, vy, (z+.5)*CELL); walls.setMatrixAt(i++, m4); }
+    if(G[z][x] === '#'){ m4.makeTranslation(vx, vy, (z+.5)*CELL); if(B.lv < 0) stoneW.setMatrixAt(si++, m4); else walls.setMatrixAt(i++, m4); }
     if(G[z][x] === 'W'){ m4.makeTranslation(vx, vy, (z+.5)*CELL); lows.setMatrixAt(j, m4); his.setMatrixAt(j++, m4); }
   }
-  for(const m of [walls, lows, his]){ m.castShadow = m.receiveShadow = SHADOWS; }
+  for(const m of [walls, stoneW, lows, his]){ m.castShadow = m.receiveShadow = SHADOWS; }
   floor.receiveShadow = SHADOWS;
-  for(const m of [walls, lows, his]) m.userData.visual = true;
-  level.add(walls, lows, his);
+  for(const m of [walls, stoneW, lows, his]) m.userData.visual = true;
+  level.add(walls, stoneW, lows, his);
   // crates
   const crG = new THREE.BoxGeometry(1.3, 1.25, 1.3); crG.translate(0, .625, 0);
   for(const [x, z] of CRATES){ const c = new THREE.Mesh(crG, M.crate); c.castShadow = c.receiveShadow = SHADOWS; c.position.copy(wpos(x, z)); c.rotation.y = rand(-.2, .2); level.add(c);
@@ -646,9 +653,27 @@ function sparks(pos, nrm){
 }
 const DECALS = []; const decalG = new THREE.PlaneGeometry(1, 1);
 const decalM = new THREE.MeshBasicMaterial({ map: bloodTex, transparent: true, depthWrite: false, color: 0x6a0000, polygonOffset: true, polygonOffsetFactor: -3 });
+// splat atlas (assets/fx/blood_decals.png): 4x2 cells, the first 7 used. Cells 0,1,4 are streaky (good on walls), 2,3,5,6 are pools.
+const SPLAT = []; { const T = new THREE.TextureLoader().load('assets/fx/blood_decals.png', t => { t.colorSpace = THREE.SRGBColorSpace; });
+  for(let i = 0; i < 7; i++){ const t = T.clone(); t.repeat.set(.25, .5); t.offset.set((i % 4) * .25, i < 4 ? .5 : 0); t.colorSpace = THREE.SRGBColorSpace;
+    const m = LQ ? new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, color: 0x5a0606, polygonOffset: true, polygonOffsetFactor: -3 })
+      : new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, color: 0x7a0808, roughness: .22, metalness: .1, polygonOffset: true, polygonOffsetFactor: -3 });
+    SPLAT.push(m); } T.onUpdate = () => SPLAT.forEach(m => { m.map.image = T.image; m.map.needsUpdate = true; }); }
+function addDecal(d){ scene.add(d); DECALS.push(d); if(DECALS.length > (LQ ? 30 : 80)) DECALS.shift().removeFromParent(); }
 function floorBlood(pos, s = 1){
-  const d = new THREE.Mesh(decalG, decalM); d.rotation.set(-Math.PI/2, 0, rand(0, 6)); const k = rand(.6, 1.2) * s; d.scale.set(k, k, 1);
-  d.position.set(pos.x, .015, pos.z); scene.add(d); DECALS.push(d); if(DECALS.length > (LQ ? 25 : 50)) DECALS.shift().removeFromParent();
+  const pools = [2, 3, 5, 6], mm = SPLAT.length ? SPLAT[pools[Math.floor(Math.random() * 4)]] : decalM;
+  const d = new THREE.Mesh(decalG, mm); d.rotation.set(-Math.PI/2, 0, rand(0, 6)); const k = rand(.8, 1.5) * s; d.scale.set(k, k, 1);
+  d.position.set(pos.x, groundY(pos) + .012 + DECALS.length * .00002, pos.z); addDecal(d);
+}
+// a streak of blood on the wall behind a zombie that got shot (dir = bullet direction)
+function wallBlood(at, dir){
+  if(!SPLAT.length || !dir) return; const p = at.clone(); const st = dir.clone().setY(0).normalize().multiplyScalar(.2);
+  for(let k = 0; k < 9; k++){ p.add(st); const cx_ = Math.floor(p.x / CELL), cz_ = Math.floor(p.z / CELL); const c = G[cz_] && G[cz_][cx_];
+    if(c === '#'){ const q = p.clone().sub(st); const ax = Math.abs(st.x) > Math.abs(st.z); const d = new THREE.Mesh(decalG, SPLAT[[0, 1, 4, 3][Math.floor(Math.random() * 4)]]);
+      if(ax){ q.x = (st.x > 0 ? cx_ : cx_ + 1) * CELL - Math.sign(st.x) * .012; d.rotation.set(0, st.x > 0 ? -Math.PI/2 : Math.PI/2, rand(0, 6)); }
+      else { q.z = (st.z > 0 ? cz_ : cz_ + 1) * CELL - Math.sign(st.z) * .012; d.rotation.set(0, st.z > 0 ? Math.PI : 0, rand(0, 6)); }
+      q.y = clamp(q.y, .3, 2.6); const k2 = rand(.6, 1.1); d.scale.set(k2, k2, 1); d.position.copy(q); addDecal(d); return; }
+    if(c !== '.' && c !== 'S') return; }
 }
 
 /* ================= audio ================= */
@@ -1458,7 +1483,7 @@ function hurtZombie(z, dmg, head, kind, at){
   if(instaT > 0) dmg = 1e9;
   if(z.frozen > 0 && kind !== 'frost') dmg *= 3;
   z.hp -= dmg; STATS.hits++;
-  if(at) bloodBurst(at, head ? 10 : 6, head);
+  if(at){ bloodBurst(at, head ? 10 : 6, head); if(kind !== 'boom' && Math.random() < (head ? .7 : .3)) wallBlood(at, at.clone().sub(camL)); if(Math.random() < .25) floorBlood(z.m.root.position, .5); }
   if(z.hp <= 0){ killZombie(z, head, kind); return true; }
   if(kind === 'boom' && !z.crawl && !z.dog && z.m.A && z.m.A.crawl && z.state === 'in' && Math.random() < .4){ z.crawl = 1; z.speed = Math.min(z.speed, .75); }
   if(kind !== 'boom') addPoints(10); hitmark(false); SND.hit(); if(!z.dog && Math.random() < .22) sfx('zpain', .45, z.m.root.position);
