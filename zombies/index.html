@@ -237,6 +237,9 @@ async function loadAssets(onProg){
   jobs.push(load('assets/zombie/putrid.glb').then(g => { prepBeast(g, .98); ASSETS.putrid = g; }).catch(e => console.warn('putrid', e)).finally(tick));
   // Tony Flanagan's animated zombies (Fab, CC BY): their own walk/run/attack/scream/crawl/death set
   for(const n of [7, 8, 10]) jobs.push(load(`assets/zombie/zom${n}.glb`).then(g => { inPlace(g, ['Walk', 'Run', 'Crawl', 'Running Crawl']); prepBeast(g, .98); ASSETS['zom' + n] = g; }).catch(e => console.warn('zom' + n, e)).finally(tick));
+  // Chainsaw Brute (yopp_3D, CC BY): FPS Creator model, every move in one long clip -> cut into moves (24 fps frames)
+  jobs.push(load('assets/zombie/brute.glb').then(g => { const c = g.animations[0], S = (n, a, b) => THREE.AnimationUtils.subclip(c, n, a, b, 24);
+    g.animations = [S('Idle', 0, 22), S('Walk', 24, 48), S('Run', 488, 510), S('Attack', 600, 646), S('Death', 286, 334), S('Hit', 262, 278)]; prepBeast(g, 1.05); ASSETS.brute = g; }).catch(e => console.warn('brute', e)).finally(tick));
   jobs.push(load('assets/zombie/hollow.glb').then(g => { prepBeast(g, 1.12); g.scene.traverse(o => { if(o.isMesh && o.material && o.material.color) o.material.color.multiplyScalar(.35); }); ASSETS.hollow = g; }).catch(e => console.warn('hollow', e)).finally(tick));
   jobs.push(load('assets/zombie/shroudling.glb').then(g => { prepBeast(g, 1.15); ASSETS.shroud = g; }).catch(e => console.warn('shroud', e)).finally(tick));
   jobs.push(load('assets/fabprops.glb').then(g => { ASSETS.ext = ASSETS.ext || {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .6; m.material.roughness = Math.max(.45, m.material.roughness); } } }); ASSETS.ext[o.name] = o; } }).catch(e => console.warn('fabprops', e)).finally(tick));
@@ -1569,13 +1572,13 @@ function spawnZombie(){
   const w = pick(weighted);
   const r = RS.round; let type = 0; const q = Math.random();
   if(r >= 8 && q < .3) type = 2; else if(r >= 6 && q < .75) type = 1; else if(r >= 4 && q < .5) type = 1; else if(r === 3 && q < .2) type = 1;
-  const bosses = ['shroud', 'hollow'].filter(k => ASSETS[k]);
+  const bosses = ['shroud', 'hollow', 'brute'].filter(k => ASSETS[k]);
   const boss = r >= 8 && bosses.length && !Z.some(q => q.boss && !q.dead) && Math.random() < .03 ? pick(bosses) : null;
   const m = boss ? beastZombie(boss, 2) : zombieMesh(type); if(boss) type = 2;
   const pos = w.spawn.clone().addScaledVector(w.t, rand(-2, 2)); m.root.position.copy(pos);
   const z = { m, type, hp: RS.zhp, tilt: rand(-.25, .25), speed: [rand(.85, 1.15), rand(2.2, 2.6), rand(3.3, 3.8)][type], state: 'out', win: w, t: 0, atkT: 0, atkCD: 0, phase: Math.random() * 6, dead: false, groanT: rand(1, 4), wait: rand(-.6, .6) };
   if(r >= 8 && (m.prisoner || (m.A && m.A.crawl && m.beast)) && !type && Math.random() < .07){ z.crawl = 2; z.speed = rand(1.7, 2); }
-  if(boss){ z.boss = true; const hw = boss === 'hollow'; z.hp = RS.zhp * (hw ? 4 : 6); z.speed = hw ? rand(3.8, 4.2) : rand(3, 3.3); ann(hw ? 'THE HOLLOW WALKER' : 'THE SHROUDLING', hw ? '#8a9cff' : '#ff4a2a'); sfx('st_special', .5); }
+  if(boss){ z.boss = true; const hw = boss === 'hollow', br = boss === 'brute'; z.hp = RS.zhp * (hw ? 4 : br ? 9 : 6); z.speed = hw ? rand(3.8, 4.2) : br ? 2.7 : rand(3, 3.3); ann(BOSSNAME[boss][0], BOSSNAME[boss][1]); sfx('st_special', .5); }
   Z.push(z); RS.toSpawn--;
 }
 /* ---------- hellhound rounds: every few rounds the zombies stop and fire dogs come; kill them all for a Max Ammo ---------- */
@@ -1750,9 +1753,11 @@ function prisonerZombie(type, bi){
 const BEAST = {
   putrid: { walkRef: .42, runRef: 2.4, map: { walk: ['Walk', 'Walk2', 'Walk4'], run: ['Walk3'], swipe: ['Attack', 'Attack2'], die: ['Death', 'Death2', 'Death3'], stumble: ['Hurt'], idle: ['Idle'] } },
   flan: { walkRef: .33, runRef: 3, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack'], die: ['Death', 'Dying'], stumble: ['Scream'], idle: ['Idle'], scream: ['Scream'], crawl: ['Crawl'], crawlrun: ['Running Crawl'] } },
+  brute: { walkRef: .8, runRef: 2.8, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack'], die: ['Death'], stumble: ['Hit'], idle: ['Idle'] } },
   hollow: { walkRef: .9, runRef: 3.6, map: { walk: ['Walking'], run: ['Running', 'Run_03'], swipe: ['Skill_01'], die: ['BeHit_FlyUp'], stumble: ['BeHit_FlyUp'], idle: ['Walking'] } },
   shroud: { yaw: Math.PI / 2, walkRef: .6, runRef: 3.1, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack1', 'Attack2'], die: ['Death'], stumble: ['Idle'], idle: ['Idle'], scream: ['Rage'] } },
 };
+const BOSSNAME = { shroud: ['THE SHROUDLING', '#ff4a2a'], hollow: ['THE HOLLOW WALKER', '#8a9cff'], brute: ['THE CHAINSAW BRUTE', '#ff9a2a'] };
 function beastZombie(key, type){
   const G = ASSETS[key], cfg = BEAST[key] || BEAST.flan, root = new THREE.Group(), s = rand(.94, 1.06) * (key === 'shroud' ? 1.12 : 1); root.scale.setScalar(s);
   const model = SkeletonUtils.clone(G.scene); model.scale.multiplyScalar(G.fit); if(cfg.yaw) model.rotation.y = cfg.yaw; root.add(model); let headBone = null;
@@ -1878,7 +1883,8 @@ function updZombies(dt){
       if(z.screamT > 0){ z.screamT -= dt; moving = false; z.m.root.rotation.y = Math.atan2(TP.x - p.x, TP.z - p.z); }
       else if(dP > .85 && !z.pl.down) moveToward(z, tg, z.speed * (z.atkT > 0 ? .3 : 1), dt); else { moving = false; z.m.root.rotation.y = Math.atan2(TP.x - p.x, TP.z - p.z); }
       if(STAIRS.length) p.y = groundY(p);
-      if(dP < (z.dog ? 1.0 : 1.15) && z.atkCD <= 0 && !z.pl.down && !z.pl.zip){ z.atkT = z.dog ? .25 : .45; z.swipeStart = true; if(!z.dog && Math.random() < .6) sfx('zatk', .6, p); z.atkCD = z.dog ? .75 : 1.15; z.swipe = true; }
+      if(m.bk === 'brute' && (z.sawT = (z.sawT || 0) - dt) <= 0 && dP < 14){ z.sawT = rand(.5, 1.1); tn({ f: rand(70, 95), f2: rand(110, 160), type: 'sawtooth', dur: .45, vol: .05 * (1 - dP / 14) + .01 }); }
+      if(dP < (z.dog ? 1.0 : m.bk === 'brute' ? 1.5 : 1.15) && z.atkCD <= 0 && !z.pl.down && !z.pl.zip){ z.atkT = z.dog ? .25 : .45; z.swipeStart = true; if(!z.dog && Math.random() < .6) sfx('zatk', .6, p); z.atkCD = z.dog ? .75 : 1.15; z.swipe = true; }
       // separation
       for(const o of Z){ if(o === z || o.dead || o.state !== 'in') continue; const op = o.m.root.position; const dx = p.x - op.x, dz = p.z - op.z, d = Math.hypot(dx, dz); if(d < .55 && d > 1e-4){ const push = (.55 - d) * .5; p.x += dx / d * push; p.z += dz / d * push; } }
       pushOut(p, .28);
@@ -1886,7 +1892,7 @@ function updZombies(dt){
       const pdx = P.pos.x - p.x, pdz = P.pos.z - p.z, pd = Math.hypot(pdx, pdz); if(pd < .58 && pd > 1e-4){ P.pos.x += pdx / pd * (.58 - pd); P.pos.z += pdz / pd * (.58 - pd); pushOut(P.pos, .3); }
     }
     if(z.atkCD > 0) z.atkCD -= dt;
-    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; z.atkN = (z.atkN || 0) + 1; const T1 = z.pl || TGTS[0]; const near = Math.hypot(T1.pos.x - p.x, T1.pos.z - p.z) < (z.state === 'tear' ? 1.55 : z.dog ? 1.25 : 1.3); if(near && !T1.zip && !T1.down){ const d = z.dog ? 34 : 50; if(T1.local) hurtPlayer(d, p); else netSend({ t: 'hurt', to: T1.id, d, x: +p.x.toFixed(2), z: +p.z.toFixed(2) }); } } }
+    if(z.atkT > 0){ z.atkT -= dt; if(z.atkT <= 0 && z.swipe){ z.swipe = false; z.atkN = (z.atkN || 0) + 1; const T1 = z.pl || TGTS[0]; const near = Math.hypot(T1.pos.x - p.x, T1.pos.z - p.z) < (z.state === 'tear' ? 1.55 : z.dog ? 1.25 : 1.3); if(near && !T1.zip && !T1.down){ const d = z.dog ? 34 : z.m.bk === 'brute' ? 85 : 50; if(T1.local) hurtPlayer(d, p); else netSend({ t: 'hurt', to: T1.id, d, x: +p.x.toFixed(2), z: +p.z.toFixed(2) }); } } }
     animZombie(z, dt, moving);
   }
 }
@@ -2908,7 +2914,7 @@ function netSnap(m){
     let z = Z.find(q => q.id === id && q.net);
     if(!z){ const mm = dog ? dogMesh() : zombieMesh(type, bk); mm.root.position.set(x, y, zz); mm.root.rotation.y = ry;
       z = { net: true, id, m: mm, type, dog: !!dog, boss: !!boss, hp: 1, state: 'in', t: 0, atkT: 0, atkCD: 0, phase: Math.random() * 6, dead: false, groanT: rand(2, 6), wait: 0, speed: sp, np: new THREE.Vector3(x, y, zz), nry: ry };
-      Z.push(z); if(boss) ann(bk === 'hollow' ? 'THE HOLLOW WALKER' : 'THE SHROUDLING', bk === 'hollow' ? '#8a9cff' : '#ff4a2a'); }
+      Z.push(z); if(boss && BOSSNAME[bk]) ann(...BOSSNAME[bk]); }
     z.np.set(x, y, zz); z.nry = ry; z.crawl = crawl; z.state = ['out', 'tear', 'climb', 'in'][st] || 'in'; z.speed = sp; z.seen = t;
     if(atk && !z.na){ z.atkT = .45; z.swipeStart = true; } z.na = atk; if(scr && !z.screamT) z.screamT = 2.3; }
   for(let i = Z.length - 1; i >= 0; i--){ const z = Z[i]; if(z.net && !z.dead && !seen.has(z.id) && t - (z.seen || 0) > 600){ z.m.root.removeFromParent(); Z.splice(i, 1); } }
