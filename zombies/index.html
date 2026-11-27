@@ -1609,14 +1609,27 @@ function moveToward(z, target, speed, dt){
     const want = Math.atan2(dx, dz); let diff = want - z.m.root.rotation.y; diff = Math.atan2(Math.sin(diff), Math.cos(diff)); z.m.root.rotation.y += diff * Math.min(1, dt * 8); }
   return d;
 }
+// Play the prisoner's animations on another Mixamo body. Their bones have different local axes, so each rotation key is
+// moved through world space (both rigs rest in a T-pose): local' = inv(tgtParentRest)*srcParentRest * local * inv(srcRest)*tgtRest.
+// Only the hips move; every other position/scale key is dropped (it carries the prisoner's own limb lengths).
+function retargetClips(src, tgt){
+  const info = g => { g.scene.updateMatrixWorld(true); const m = {}; g.scene.traverse(o => { if(o.isBone && !m[o.name]){ const wq = new THREE.Quaternion(), pq = new THREE.Quaternion(), wp = new THREE.Vector3(); o.getWorldQuaternion(wq); o.parent.getWorldQuaternion(pq); o.getWorldPosition(wp); m[o.name] = { wq, pq, wp, pm: o.parent.matrixWorld.clone() }; } }); return m; };
+  const S = info(src), T = info(tgt), ratio = S.Hips && T.Hips ? T.Hips.wp.y / S.Hips.wp.y : 1;
+  return src.animations.map(c => { const tracks = [];
+    for(const t of c.tracks){ const dot = t.name.lastIndexOf('.'), bn = t.name.slice(0, dot), prop = t.name.slice(dot + 1); if(!S[bn] || !T[bn]) continue;
+      if(prop === 'quaternion'){ const a = T[bn].pq.clone().invert().multiply(S[bn].pq), b = S[bn].wq.clone().invert().multiply(T[bn].wq), v = t.values.slice(), q = new THREE.Quaternion();
+        for(let i = 0; i < v.length; i += 4){ q.fromArray(v, i).premultiply(a).multiply(b); q.toArray(v, i); } tracks.push(new THREE.QuaternionKeyframeTrack(t.name, t.times, v)); }
+      else if(prop === 'position' && bn === 'Hips'){ const v = t.values.slice(), p = new THREE.Vector3(), inv = T.Hips.pm.clone().invert();
+        for(let i = 0; i < v.length; i += 3){ p.fromArray(v, i).applyMatrix4(S.Hips.pm).multiplyScalar(ratio).applyMatrix4(inv); p.toArray(v, i); } tracks.push(new THREE.VectorKeyframeTrack(t.name, t.times, v)); } }
+    return new THREE.AnimationClip(c.name, c.duration, tracks); });
+}
 function prisonerZombie(type){
   const G2 = ASSETS.zombie2, body = pick([G2, ASSETS.rotter || G2, ASSETS.female || G2]), root = new THREE.Group(); const s = rand(.94, 1.06); root.scale.setScalar(s);
   const model = SkeletonUtils.clone(body.scene); model.scale.multiplyScalar(G2.fit); root.add(model); if(body !== G2) model.scale.setScalar(body.fit); model.position.z = -.2; /* he leans forward: centre his body over the hitbox */ let headBone = null;
   model.traverse(o => { if(o.isBone && /Head$/.test(o.name) && !headBone) headBone = o; });
   const head = new THREE.Object3D(); head.position.set(0, 10, 4); (headBone || model).add(head);
   for(const sx of [-1, 1]){ const gl = new THREE.Sprite(type > 1 ? ZM.glowRed : ZM.glow); gl.scale.setScalar(4.5); gl.position.set(sx * 3.2, 0, 6); head.add(gl); }
-  // other bodies only take the prisoner's bone ROTATIONS (+ hip motion): his per-bone position/scale keys carry his own limb lengths and stretch them into spiders
-  const clips = body === G2 ? G2.animations : (body._clips || (body._clips = G2.animations.map(c => new THREE.AnimationClip(c.name, c.duration, c.tracks.filter(t => /\.quaternion$/.test(t.name) || /^Hips\.position$/.test(t.name))))));
+  const clips = body === G2 ? G2.animations : (body._clips || (body._clips = retargetClips(G2, body)));
   const mixer = new THREE.AnimationMixer(model), A = {}, C = n => clips.find(a => a.name === n);
   const map = { walk: 'walk', run: 'run', swipe: 'attack', bite: 'bite', die: Math.random() < .5 ? 'death' : 'dying', stumble: 'hit', idle: 'idle', crawl: 'crawl', crawlrun: 'crawlrun', scream: 'scream' };
   for(const k in map){ const c = C(map[k]); if(c) A[k] = mixer.clipAction(c); }
