@@ -96,17 +96,17 @@ const GUNS = { rifle: ['Garand-K', 500], smg: ['Ranger SMG', 1000], ar: ['Storm 
 let PEND = null;
 const STDIR = { e: [1, 0], w: [-1, 0], s: [0, 1], n: [0, -1] }; let stDir = 'e';
 const TOOLS = [
-  ['Paint', [['wall', '🧱 Wall'], ['floor', '⬜ Floor'], ['out', '🌲 Outside'], ['win', '🪟 Window'], ['door', '🚪 Door'], ['crate', '📦 Crate']]],
+  ['Paint', [['wall', '🧱 Wall'], ['floor', '⬜ Floor'], ['out', '🌲 Outside'], ['win', '🪟 Window'], ['door', '🚪 Door'], ['crate', '📦 Crate'], ['open', '🕳 Open to below']]],
   ['Place', [['spawn', '🧍 Start'], ['box', '❓ Box spot'], ['perk', '🥤 Perk'], ['buy', '🔫 Wall buy'], ['upg', '⬆ Upgrade'], ['power', '⚡ Power'], ['barrel', '🛢 Barrel'], ['fire', '🔥 Fire barrel'], ['light', '💡 Light'], ['name', '🏷 Room name'], ['stairs', '🪜 Stairs'], ['zip', '🚡 Zip line'], ['portal', '🌀 Portal']]],
   ['Edit', [['rotate', '↻ Turn'], ['erase', '✖ Remove thing'], ['move', '✋ Scroll']]],
 ];
 const HINTS = {
   wall: 'Drag to paint walls.', floor: 'Drag to paint floor (also clears walls).', out: 'Open air: zombies come from here to the windows. The edge of the map counts as outside too.',
   win: 'Windows go in a wall between a room and the outside (or the map edge). Zombies climb in through them.', door: 'Paint a door between two rooms. Pick the letter below; cells with the same letter open together.',
-  crate: 'Crates block walking but you can shoot over them.', spawn: 'Where you start. That room is open from the start.', box: 'Mystery box spots (it moves between them). Put them against a wall.',
+  crate: 'Crates block walking but you can shoot over them.', open: 'Upper floors only: paint an opening over a room below to make it two storeys tall (a balcony gets railings automatically). Great with a zip line down.', spawn: 'Where you start. That room is open from the start.', box: 'Mystery box spots (it moves between them). Put them against a wall.',
   perk: 'Pick a perk, then tap a floor cell against a wall.', buy: 'Pick a gun, then tap a floor cell next to a wall; the chalk drawing goes on that wall.', upg: 'The Upgrade machine (one per map).',
   power: 'Power switch: tap a floor cell next to a wall.', barrel: 'A plain barrel.', fire: 'A burning barrel (lights the room).', light: 'Ceiling lights. If you place none, lights are added for you.',
-  name: 'Tap a room to name it.', zip: 'Tap where the zip line starts, then where it ends (same floor, open floor cells). Needs power in game, costs 250 to ride.', portal: 'Tap the first pad, then switch floors if you like and tap the second pad. Great for reaching Pack-a-Punch. Needs power.', stairs: 'On the lower floor, pick a direction, then tap where the bottom step goes. 4 steps go up that way; the floor above gets a hole and a landing.', rotate: 'Tap a perk, box, Upgrade machine or wall buy to turn it.', erase: 'Tap a placed thing to remove it.', move: 'Drag to scroll the map (phone).'
+  name: 'Tap a room to name it.', zip: 'Tap where the zip line starts, then switch floors if you like and tap where it ends. Best use: from a balcony down into a two-storey room (paint "Open to below" between them). Needs power in game, costs 250 to ride.', portal: 'Tap the first pad, then switch floors if you like and tap the second pad. Great for reaching Pack-a-Punch. Needs power.', stairs: 'On the lower floor, pick a direction, then tap where the bottom step goes. 4 steps go up that way; the floor above gets a hole and a landing.', rotate: 'Tap a perk, box, Upgrade machine or wall buy to turn it.', erase: 'Tap a placed thing to remove it.', move: 'Drag to scroll the map (phone).'
 };
 let maps = {}; try{ maps = JSON.parse(localStorage.getItem(LSK) || '{}'); }catch(e){ maps = {}; }
 let id = null, M = null, tool = 'wall', perkSel = 'revive', gunSel = 'rifle', doorSel = 'A', cs = 22, undo = [];
@@ -126,13 +126,14 @@ function stockCopy(){ // a copy of the built-in Iitsty Outpost to remix
   const up = []; for(let z = 0; z < h; z++) up.push(new Array(w).fill(' '));
   const RU = (x0, z0, x1, z1, c) => { for(let z = z0; z <= z1; z++) for(let x = x0; x <= x1; x++) up[z][x] = c; };
   RU(19, 0, 31, 9, '#'); RU(20, 2, 30, 8, '.'); RU(20, 1, 21, 1, '.'); RU(26, 1, 30, 1, '.'); up[0][21] = 'W'; up[0][28] = 'W';
+  RU(15, 10, 31, 21, '#'); RU(16, 11, 30, 12, '.'); RU(16, 13, 30, 20, 'O'); RU(24, 9, 25, 10, '.');
   const dn = []; for(let z = 0; z < h; z++) dn.push(new Array(w).fill('#'));
   const RD = (x0, z0, x1, z1, c) => { for(let z = z0; z <= z1; z++) for(let x = x0; x <= x1; x++) dn[z][x] = c; };
   RD(2, 2, 13, 7, '.'); RD(2, 8, 8, 8, '.'); RD(10, 8, 13, 8, '.'); dn[1][6] = 'W'; dn[0][6] = ' '; dn[1][11] = 'W'; dn[0][11] = ' ';
   g[1][23] = '.'; g[1][26] = '#';
   return { v: 1, name: 'Outpost Remix', grid: g.map(r => r.join('')), up: { grid: up.map(r => r.join('')) }, down: { grid: dn.map(r => r.join('')) },
     stairs: [{ x: 22, z: 1, dir: [1, 0], len: 4 }, { x: 13, z: 8, dir: [-1, 0], len: 4, lv: -1 }],
-    zips: [{ a: [17, 11], b: [29, 17] }], portals: [{ a: [34, 6], b: [4, 4, -1], name: 'Pack-a-Punch' }], doors: { D: 750, E: 1000, F: 1250, H: 1250, J: 1500, K: 1500, L: 1000 },
+    zips: [{ a: [29, 12, 1], b: [18, 18, 0] }], portals: [{ a: [34, 6], b: [4, 4, -1], name: 'Pack-a-Punch' }], doors: { D: 750, E: 1000, F: 1250, H: 1250, J: 1500, K: 1500, L: 1000 },
     names: [[7, 16, 'Spawn Room'], [7, 5, 'Storage'], [23, 15, 'Generator Room'], [23, 5, 'Lab'], [35, 5, 'Workshop'], [35, 15, 'Morgue'], [25, 5, 'Offices', 1], [7, 5, 'Boiler Room', -1]], spawn: { x: 7, z: 16, yaw: Math.PI },
     wallbuys: [{ k: 'rifle', x: 14, z: 12, dx: 1, dz: 0 }, { k: 'smg', x: 1, z: 18, dx: -1, dz: 0 }, { k: 'shotgun', x: 14, z: 8, dx: 1, dz: 0 }, { k: 'ar', x: 30, z: 12, dx: 1, dz: 0 }, { k: 'revolver', x: 38, z: 7, dx: 1, dz: 0 }, { k: 'sniper', x: 30, z: 5, dx: 1, dz: 0, lv: 1 }, { k: 'lmg', x: 13, z: 4, dx: 1, dz: 0, lv: -1 }],
     perks: { revive: { x: 13, z: 20, face: [0, -1] }, tough: { x: 16, z: 20, face: [0, -1] }, rapid: { x: 1, z: 8, face: [1, 0] }, speed: { x: 30, z: 8, face: [-1, 0] }, stamina: { x: 16, z: 1, face: [0, 1] } },
@@ -179,7 +180,7 @@ function thingsAt(x, z){
   M.bulbs.forEach((b, i) => { if((b[2] || 0) === FL && Math.floor(b[0]) === x && Math.floor(b[1]) === z) out.push(['light', i]); });
   M.names.forEach((b, i) => { if((b[3] || 0) === FL && b[0] === x && b[1] === z) out.push(['name', i]); });
   const si = stairAt(x, z); if(si >= 0) out.push(['stairs', si]);
-  (M.zips || []).forEach((zp, i) => { if((zp.lv || 0) === FL && [zp.a, zp.b].some(c => c[0] === x && c[1] === z)) out.push(['zip', i]); });
+  (M.zips || []).forEach((zp, i) => { if([zp.a, zp.b].some(c => (c[2] != null ? c[2] : (zp.lv || 0)) === FL && c[0] === x && c[1] === z)) out.push(['zip', i]); });
   (M.portals || []).forEach((pt, i) => { if([pt.a, pt.b].some(c => (c[2] || 0) === FL && c[0] === x && c[1] === z)) out.push(['portal', i]); });
   return out;
 }
@@ -216,6 +217,7 @@ function apply(x, z, first){
   const paint = ch => { if(c === ch) return; setCell(x, z, ch); if(ch !== '.') clearThings(x, z); };
   switch(tool){
     case 'wall': paint('#'); break; case 'floor': paint('.'); break; case 'out': paint(' '); break; case 'crate': paint('C'); break;
+    case 'open': if(FL < 1){ if(first) flash('Open to below only works on an upper floor.'); return; } paint('O'); break;
     case 'win': paint('W'); break;
     case 'door': paint(doorSel); if(M.doors[doorSel] == null) M.doors[doorSel] = 1000; break;
     default: if(!first) return; place(x, z, c);
@@ -240,9 +242,8 @@ function place(x, z, c){
   else if(T === 'zip' || T === 'portal'){
     if(at(x, z) !== '.') return flash('Pick an open floor cell.');
     if(!PEND || PEND.T !== T){ PEND = { T, x, z, lv: FL }; draw(); return flash(T === 'zip' ? 'Start set. Now tap where the zip line ends.' : 'First pad set. Now tap the second pad (you can switch floors first).'); }
-    if(T === 'zip'){ if(PEND.lv !== FL) { PEND = null; return flash('Both ends of a zip line must be on the same floor. Start again.'); }
-      if(Math.hypot(x - PEND.x, z - PEND.z) < 4){ return flash('Too short: put the ends at least 4 cells apart.'); }
-      M.zips = M.zips || []; M.zips.push(FL ? { a: [PEND.x, PEND.z], b: [x, z], lv: FL } : { a: [PEND.x, PEND.z], b: [x, z] }); flash('Zip line added.'); }
+    if(T === 'zip'){ if(Math.hypot(x - PEND.x, z - PEND.z) < 4){ return flash('Too short: put the ends at least 4 cells apart.'); }
+      M.zips = M.zips || []; M.zips.push({ a: [PEND.x, PEND.z, PEND.lv], b: [x, z, FL] }); flash(PEND.lv !== FL ? 'Zip line added between floors. Make sure the space between is open (Open to below).' : 'Zip line added.'); }
     else { if(PEND.x === x && PEND.z === z && PEND.lv === FL) return; M.portals = M.portals || [];
       M.portals.push({ a: PEND.lv ? [PEND.x, PEND.z, PEND.lv] : [PEND.x, PEND.z], b: FL ? [x, z, FL] : [x, z], name: 'Pack-a-Punch' }); flash('Portal pair added.'); }
     PEND = null;
@@ -275,12 +276,14 @@ function draw(){
     if(c === '#'){ ctx.fillStyle = '#3c3c42'; ctx.fillRect(X, Z, cs, cs); ctx.fillStyle = '#2c2c30'; ctx.fillRect(X, Z + cs * .5, cs, 1); }
     else if(c === ' '){ ctx.fillStyle = '#16301a'; ctx.fillRect(X, Z, cs, cs); if(FL > 0){ const b = atF(FL - 1, x, z); if(b && b !== ' '){ ctx.fillStyle = b === '#' ? '#26302a' : '#1f3a24'; ctx.fillRect(X, Z, cs, cs); } } }
     else if(c === 'W'){ ctx.fillStyle = '#3c3c42'; ctx.fillRect(X, Z, cs, cs); ctx.fillStyle = '#6fb8ff'; ctx.fillRect(X + cs * .15, Z + cs * .15, cs * .7, cs * .7); ctx.fillStyle = '#7a5030'; for(let k = 0; k < 3; k++) ctx.fillRect(X + cs * .1, Z + cs * (.25 + k * .22), cs * .8, cs * .08); }
+    else if(c === 'O'){ ctx.fillStyle = '#0d0d10'; ctx.fillRect(X, Z, cs, cs); ctx.strokeStyle = '#555'; ctx.beginPath(); ctx.moveTo(X + 2, Z + 2); ctx.lineTo(X + cs - 2, Z + cs - 2); ctx.moveTo(X + cs - 2, Z + 2); ctx.lineTo(X + 2, Z + cs - 2); ctx.stroke(); }
     else if(isDoor(c)){ ctx.fillStyle = '#8a4a12'; ctx.fillRect(X, Z, cs, cs); ctx.fillStyle = '#fff'; ctx.font = `700 ${cs * .62}px Oswald`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(c, X + cs / 2, Z + cs / 2 + 1); }
     else { const r = R[z][x]; ctx.fillStyle = '#c9b48f'; ctx.fillRect(X, Z, cs, cs); if(r >= 0){ ctx.fillStyle = ROOMCOL[r % ROOMCOL.length] + '55'; ctx.fillRect(X, Z, cs, cs); }
       if(c === 'C'){ ctx.fillStyle = '#7a5226'; ctx.fillRect(X + 2, Z + 2, cs - 4, cs - 4); ctx.strokeStyle = '#4a2e12'; ctx.strokeRect(X + 2.5, Z + 2.5, cs - 5, cs - 5); } }
   }
-  for(const zp of (M.zips || [])){ if((zp.lv || 0) !== FL) continue; ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo((zp.a[0] + .5) * cs, (zp.a[1] + .5) * cs); ctx.lineTo((zp.b[0] + .5) * cs, (zp.b[1] + .5) * cs); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
-    for(const c of [zp.a, zp.b]){ ctx.font = `${cs * .7}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🚡', (c[0] + .5) * cs, (c[1] + .5) * cs); } }
+  for(const zp of (M.zips || [])){ const la = zp.a[2] != null ? zp.a[2] : (zp.lv || 0), lb = zp.b[2] != null ? zp.b[2] : (zp.lv || 0); if(la !== FL && lb !== FL) continue;
+    ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 3; ctx.setLineDash(la === lb ? [6, 4] : [2, 5]); ctx.beginPath(); ctx.moveTo((zp.a[0] + .5) * cs, (zp.a[1] + .5) * cs); ctx.lineTo((zp.b[0] + .5) * cs, (zp.b[1] + .5) * cs); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
+    ctx.font = `${cs * .7}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; for(const [c, l] of [[zp.a, la], [zp.b, lb]]) if(l === FL) ctx.fillText('🚡', (c[0] + .5) * cs, (c[1] + .5) * cs + 1); }
   for(const pt of (M.portals || [])) for(const c of [pt.a, pt.b]) if((c[2] || 0) === FL){ ctx.fillStyle = 'rgba(160,80,255,.45)'; ctx.beginPath(); ctx.arc((c[0] + .5) * cs, (c[1] + .5) * cs, cs * .48, 0, 7); ctx.fill(); ctx.font = `${cs * .7}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🌀', (c[0] + .5) * cs, (c[1] + .5) * cs); }
   if(PEND && PEND.lv === FL){ ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(PEND.x * cs + 2, PEND.z * cs + 2, cs - 4, cs - 4); ctx.lineWidth = 1; }
   for(const st of (M.stairs || [])){ const lo = st.lv || 0; if(lo !== FL && lo + 1 !== FL) continue; const cells = stairCells(st), up = lo === FL;
@@ -353,7 +356,7 @@ function floorsUI(){ const el = $('#floors');
     M.box = M.box.filter(o => !off(o)); M.wallbuys = M.wallbuys.filter(o => !off(o)); for(const k in M.perks) if(off(M.perks[k])) delete M.perks[k]; if(off(M.upg)) M.upg = null; if(off(M.power)) M.power = null; if(off(M.spawn)) M.spawn = null;
     M.barrels = M.barrels.filter(b => (b[3] || 0) !== lv); M.bulbs = M.bulbs.filter(b => (b[2] || 0) !== lv); M.names = M.names.filter(b => (b[3] || 0) !== lv);
     M.stairs = (M.stairs || []).filter(st => { const lo = st.lv || 0; return lo !== lv && lo + 1 !== lv; });
-    M.zips = (M.zips || []).filter(zp => (zp.lv || 0) !== lv); M.portals = (M.portals || []).filter(pt => (pt.a[2] || 0) !== lv && (pt.b[2] || 0) !== lv); FL = 0; commit(); };
+    M.zips = (M.zips || []).filter(zp => ![zp.a, zp.b].some(c => (c[2] != null ? c[2] : (zp.lv || 0)) === lv)); M.portals = (M.portals || []).filter(pt => (pt.a[2] || 0) !== lv && (pt.b[2] || 0) !== lv); FL = 0; commit(); };
 }
 function fit(){ const bw = $('#gridBox').clientWidth - 2; cs = Math.max(12, Math.min(34, Math.floor(bw / W_()))); }
 $('#mapSel').onchange = e => load(e.target.value);

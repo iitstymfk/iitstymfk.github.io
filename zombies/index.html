@@ -397,6 +397,8 @@ function stockMap(){
   const up = []; for(let z = 0; z < h; z++) up.push(new Array(w).fill(' '));
   const RU = (x0, z0, x1, z1, c) => { for(let z = z0; z <= z1; z++) for(let x = x0; x <= x1; x++) up[z][x] = c; };
   RU(19, 0, 31, 9, '#'); RU(20, 2, 30, 8, '.'); RU(20, 1, 21, 1, '.'); RU(26, 1, 30, 1, '.'); up[0][21] = 'W'; up[0][28] = 'W';
+  // the Generator Room is two storeys tall: a balcony runs along its north side, off the Offices
+  RU(15, 10, 31, 21, '#'); RU(16, 11, 30, 12, '.'); RU(16, 13, 30, 20, 'O'); RU(24, 9, 25, 10, '.');
   // basement: the Boiler Room under Storage (stairs down from Storage)
   const dn = []; for(let z = 0; z < h; z++) dn.push(new Array(w).fill('#'));
   const RD = (x0, z0, x1, z1, c) => { for(let z = z0; z <= z1; z++) for(let x = x0; x <= x1; x++) dn[z][x] = c; };
@@ -412,7 +414,7 @@ function stockMap(){
     perks: { revive: { x: 13, z: 20, face: [0, -1] }, tough: { x: 16, z: 20, face: [0, -1] }, rapid: { x: 1, z: 8, face: [1, 0] }, speed: { x: 30, z: 8, face: [-1, 0] }, stamina: { x: 16, z: 1, face: [0, 1] } },
     box: [ { x: 7, z: 1, face: [0, 1] }, { x: 24, z: 20, face: [0, -1] }, { x: 27, z: 9, face: [0, -1] }, { x: 36, z: 20, face: [0, -1] }, { x: 21, z: 8, face: [0, -1], lv: 1 } ],
     upg: { x: 7, z: 2, face: [0, 1], lv: -1 }, power: { x: 30, z: 19 }, parts: true, eggs: true,
-    zips: [ { a: [17, 11], b: [29, 17] } ],
+    zips: [ { a: [29, 12, 1], b: [18, 18, 0] } ],
     portals: [ { a: [34, 6], b: [4, 4, -1], name: 'Pack-a-Punch' } ],
     props: [
       { k: 'sofa', x: 8, z: 20, f: [0, -1] }, { k: 'lamp', x: 10, z: 20 }, { k: 'armchair', x: 2, z: 19, f: [1, -1] }, { k: 'crt', x: 12, z: 11, f: [0, 1] },
@@ -430,7 +432,7 @@ function stockMap(){
       { k: 'shelf', x: 2, z: 4, f: [1, 0], lv: -1 }, { k: 'guitar', x: 3, z: 2, f: [0, 1], lv: -1 }, { k: 'amp', x: 5, z: 2, f: [0, 1], lv: -1 }, { k: 'poster2', x: 13, z: 6, d: [1, 0], lv: -1 },
     ],
     barrels: [[1, 11, 1], [13, 1, 0], [29, 11, 1], [29, 1, 0], [14, 19, 0], [32, 9, 1], [38, 11, 0], [2, 7, 1, -1], [12, 2, 0, -1], [30, 8, 0, 1]],
-    bulbs: [[4.5,15.5],[10.5,15.5],[4.5,5],[10.5,5],[20,15.5],[26.5,15.5],[20,5],[26.5,5],[35.5,5],[35.5,15.5],[23,5,1],[28,5,1],[5,5,-1],[10.5,5,-1]],
+    bulbs: [[4.5,15.5],[10.5,15.5],[4.5,5],[10.5,5],[20,15.5],[26.5,15.5],[20,5],[26.5,5],[35.5,5],[35.5,15.5],[23,5,1],[28,5,1],[22,11.5,1],[5,5,-1],[10.5,5,-1]],
     pipes: [[1,14,12],[1,14,2],[16,30,12],[16,30,2],[1,14,19.5],[16,30,8.5],[32,38,2],[32,38,19.5]] };
 }
 // Black Site Lab: a second stock map, built from the Sci-Fi MegaKit (Quaternius). Specimen tanks, Argus rounds, Pack-a-Punch in Containment.
@@ -440,35 +442,38 @@ function labMap(){
   R(1, 1, 12, 9, '.'); R(14, 1, 25, 9, '.'); R(27, 1, 38, 9, '.'); R(1, 11, 12, 20, '.'); R(14, 11, 25, 20, '.'); R(27, 11, 38, 20, '.');
   const D = (c, cells) => { for(const [x, z] of cells) g[z][x] = c; };
   D('D', [[5,10],[6,10],[7,10]]); D('E', [[13,14],[13,15],[13,16]]); D('F', [[19,10],[20,10],[21,10]]); D('H', [[13,4],[13,5],[13,6]]);
-  D('K', [[26,15],[26,16],[26,17]]); D('J', [[26,4],[26,5],[26,6]]); D('L', [[32,10],[33,10],[34,10]]);
+  D('K', [[26,17],[26,18],[26,19]]); D('J', [[26,4],[26,5],[26,6]]); D('L', [[32,10],[33,10],[34,10]]);
   for(const x of [4, 9, 17, 22, 30, 35]){ g[0][x] = 'W'; g[21][x] = 'W'; } for(const z of [5, 15]){ g[z][0] = 'W'; g[z][39] = 'W'; }
   for(const [x, z] of [[3,12],[8,18],[16,12],[23,17],[15,8],[23,8],[2,7],[37,12],[29,19],[31,2],[36,8]]) g[z][x] = 'C';
   // basement: Containment, under the Server Room (stairs down from the Server Room)
   const dn = []; for(let z = 0; z < h; z++) dn.push(new Array(w).fill('#'));
   for(let z = 2; z <= 9; z++) for(let x = 2; x <= 12; x++) dn[z][x] = '.';
   for(const x of [3, 10]){ dn[1][x] = 'W'; dn[0][x] = ' '; } dn[5][1] = 'W'; dn[5][0] = ' ';
-  return { v: 1, name: 'Black Site Lab', theme: 'lab', special: 'argus', grid: g.map(r => r.join('')), down: { grid: dn.map(r => r.join('')) },
-    stairs: [ { x: 12, z: 8, dir: [-1, 0], len: 4, lv: -1 } ],
+  // upstairs: a catwalk ring around the two-storey Main Lab (stairs up along its east wall)
+  const up = []; for(let z = 0; z < h; z++) up.push(new Array(w).fill(' '));
+  for(let z = 10; z <= 21; z++) for(let x = 13; x <= 26; x++) up[z][x] = z === 10 || z === 21 || x === 13 || x === 26 ? '#' : (z === 11 || z === 20 || x === 14 || x === 25) ? '.' : 'O';
+  return { v: 1, name: 'Black Site Lab', theme: 'lab', special: 'argus', grid: g.map(r => r.join('')), up: { grid: up.map(r => r.join('')) }, down: { grid: dn.map(r => r.join('')) },
+    stairs: [ { x: 25, z: 12, dir: [0, 1], len: 4, lv: 0 }, { x: 12, z: 8, dir: [-1, 0], len: 4, lv: -1 } ],
     doors: { D: 750, E: 750, F: 1250, H: 1000, K: 1500, J: 1500, L: 1000 },
-    names: [[6, 16, 'Intake'], [6, 4, 'Server Room'], [20, 15, 'Main Lab'], [20, 5, 'Specimen Hall'], [33, 5, 'Armory'], [33, 15, 'Reactor'], [6, 5, 'Containment', -1]],
+    names: [[6, 16, 'Intake'], [6, 4, 'Server Room'], [20, 15, 'Main Lab'], [20, 5, 'Specimen Hall'], [33, 5, 'Armory'], [33, 15, 'Reactor'], [19, 11, 'Catwalk', 1], [6, 5, 'Containment', -1]],
     spawn: { x: 6, z: 16, yaw: Math.PI },
-    wallbuys: [ { k: 'smg', x: 1, z: 18 }, { k: 'rifle', x: 12, z: 12 }, { k: 'shotgun', x: 1, z: 3 }, { k: 'ar', x: 25, z: 19 }, { k: 'revolver', x: 38, z: 3 }, { k: 'lmg', x: 38, z: 7 }, { k: 'sniper', x: 38, z: 13 } ],
+    wallbuys: [ { k: 'smg', x: 1, z: 18 }, { k: 'rifle', x: 12, z: 12 }, { k: 'shotgun', x: 1, z: 3 }, { k: 'ar', x: 14, z: 12 }, { k: 'revolver', x: 38, z: 3 }, { k: 'lmg', x: 38, z: 7 }, { k: 'sniper', x: 38, z: 13 } ],
     perks: { revive: { x: 2, z: 20, face: [0, -1] }, tough: { x: 24, z: 20, face: [0, -1] }, rapid: { x: 12, z: 2, face: [-1, 0] }, speed: { x: 25, z: 2, face: [-1, 0] }, stamina: { x: 33, z: 1, face: [0, 1] } },
     box: [ { x: 6, z: 1, face: [0, 1] }, { x: 19, z: 20, face: [0, -1] }, { x: 20, z: 1, face: [0, 1] }, { x: 33, z: 20, face: [0, -1] } ],
     upg: { x: 6, z: 2, face: [0, 1], lv: -1 }, power: { x: 38, z: 18 }, parts: true, eggs: true,
-    zips: [ { a: [14, 19], b: [25, 12] } ],
+    zips: [ { a: [14, 11, 1], b: [21, 18, 0] } ],
     portals: [ { a: [37, 2], b: [5, 5, -1], name: 'Pack-a-Punch' } ],
     props: [
       { k: 'computer', x: 2, z: 1, f: [0, 1] }, { k: 'computer', x: 3, z: 1, f: [0, 1] }, { k: 'computer', x: 1, z: 6, f: [1, 0] }, { k: 'pcolumn', x: 9, z: 3 }, { k: 'pcolumn', x: 9, z: 5 }, { k: 'vent', x: 5, z: 5 },
       { k: 'tank1', x: 16, z: 4, f: [1, 0] }, { k: 'tank2', x: 20, z: 6, f: [0, -1] }, { k: 'alien3', x: 22, z: 3, f: [-1, 1] }, { k: 'computer', x: 18, z: 1, f: [0, 1] }, { k: 'flight', x: 18, z: 4, f: [0, 1] },
-      { k: 'column', x: 17, z: 13 }, { k: 'column', x: 22, z: 13 }, { k: 'column', x: 17, z: 18 }, { k: 'column', x: 22, z: 18 }, { k: 'computer', x: 24, z: 11, f: [0, 1] }, { k: 'vent', x: 19, z: 15 }, { k: 'flight', x: 20, z: 16, f: [0, 1] },
+      { k: 'column', x: 17, z: 13 }, { k: 'column', x: 22, z: 13 }, { k: 'column', x: 17, z: 18 }, { k: 'column', x: 22, z: 18 }, { k: 'computer', x: 15, z: 11, f: [0, 1] }, { k: 'vent', x: 19, z: 15 }, { k: 'flight', x: 20, z: 16, f: [0, 1] },
       { k: 'pipes', x: 30, z: 13, f: [0, 1] }, { k: 'barrel2', x: 36, z: 12 }, { k: 'barrel2', x: 37, z: 20 }, { k: 'pcolumn', x: 31, z: 17 }, { k: 'pcolumn', x: 34, z: 17 }, { k: 'computer', x: 38, z: 16, f: [-1, 0] },
       { k: 'crate4', x: 28, z: 2, f: [0, 1] }, { k: 'crate3', x: 28, z: 2, f: [1, 1], y: 1.01 }, { k: 'crate4', x: 29, z: 2, f: [0, 1] }, { k: 'crate3', x: 38, z: 9, f: [0, 1] }, { k: 'labdoor', x: 29, z: 9, d: [0, 1] },
       { k: 'flight', x: 6, z: 20, f: [0, -1] }, { k: 'computer', x: 11, z: 20, f: [0, -1] }, { k: 'labdoor', x: 1, z: 14, d: [-1, 0] },
       { k: 'tank1', x: 11, z: 3, f: [-1, 0], lv: -1 }, { k: 'barrel2', x: 2, z: 9, lv: -1 }, { k: 'crate4', x: 12, z: 5, f: [-1, 0], lv: -1 }, { k: 'vent', x: 7, z: 6, lv: -1 },
     ],
     barrels: [[1, 11, 1], [1, 1, 0], [25, 11, 1], [38, 1, 0], [27, 20, 1], [4, 9, 0, -1]],
-    bulbs: [[4.5,15.5],[9.5,15.5],[4.5,5],[9.5,5],[17.5,15.5],[22.5,15.5],[17.5,5],[22.5,5],[32.5,5],[32.5,15.5],[5,5,-1],[10,6,-1]],
+    bulbs: [[4.5,15.5],[9.5,15.5],[4.5,5],[9.5,5],[17.5,15.5],[22.5,15.5],[17.5,5],[22.5,5],[32.5,5],[32.5,15.5],[19.5,11.5,1],[19.5,20.5,1],[5,5,-1],[10,6,-1]],
     pipes: [[1,12,12],[14,25,12],[1,12,2],[14,25,2],[27,38,2],[27,38,19.5],[2,12,3,-1]] };
 }
 const MAP_ID = new URLSearchParams(location.search).get('map');
@@ -614,10 +619,14 @@ const wpos = (x, z, y = 0) => new THREE.Vector3((x + .5) * CELL, y, (z + .5) * C
 const FLOORS = []; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++) if(G[z][x] === '.') FLOORS.push([x, z]);
 /* ---------- build level geometry ---------- */
 const level = new THREE.Group(); scene.add(level); level.userData.keep = true; level.userData.visual = true;
+// 'O' cells on an upper floor are open to the floor below (stair holes, and atriums with a balcony around them)
+const STAIR_HOLES = new Set(); for(const st of STAIRS) for(const c of st.cells) STAIR_HOLES.add((c[0] + st.du) + ',' + c[1]);
+function openAbove(x, z){ const B = bandOfCell(x), U = BANDS.find(b => b.lv === B.lv + 1); return !!U && G[z][x - B.x0 + U.x0] === 'O'; }
+const isAtrium = (x, z) => G[z] && G[z][x] === 'O' && !STAIR_HOLES.has(x + ',' + z);
 for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B.lv * WH, 0); B.g.userData.keep = true; B.g.userData.band = B; scene.add(B.g); }
 {
   const cellGeo = (y, tile, down, filt) => { const pos = [], uv = [], idx = []; let n = 0;
-    for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ const ch = G[z][x]; if(ch === ' ' || ch === '|' || (down ? ch === 'S' : ch === 'O')) continue; const B = bandOfCell(x); if(filt && !filt(B)) continue; const x0 = (x - B.x0) * CELL, z0 = z * CELL, x1 = x0 + CELL, z1 = z0 + CELL; const yy = y + B.lv * WH;
+    for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ const ch = G[z][x]; if(ch === ' ' || ch === '|' || (down ? ch === 'S' : ch === 'O')) continue; const B = bandOfCell(x); if(filt && !filt(B)) continue; if(down && openAbove(x, z)) continue; const x0 = (x - B.x0) * CELL, z0 = z * CELL, x1 = x0 + CELL, z1 = z0 + CELL; const yy = y + B.lv * WH;
       pos.push(x0, yy, z0, x1, yy, z0, x1, yy, z1, x0, yy, z1); uv.push(x0 / tile, -z0 / tile, x1 / tile, -z0 / tile, x1 / tile, -z1 / tile, x0 / tile, -z1 / tile);
       if(down) idx.push(n, n + 1, n + 2, n, n + 2, n + 3); else idx.push(n, n + 2, n + 1, n, n + 3, n + 2); n += 4; }
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals(); return geo; };
@@ -631,6 +640,14 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
       for(let z = 0; z < GH; z++) for(let x = 0; x < W0; x++){ const here = G[z][x + B.x0], up = G[z][x + U.x0]; if(here === ' ' || here === undefined || (up !== ' ' && up !== undefined)) continue;
         const x0 = x * CELL, z0 = z * CELL, y = (B.lv + 1) * WH + .02; pos.push(x0, y, z0, x0 + CELL, y, z0, x0 + CELL, y, z0 + CELL, x0, y, z0 + CELL); idx.push(n, n + 2, n + 1, n, n + 3, n + 2); n += 4; } }
     if(n){ const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); rg.setIndex(idx); rg.computeVertexNormals(); const roof = new THREE.Mesh(rg, mat({ color: 0x2a2826, roughness: 1 })); roof.userData.visual = true; level.add(roof); } }
+  // balcony railings: along every edge between an atrium cell and a walkable cell
+  { const railM = mat({ color: 0x2c2e32, roughness: .45, metalness: .75 }), bar = new THREE.BoxGeometry(CELL, .05, .05), post = new THREE.BoxGeometry(.05, 1.05, .05);
+    for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ if(!isAtrium(x, z)) continue;
+      for(const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){ const c = G[z + dz] && G[z + dz][x + dx]; if(!c || c === '#' || c === 'O' || c === ' ' || c === 'W' || c === '|') continue;
+        const g = new THREE.Group(); g.position.set((x + .5 + dx * .5) * CELL - dx * .04, 0, (z + .5 + dz * .5) * CELL - dz * .04); g.rotation.y = dx ? Math.PI / 2 : 0;
+        for(const y of [1.02, .55, .12]){ const b = new THREE.Mesh(bar, railM); b.position.y = y; g.add(b); }
+        for(const px of [-CELL / 2 + .03, 0, CELL / 2 - .03]){ const q = new THREE.Mesh(post, railM); q.position.set(px, .525, 0); g.add(q); }
+        level.add(g); } } }
   // stairs: solid steps rising toward the floor above
   for(const st of STAIRS){ const n = st.len * 4, B = bandOfCell(st.start[0]);
     for(let k = 0; k < n; k++){ const h = WH * (k + 1) / n, along = (k + .5) / n * st.len * CELL; const g = new THREE.Mesh(new THREE.BoxGeometry(st.dir[0] ? st.len * CELL / n + .01 : CELL * .98, h, st.dir[1] ? st.len * CELL / n + .01 : CELL * .98), M.wood);
@@ -692,7 +709,7 @@ const coneTex = ctex(16, 128, (x, w, h) => { const g = x.createLinearGradient(0,
   if(LQ){ const seen = new Set(); spots = spots.filter(s => !seen.has(s[2]) && seen.add(s[2])); }
   const shadeG = new THREE.ConeGeometry(.28, .22, 12, 1, true), bulbG = new THREE.SphereGeometry(.07, 8, 6), cordG = new THREE.CylinderGeometry(.01, .01, .5, 4);
   for(const [x, z, room] of spots){
-    const g = new THREE.Group(); g.position.set(x * CELL, WH, z * CELL);
+    const g = new THREE.Group(); g.position.set(x * CELL, openAbove(Math.floor(x), Math.floor(z)) ? WH * 2 : WH, z * CELL);
     const cord = new THREE.Mesh(cordG, M.dark); cord.position.y = -.25; g.add(cord);
     const shade = new THREE.Mesh(shadeG, M.pipe); shade.position.y = -.55; g.add(shade);
     const bm = new THREE.MeshBasicMaterial({ color: 0xffd9a0 }); const b = new THREE.Mesh(bulbG, bm); b.position.y = -.64; g.add(b);
@@ -1220,25 +1237,31 @@ if(POWER){
 const ZIPS = [];
 {
   const ZM_ = { post: mat({ color: 0x3a3a3e, roughness: .5, metalness: .7 }), cable: mat({ color: 0x9a9aa2, roughness: .35, metalness: .9, emissive: 0x15151a }), yel: mat({ color: 0xc9a820, roughness: .6 }) };
+  // a zip line runs from one floor to another (e.g. a balcony down into a two-storey room) or across a gap.
+  // Ends: a:[x,z,lv], b:[x,z,lv] (lv optional, falls back to zd.lv). Everything is drawn in visual space.
   for(const zd of (MAPD.zips || [])){
-    const lv = zd.lv || 0, B = BANDS.find(b => b.lv === lv); if(!B) continue; const off = B.x0;
-    const A = wpos(zd.a[0] + off, zd.a[1]), Bp = wpos(zd.b[0] + off, zd.b[1]); const yA = WH - .22, yB = WH - .55;
-    for(const [p, y] of [[A, yA], [Bp, yB]]){ const post = new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, WH, 10), ZM_.post); post.position.set(p.x, WH / 2, p.z); post.castShadow = SHADOWS; level.add(post);
-      const band = new THREE.Mesh(new THREE.CylinderGeometry(.095, .095, .5, 10), ZM_.yel); band.position.set(p.x, 1.1, p.z); level.add(band);
-      const wheel = new THREE.Mesh(new THREE.TorusGeometry(.12, .03, 6, 14), ZM_.post); wheel.position.set(p.x, y + .05, p.z); level.add(wheel);
-      const lamp = glowSprite(0x40ff70, .6, .55); lamp.position.set(p.x, y + .22, p.z); level.add(lamp); }
-    const a3 = new THREE.Vector3(A.x, yA, A.z), b3 = new THREE.Vector3(Bp.x, yB, Bp.z), len = a3.distanceTo(b3);
-    const cable = new THREE.Mesh(new THREE.CylinderGeometry(.026, .026, len, 6), ZM_.cable); cable.position.copy(a3).lerp(b3, .5);
-    cable.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b3.clone().sub(a3).normalize()); level.add(cable);
+    const end = c => { const lv = c[2] != null ? c[2] : (zd.lv || 0), B = BANDS.find(b => b.lv === lv); if(!B) return null; const L = wpos(c[0] + B.x0, c[1]); return { lv, B, L, V: new THREE.Vector3(L.x - B.x0 * CELL, lv * WH, L.z) }; };
+    const EA = end(zd.a), EB = end(zd.b); if(!EA || !EB) continue;
+    const hi = EA.lv === EB.lv ? [WH - .22, WH - .55] : EA.lv > EB.lv ? [WH - .22, WH - .7] : [WH - .7, WH - .22];
+    const a3 = EA.V.clone().setY(EA.V.y + hi[0]), b3 = EB.V.clone().setY(EB.V.y + hi[1]), len = a3.distanceTo(b3);
+    const vis = o => { o.userData.visual = true; level.add(o); return o; };
+    for(const [E1, p3] of [[EA, a3], [EB, b3]]){ const y0 = E1.lv * WH;
+      const post = vis(new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, WH, 10), ZM_.post)); post.position.set(p3.x, y0 + WH / 2, p3.z); post.castShadow = SHADOWS;
+      const band = vis(new THREE.Mesh(new THREE.CylinderGeometry(.095, .095, .5, 10), ZM_.yel)); band.position.set(p3.x, y0 + 1.1, p3.z);
+      const wheel = vis(new THREE.Mesh(new THREE.TorusGeometry(.12, .03, 6, 14), ZM_.post)); wheel.position.set(p3.x, p3.y + .05, p3.z);
+      const lamp = vis(glowSprite(0x40ff70, .6, .55)); lamp.position.set(p3.x, p3.y + .22, p3.z); }
+    const cable = vis(new THREE.Mesh(new THREE.CylinderGeometry(.026, .026, len, 6), ZM_.cable)); cable.position.copy(a3).lerp(b3, .5);
+    cable.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b3.clone().sub(a3).normalize());
     // the handle (trolley) waits at whichever end it was last ridden to
     const handle = new THREE.Group(); const bar = new THREE.Mesh(new THREE.BoxGeometry(.5, .05, .05), ZM_.yel); bar.position.y = -.42; handle.add(bar);
     for(const sx of [-1, 1]){ const r = new THREE.Mesh(new THREE.BoxGeometry(.03, .42, .03), ZM_.post); r.position.set(sx * .2, -.21, 0); handle.add(r); }
-    handle.add(new THREE.Mesh(new THREE.BoxGeometry(.16, .1, .12), ZM_.post)); handle.position.copy(a3); handle.rotation.y = Math.atan2(b3.x - a3.x, b3.z - a3.z) + Math.PI / 2; level.add(handle);
-    const Z1 = { a3, b3, len, handle, at: 0, cost: zd.cost != null ? zd.cost : 250 }; ZIPS.push(Z1);
-    for(const end of [0, 1]){ const e = end ? b3 : a3;
-      INTER.push({ pos: new THREE.Vector3(e.x, 1.5, e.z), r: 1.7, prompt(){ if(P.zip) return null; if(!power) return ['The zip line needs power', 0, true]; return [`Press <b>${KEY}</b> to ride the zip line`, Z1.cost]; },
-        use(){ if(P.zip || !power) return; if(!spend(Z1.cost)) return; const from = end ? b3 : a3, to = end ? a3 : b3;
-          P.zip = { z: Z1, from, to, t: 0, dur: Math.max(1.6, Z1.len / 8.5) }; Z1.handle.position.copy(from); SND.buy();
+    handle.add(new THREE.Mesh(new THREE.BoxGeometry(.16, .1, .12), ZM_.post)); handle.position.copy(a3); handle.rotation.y = Math.atan2(b3.x - a3.x, b3.z - a3.z) + Math.PI / 2; vis(handle);
+    const lvs = [Math.min(EA.lv, EB.lv), Math.max(EA.lv, EB.lv)];
+    const Z1 = { a3, b3, len, handle, lvs, ends: [EA, EB], cost: zd.cost != null ? zd.cost : 250 }; ZIPS.push(Z1);
+    for(const e of [0, 1]){ const E1 = e ? EB : EA, O = e ? EA : EB, down = O.lv < E1.lv ? ' down' : O.lv > E1.lv ? ' up' : '';
+      INTER.push({ pos: new THREE.Vector3(E1.L.x, 1.5, E1.L.z), r: 1.7, prompt(){ if(P.zip) return null; if(!power) return ['The zip line needs power', 0, true]; return [`Press <b>${KEY}</b> to ride the zip line${down}`, Z1.cost]; },
+        use(){ if(P.zip || !power) return; if(!spend(Z1.cost)) return; const from = e ? b3 : a3, to = e ? a3 : b3;
+          P.zip = { z: Z1, from, to, dest: O, t: 0, dur: Math.max(1.8, Z1.len / 8) }; Z1.handle.position.copy(from); SND.buy();
           tn({ f: 520, f2: 980, type: 'sawtooth', dur: P.zip.dur, vol: .035 }); tn({ f: 140, f2: 90, type: 'square', dur: .12, vol: .08 }); } }); }
   }
 }
@@ -1276,8 +1299,10 @@ function updPortals(dt){
 function updZip(dt){
   const zp = P.zip; zp.t += dt / zp.dur; const k = Math.min(1, zp.t); const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; // ease in/out
   const c = zp.from.clone().lerp(zp.to, e); zp.z.handle.position.copy(c);
-  P.pos.x = c.x; P.pos.z = c.z; P.pos.y = 0; P.zipLift = Math.min(1, Math.min(zp.t, 1 - zp.t) * 6) * Math.max(0, c.y - .42 - 1.62 + .05);
-  if(zp.t >= 1){ P.zip = null; P.zipLift = 0; pushOut(P.pos, .3); P.pos.y = groundY(P.pos); flowDirty = true; tn({ f: 160, f2: 70, type: 'square', dur: .14, vol: .09 }); }
+  // hanging under the handle; which floor's logical space we're in follows our feet
+  const feet = c.y - .42 - 1.62 + .05, lv = Math.max(zp.z.lvs[0], Math.min(zp.z.lvs[1], Math.floor((feet + .4) / WH))), B = BANDS.find(b => b.lv === lv);
+  P.pos.x = c.x + B.x0 * CELL; P.pos.z = c.z; P.pos.y = 0; P.zipLift = Math.min(1, Math.min(zp.t, 1 - zp.t) * 6) * Math.max(0, feet - lv * WH);
+  if(zp.t >= 1){ P.zip = null; P.zipLift = 0; P.pos.copy(zp.dest.L); pushOut(P.pos, .3); P.pos.y = groundY(P.pos); flowDirty = true; tn({ f: 160, f2: 70, type: 'square', dur: .14, vol: .09 }); }
 }
 // mystery box
 const BOXLOCS = (MAPD.box || []).map(b => ({ x: b.x, z: b.z, face: b.face || openSide(b.x, b.z) }));
