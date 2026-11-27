@@ -654,11 +654,11 @@ function sparks(pos, nrm){
 const DECALS = []; const decalG = new THREE.PlaneGeometry(1, 1);
 const decalM = new THREE.MeshBasicMaterial({ map: bloodTex, transparent: true, depthWrite: false, color: 0x6a0000, polygonOffset: true, polygonOffsetFactor: -3 });
 // splat atlas (assets/fx/blood_decals.png): 4x2 cells, the first 7 used. Cells 0,1,4 are streaky (good on walls), 2,3,5,6 are pools.
-const SPLAT = []; { const T = new THREE.TextureLoader().load('assets/fx/blood_decals.png', t => { t.colorSpace = THREE.SRGBColorSpace; SPLAT.forEach(m => m.map.needsUpdate = true); });
+const SPLAT = [], WSPLAT = []; { const T = new THREE.TextureLoader().load('assets/fx/blood_decals.png', t => { t.colorSpace = THREE.SRGBColorSpace; SPLAT.concat(WSPLAT).forEach(m => m.map.needsUpdate = true); });
   for(let i = 0; i < 7; i++){ const t = T.clone(); t.repeat.set(.25, .5); t.offset.set((i % 4) * .25, i < 4 ? .5 : 0); t.colorSpace = THREE.SRGBColorSpace;
     const m = LQ ? new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, color: 0x3a0303, polygonOffset: true, polygonOffsetFactor: -3 })
       : new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, color: 0x3e0303, roughness: .18, metalness: .15, opacity: .92, polygonOffset: true, polygonOffsetFactor: -3 });
-    SPLAT.push(m); } }
+    SPLAT.push(m); const wm = m.clone(); wm.color.set(LQ ? 0x6a0606 : 0x8a0a0a); if(wm.emissive) wm.emissive.set(0x1a0000); WSPLAT.push(wm); } }
 function addDecal(d){ scene.add(d); DECALS.push(d); if(DECALS.length > (LQ ? 30 : 80)) DECALS.shift().removeFromParent(); }
 function floorBlood(pos, s = 1){
   const pools = [2, 3, 5, 6], mm = SPLAT.length ? SPLAT[pools[Math.floor(Math.random() * 4)]] : decalM;
@@ -669,10 +669,10 @@ function floorBlood(pos, s = 1){
 function wallBlood(at, dir){
   if(!SPLAT.length || !dir) return; const p = at.clone(); const st = dir.clone().setY(0).normalize().multiplyScalar(.2);
   for(let k = 0; k < 9; k++){ p.add(st); const cx_ = Math.floor(p.x / CELL), cz_ = Math.floor(p.z / CELL); const c = G[cz_] && G[cz_][cx_];
-    if(c === '#'){ const q = p.clone().sub(st); const ax = Math.abs(st.x) > Math.abs(st.z); const d = new THREE.Mesh(decalG, SPLAT[[0, 1, 4, 3][Math.floor(Math.random() * 4)]]);
+    if(c === '#'){ const q = p.clone().sub(st); const ax = Math.abs(st.x) > Math.abs(st.z); const d = new THREE.Mesh(decalG, WSPLAT[[0, 1, 4, 3, 2][Math.floor(Math.random() * 5)]]);
       if(ax){ q.x = (st.x > 0 ? cx_ : cx_ + 1) * CELL - Math.sign(st.x) * .012; d.rotation.set(0, st.x > 0 ? -Math.PI/2 : Math.PI/2, rand(0, 6)); }
       else { q.z = (st.z > 0 ? cz_ : cz_ + 1) * CELL - Math.sign(st.z) * .012; d.rotation.set(0, st.z > 0 ? Math.PI : 0, rand(0, 6)); }
-      q.y = clamp(q.y, .3, 2.6); const k2 = rand(.6, 1.1); d.scale.set(k2, k2, 1); d.position.copy(q); addDecal(d); return; }
+      q.y = clamp(q.y, .4, 2.5); const k2 = rand(.9, 1.5); d.scale.set(k2, k2, 1); d.position.copy(q); addDecal(d); return; }
     if(c !== '.' && c !== 'S') return; }
 }
 
