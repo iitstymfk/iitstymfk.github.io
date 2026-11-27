@@ -1331,7 +1331,7 @@ for(const k in PERKS){
   const slotC = new THREE.Mesh(new THREE.BoxGeometry(.05, .012, .01), darkM); slotC.position.set(.38, 1.06, .447); g.add(slotC);
   const kick = new THREE.Mesh(new THREE.BoxGeometry(.98, .14, .02), PERKMAT.rivet); kick.position.set(0, .1, .41); g.add(kick);
   const sign = mq, panel = { material: frontM };
-  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 })); glow.scale.set(2.4, 2.8, 1); glow.position.set(0, 1.3, .55); g.add(glow);
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 })); glow.scale.set(2.2, 2.6, 1); glow.position.set(0, 1.3, .2); g.add(glow);
   const light = HQ ? new THREE.PointLight(col, 0, 4.5, 1.8) : null; if(light){ light.position.set(0, 1.5, .9); g.add(light); }
   PERK_MESH.push({ k, sign, glow, panel, bulbs, liqM, marM, light, col, t: Math.random() * 10 });
   const ipos = c.clone().add(new THREE.Vector3(p.face[0] * .8, 1.4, p.face[1] * .8));
@@ -1344,11 +1344,11 @@ for(const k in PERKS){
       if(P.perks.length >= 4) return msg('You can only hold 4 perks');
       if(!spend(p.cost)) return; if(k === 'revive') P.reviveBuys++; P.drinkT = 1.6; P.drinkPerk = k; SND.drink(); } });
 }
-function perkSigns(){ for(const m of PERK_MESH){ const on = power || PERKS[m.k].noPower; m.on = on; m.glow.material.opacity = on ? .3 : 0; m.panel.material.emissiveIntensity = on ? .9 : .04; m.marM.emissiveIntensity = on ? 1.4 : .08; m.liqM.emissiveIntensity = on ? 1.2 : .1; if(m.light) m.light.intensity = on ? 2.2 : 0; } }
+function perkSigns(){ for(const m of PERK_MESH){ const on = power || PERKS[m.k].noPower; m.on = on; m.glow.material.opacity = on ? .1 : 0; m.panel.material.emissiveIntensity = on ? .28 : .03; m.marM.emissiveIntensity = on ? .75 : .06; m.liqM.emissiveIntensity = on ? .55 : .08; if(m.light) m.light.intensity = on ? 1.1 : 0; } }
 // marquee bulbs chase, and the sign buzzes now and then
 function updPerkMachines(dt){ for(const m of PERK_MESH){ m.t += dt; const on = m.on; const flick = on && Math.sin(m.t * 23) * Math.sin(m.t * 3.1) > .93;
-  m.bulbs.forEach((b, i) => { const lit = on && ((Math.floor(m.t * 6) + i) % 3 !== 0); b.material.color.set(lit ? 0xfff0c0 : 0x2a2018); });
-  if(on){ m.marM.emissiveIntensity = flick ? .2 : 1.4; if(m.light) m.light.intensity = flick ? .6 : 2.2; } } }
+  m.bulbs.forEach((b, i) => { const lit = on && ((Math.floor(m.t * 6) + i) % 3 !== 0); b.material.color.set(lit ? 0xffe2a0 : 0x2a2018); });
+  if(on){ m.marM.emissiveIntensity = flick ? .15 : .75; if(m.light) m.light.intensity = flick ? .4 : 1.1; } } }
 perkSigns();
 // power switch
 const POWER = MAPD.power ? { x: MAPD.power.x, z: MAPD.power.z } : null;
