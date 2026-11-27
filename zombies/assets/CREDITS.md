@@ -49,3 +49,6 @@
 
 ## Textures
 - "Foxtex - Complete Edition" by Foxhead (foxh3ad): https://foxh3ad.itch.io/foxtexcom (free texture pack for level designers; 4000+ textures, 512px).
+
+## Black Site Lab map
+- **Modular Sci-Fi MegaKit** — Quaternius (quaternius.com), CC0. Props (computers, crates, barrels, columns, pipe racks, floor lights, vents, metal door, alien specimens) and the wall/floor textures (Trim_01 panel, PaddedWall deck plates, recoloured).
