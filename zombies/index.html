@@ -2740,11 +2740,14 @@ function lobbyList(){ const L = [`<b>${esc2(myName())}</b> (${SKINS[NET.skin]})$
 const esc2 = t => String(t || '').replace(/[<&>]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]);
 // ----- skins (other players' bodies) -----
 const SKINDATA = {};
+// fit a player skin by its rest-pose height and stand its feet on the floor (some exports have the origin at the waist)
+function prepSkin(g, h){ g.scene.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(g.scene), H = b.max.y - b.min.y; g.fit = H > 0 ? h / H : 1; g.yoff = -b.min.y * g.fit;
+  g.scene.traverse(o => { if(o.isMesh){ o.frustumCulled = false; const m = o.material; if(m){ m.envMapIntensity = .4; m.metalness = 0; } } }); }
 function loadSkins(){ const L = new GLTFLoader();
-  for(const k of Object.keys(SKINS)) if(!SKINDATA[k]) SKINDATA[k] = new Promise(res => L.load(`assets/players/${k}.glb`, g => { prepBeast(g, .98); res(g); }, undefined, () => res(null))); }
+  for(const k of Object.keys(SKINS)) if(!SKINDATA[k]) SKINDATA[k] = new Promise(res => L.load(`assets/players/${k}.glb`, g => { prepSkin(g, k === 'momo' ? 1.62 : 1.78); res(g); }, undefined, () => res(null))); }
 async function makeAvatar(a){
   const g = await SKINDATA[a.skin] || await SKINDATA.tactical, base = await SKINDATA.tactical; if(!g) return;
-  const root = new THREE.Group(), model = SkeletonUtils.clone(g.scene); model.scale.multiplyScalar(g.fit); root.add(model);
+  const root = new THREE.Group(), model = SkeletonUtils.clone(g.scene); model.scale.multiplyScalar(g.fit); model.position.y = g.yoff || 0; root.add(model);
   model.traverse(o => { if(o.isMesh){ o.castShadow = SHADOWS; o.frustumCulled = false; } });
   const clips = g === base ? g.animations : (g._clips || (g._clips = retargetClips(base, g, 'T-Pose')));
   const mixer = new THREE.AnimationMixer(model), A = {}; for(const c of clips){ if(/t.?pose/i.test(c.name)) continue; if(/idle/i.test(c.name)) A.idle = mixer.clipAction(c); if(/walk/i.test(c.name)) A.walk = mixer.clipAction(c); }
@@ -2752,13 +2755,13 @@ async function makeAvatar(a){
   const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex([{ t: a.name, font: '700 34px Oswald', color: '#9fe8ff', y: 32 }], 256, 64), transparent: true, depthWrite: false, depthTest: false })); tag.scale.set(1.1, .275, 1); tag.position.y = 2.15; tag.renderOrder = 9; root.add(tag);
   const help = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTex([{ t: '✚', font: '700 52px Oswald', color: '#ff4040', y: 34 }], 64, 64), transparent: true, depthWrite: false, depthTest: false })); help.scale.setScalar(.45); help.position.y = 1.2; help.visible = false; help.renderOrder = 9; root.add(help);
   if(a.pos) root.position.copy(a.pos); scene.add(root);
-  a.av = { root, model, mixer, A, help, w: 0 };
+  a.av = { root, model, mixer, A, help, w: 0, yoff: g.yoff || 0 };
 }
 function updAvatars(dt){
   for(const a of NET.peers.values()){ const v = a.av; if(!v || !a.pos) continue;
     const p = v.root.position; if(p.distanceTo(a.pos) > 4) p.copy(a.pos); else p.lerp(a.pos, Math.min(1, dt * 12));
     let dr = a.yaw + Math.PI - v.root.rotation.y; dr = Math.atan2(Math.sin(dr), Math.cos(dr)); v.root.rotation.y += dr * Math.min(1, dt * 12);
-    const down = a.down || a.dead; v.model.rotation.x += ((down ? -Math.PI / 2 : 0) - v.model.rotation.x) * Math.min(1, dt * 6); v.model.position.y = down ? .25 : 0; v.help.visible = down && !a.dead;
+    const down = a.down || a.dead; v.model.rotation.x += ((down ? -Math.PI / 2 : 0) - v.model.rotation.x) * Math.min(1, dt * 6); v.model.position.y = (down ? .25 : 0) + (v.yoff || 0); v.help.visible = !!(down && !a.dead);
     v.w += ((a.mv > .3 && !down ? 1 : 0) - v.w) * Math.min(1, dt * 8); if(v.A.walk){ v.A.walk.setEffectiveWeight(v.w); v.A.walk.timeScale = clamp(a.mv / 1.4, .6, 2.2); } if(v.A.idle) v.A.idle.setEffectiveWeight(1 - v.w);
     v.mixer.update(dt);
     v.root.visible = a.inGame; }
