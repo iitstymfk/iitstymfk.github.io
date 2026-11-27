@@ -410,6 +410,12 @@ function stockMap(){
       { k: 'blueprint', x: 20, z: 9, d: [0, 1] }, { k: 'map', x: 27, z: 9, d: [0, 1] },
       { k: 'amp', x: 38, z: 1, f: [-1, 1] }, { k: 'guitar', x: 37, z: 1, f: [0, 1] }, { k: 'door', x: 38, z: 13, d: [1, 0] },
       { k: 'desk', x: 27, z: 3, f: [0, 1], lv: 1 }, { k: 'pool', x: 25, z: 5, f: [0, 1], lv: 1 }, { k: 'lamp', x: 29, z: 2, lv: 1 }, { k: 'poster1', x: 27, z: 1, d: [0, -1], lv: 1 }, { k: 'clock', x: 30, z: 4, d: [1, 0], lv: 1 },
+      { k: 'crate2', x: 5, z: 8, f: [0, -1] }, { k: 'jerry', x: 11, z: 2, f: [0, 1] },
+      { k: 'cabinet2', x: 17, z: 7, f: [1, 0] }, { k: 'medpack', x: 17, z: 7, f: [1, 0], y: .78 }, { k: 'bookshelf2', x: 29, z: 2, f: [-1, 0] }, { k: 'bottle1', x: 29, z: 2, f: [-1, 0], y: 1.02 }, { k: 'bottle2', x: 29, z: 2, f: [-1, 0], y: 1.52 },
+      { k: 'pallets', x: 33, z: 2, f: [0, 1] }, { k: 'tire', x: 36, z: 8, f: [0, -1] },
+      { k: 'sleepbag', x: 37, z: 17, f: [-1, 0] }, { k: 'sheet1', x: 32, z: 15, d: [-1, 0] },
+      { k: 'monitor', x: 27, z: 3, f: [0, 1], y: .78, lv: 1 },
+      { k: 'jerry', x: 9, z: 7, f: [0, -1], lv: -1 }, { k: 'sheet2', x: 2, z: 6, d: [-1, 0], lv: -1 },
       { k: 'shelf', x: 2, z: 4, f: [1, 0], lv: -1 }, { k: 'guitar', x: 3, z: 2, f: [0, 1], lv: -1 }, { k: 'amp', x: 5, z: 2, f: [0, 1], lv: -1 }, { k: 'poster2', x: 13, z: 6, d: [1, 0], lv: -1 },
     ],
     barrels: [[1, 11, 1], [13, 1, 0], [29, 11, 1], [29, 1, 0], [14, 19, 0], [32, 9, 1], [38, 11, 0], [2, 7, 1, -1], [12, 2, 0, -1], [30, 8, 0, 1]],
@@ -460,7 +466,9 @@ const CRATE_STACK = new Set();
 // furniture & wall props (assets/props.glb). base = model yaw that makes its front face +z; long = which model axis is 2 cells long
 const PROPCAT = { sofa: { long: 'x' }, pool: { long: 'z' }, desk: { base: Math.PI / 2 }, armchair: {}, dresser: { base: Math.PI / 2 }, cabinet: {}, lamp: { light: true }, crt: {},
   wardrobe: {}, amp: {}, guitar: { soft: true }, shelf: {}, books: { soft: true }, door: { wall: true, y: 0 }, clock: { wall: true, y: 2.25 },
-  poster1: { wall: true, y: 1.55 }, poster2: { wall: true, y: 1.55 }, blueprint: { wall: true, y: 1.55 }, map: { wall: true, y: 1.55 } };
+  poster1: { wall: true, y: 1.55 }, poster2: { wall: true, y: 1.55 }, blueprint: { wall: true, y: 1.55 }, map: { wall: true, y: 1.55 },
+  crate2: {}, jerry: { soft: true }, medpack: { soft: true }, pallets: {}, barrier: {}, cabinet2: {}, sleepbag: { soft: true }, bottle1: { soft: true }, bottle2: { soft: true },
+  tire: { soft: true }, spikes: {}, bookshelf2: {}, monitor: { soft: true }, sheet1: { wall: true, y: 1.3 }, sheet2: { wall: true, y: 1.1 }, car: {}, pole: {}, bush: {} };
 const PROPS = [];
 function propCells(p){ const B = BANDS.find(b => b.lv === (p.lv || 0)); if(!B) return null; const c = PROPCAT[p.k]; if(!c) return null;
   const f = p.f || [0, 1], x = p.x + B.x0, z = p.z; const cells = [[x, z]];
@@ -2385,8 +2393,24 @@ function placeProps(){
       if(c.light && !LQ){ const L = new THREE.PointLight(0xffc070, 3, 4.5, 1.8); L.position.set(0, 1.45, 0); o.add(L); const g = glowSprite(0xffc070, .6, .5); g.position.y = 1.45; o.add(g); } }
     level.add(o); }
 }
+// outside the windows: wrecked car, power poles, bushes, road barriers, tyres, spikes (seeded per map, never right in front of a window)
+function decorOutside(){
+  if(!ASSETS.props) return; let seed = 7; for(const ch of (MAPD.name || 'm')) seed = (seed * 33 + ch.charCodeAt(0)) >>> 0;
+  const R = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const Wd = W0 * CELL, Hd = GH * CELL, wins = [];
+  for(let z = 0; z < GH; z++) for(let x = 0; x < W0; x++) if(G[z][x] === 'W') wins.push(wpos(x, z));
+  const nearWin = (x, z) => wins.some(w => Math.abs(w.x - x) < 2.6 && Math.abs(w.z - z) < 12 && (x < 0 || x > Wd || z < 0 || z > Hd) && ((x < 0 || x > Wd) ? Math.abs(w.z - z) < 2.6 : Math.abs(w.x - x) < 2.6));
+  const add = (k, x, z, ry) => { const src = ASSETS.props[k]; if(!src) return; const o = src.clone(); o.position.set(x, 0, z); o.rotation.y = ry; o.userData.visual = true; level.add(o); };
+  const sides = [[0, -1], [0, 1], [-1, 0], [1, 0]]; let car = false;
+  for(const [sx, sz] of sides){ const len = sx ? Hd : Wd;
+    for(let t = 2; t < len - 1; t += 3 + R() * 4){ const d = 3.5 + R() * 7;
+      const x = sx ? (sx < 0 ? -d : Wd + d) : t, z = sx ? t : (sz < 0 ? -d : Hd + d);
+      if(nearWin(x, z)) continue; const r = R(); const k = !car && r < .08 ? (car = true, 'car') : r < .35 ? 'bush' : r < .5 ? 'barrier' : r < .62 ? 'tire' : r < .72 ? 'spikes' : r < .8 ? 'pallets' : r < .88 ? 'crate2' : null;
+      if(k) add(k, x, z, R() * 6.28); }
+    for(let t = 4; t < len; t += 11){ const d = 11; add('pole', sx ? (sx < 0 ? -d : Wd + d) : t, sx ? t : (sz < 0 ? -d : Hd + d), sx ? 0 : Math.PI / 2); } }
+}
 function decorate(){
-  placeProps();
+  placeProps(); decorOutside();
   decorSVG();
   if(!ASSETS.barrel) return;
   for(const [x, z, fire] of (MAPD.barrels || [])){
