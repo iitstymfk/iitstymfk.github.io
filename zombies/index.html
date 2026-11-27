@@ -1590,7 +1590,9 @@ function prisonerZombie(type){
   model.traverse(o => { if(o.isBone && /Head$/.test(o.name) && !headBone) headBone = o; });
   const head = new THREE.Object3D(); head.position.set(0, 10, 4); (headBone || model).add(head);
   for(const sx of [-1, 1]){ const gl = new THREE.Sprite(type > 1 ? ZM.glowRed : ZM.glow); gl.scale.setScalar(4.5); gl.position.set(sx * 3.2, 0, 6); head.add(gl); }
-  const mixer = new THREE.AnimationMixer(model), A = {}, C = n => G2.animations.find(a => a.name === n);
+  // other bodies only take the prisoner's bone ROTATIONS (+ hip motion): his per-bone position/scale keys carry his own limb lengths and stretch them into spiders
+  const clips = body === G2 ? G2.animations : (body._clips || (body._clips = G2.animations.map(c => new THREE.AnimationClip(c.name, c.duration, c.tracks.filter(t => /\.quaternion$/.test(t.name) || /^Hips\.position$/.test(t.name))))));
+  const mixer = new THREE.AnimationMixer(model), A = {}, C = n => clips.find(a => a.name === n);
   const map = { walk: 'walk', run: 'run', swipe: 'attack', bite: 'bite', die: Math.random() < .5 ? 'death' : 'dying', stumble: 'hit', idle: 'idle', crawl: 'crawl', crawlrun: 'crawlrun', scream: 'scream' };
   for(const k in map){ const c = C(map[k]); if(c) A[k] = mixer.clipAction(c); }
   for(const k of ['swipe', 'die', 'stumble', 'bite', 'scream']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
