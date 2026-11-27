@@ -37,3 +37,12 @@
 ## Atomic Realm: Post-Apocalyptic World (free packs: Starter, Gas Station, Interiors, Into The Wild, Pharmacy)
 - Assets by Atomic Realm, https://atomicrealm.itch.io/ (from https://atomicrealm.itch.io/post-apocalyptic-world). Credit required; commercial and non-commercial use allowed; not redistributed as a pack.
 - Desk: "Table" by eucocker (@eucocker) on Sketchfab, CC BY: https://sketchfab.com/3d-models/table-303cfebd25eb4ea3bd06d052106aea41
+- Paintings and posters: "Paintings and Posters Collection - Game Ready" by Melon Polygons (@Melonpolygons) on Sketchfab, CC BY: https://sketchfab.com/3d-models/2bc72a05095c485ab7bc09a6b7b78d93
+- Pool table: "Pool Table Traditional" by fizyman (@fizyman) on Sketchfab, CC BY: https://sketchfab.com/3d-models/e0b938c0c2e74eb794a49ebde2543977
+- Living room set: "Vintage Living Room Furniture Pack (Game-Ready)" by Renend Studio (@RenendStudio) on Sketchfab, CC BY: https://sketchfab.com/3d-models/1c30b758a8624600818547d4634b47ad
+- PS1 props: "Retro PS1 Room Props Pack" by CXAF_ (@CXAF) on Sketchfab, Sketchfab Free Standard license: https://sketchfab.com/3d-models/4f071c335f3943d39114a9c6bc3ad6cf
+- Beer bottle (future Molotov): "Dusty Beer Bottle" by Coozy (@GameDevNick) on Sketchfab, CC BY (best match): https://sketchfab.com/3d-models/03d9062085214988b2e984470c7c0d28
+- Argus: "AOMRetold - Argus Monster (With Animations)" by Otherspectre (@Otherspectre) on Sketchfab, listed as CC BY: https://sketchfab.com/3d-models/f7cb772bcbaf43438d8343ef59e39c6a
+
+## Sounds
+- "Must Have Horror Sound Effects" by YourPalRob: https://yourpalrob.itch.io/must-have-horror-sound-effects (commercial use allowed, credit not required, no redistribution as standalone files).
