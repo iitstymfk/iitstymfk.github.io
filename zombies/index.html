@@ -223,7 +223,7 @@ async function loadAssets(onProg){
   // morgue furniture + gore chunks (head / body pieces for gibs)
   jobs.push(load('assets/morgue.glb').then(g => { ASSETS.ext = ASSETS.ext || {}; for(const o of [...g.scene.children]){ const b = new THREE.Box3().setFromObject(o), c = b.getCenter(new THREE.Vector3());
       for(const ch of o.children) ch.position.sub(new THREE.Vector3(c.x - o.position.x, b.min.y - o.position.y, c.z - o.position.z)); if(o.isMesh) o.geometry.translate(o.position.x - c.x, o.position.y - b.min.y, o.position.z - c.z);
-      o.position.set(0, 0, 0); o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .5; if(m.material.emissive) m.material.emissiveIntensity = .2; } } }); ASSETS.ext[o.name] = o; } }).catch(e => console.warn('morgue', e)).finally(tick));
+      o.position.set(0, 0, 0); o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .5; if(m.material.emissive) m.material.emissiveIntensity = .2; if(o.name === 'mg_body') m.material.color.setRGB(.55, .52, .48); } } }); ASSETS.ext[o.name] = o; } }).catch(e => console.warn('morgue', e)).finally(tick));
   if(LAB) jobs.push(load('assets/lab_props.glb').then(g => { ASSETS.lab = {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material) m.material.envMapIntensity = .5; } }); ASSETS.lab[o.name] = o; } }).catch(e => console.warn('lab props', e)).finally(tick));
   jobs.push(load('assets/props.glb').then(g => { ASSETS.props = {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .35; } } }); ASSETS.props[o.name] = o; } }).catch(e => console.warn('props', e)).finally(tick));
   jobs.push(load('assets/zombie/female.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material){ const m = o.material; if(/hair/i.test(m.name)){ m.transparent = false; m.alphaTest = .5; m.side = THREE.DoubleSide; } else { m.transparent = false; m.opacity = 1; } } }); ASSETS.female = g; }).catch(e => console.warn('female', e)).finally(tick));
@@ -442,7 +442,7 @@ function stockMap(){
       { k: 'pallets', x: 33, z: 2, f: [0, 1] }, { k: 'tire', x: 36, z: 8, f: [0, -1] },
       { k: 'sleepbag', x: 37, z: 17, f: [-1, 0] }, { k: 'sheet1', x: 32, z: 15, d: [-1, 0] },
       { k: 'autopsy', x: 35, z: 14, f: [0, 1] }, { k: 'corpse', x: 35, z: 14, f: [0, 1], y: .86 }, { k: 'trolley', x: 33, z: 13, f: [1, 0] }, { k: 'scales', x: 36, z: 12, f: [0, 1] },
-      { k: 'msink', x: 32, z: 11, f: [1, 0] }, { k: 'mcabinet', x: 38, z: 11, f: [-1, 0] }, { k: 'mlockers', x: 37, z: 20, d: [0, 1] }, { k: 'mbench', x: 34, z: 18, f: [0, -1] },
+      { k: 'msink', x: 32, z: 11, f: [1, 0] }, { k: 'mcabinet', x: 38, z: 11, f: [-1, 0] }, { k: 'slamp', x: 35, z: 15, f: [0, 1], y: 1.95 }, { k: 'mbench', x: 34, z: 18, f: [0, -1] },
       { k: 'monitor', x: 27, z: 3, f: [0, 1], y: .78, lv: 1 },
       { k: 'jerry', x: 9, z: 7, f: [0, -1], lv: -1 }, { k: 'sheet2', x: 2, z: 6, d: [-1, 0], lv: -1 },
       { k: 'shelf', x: 2, z: 4, f: [1, 0], lv: -1 }, { k: 'guitar', x: 3, z: 2, f: [0, 1], lv: -1 }, { k: 'amp', x: 5, z: 2, f: [0, 1], lv: -1 }, { k: 'poster2', x: 13, z: 6, d: [1, 0], lv: -1 },
@@ -541,7 +541,7 @@ const PROPCAT = { sofa: { long: 'x' }, pool: { long: 'z' }, desk: { base: Math.P
   tire: { soft: true }, spikes: {}, bookshelf2: {}, monitor: { soft: true }, sheet1: { wall: true, y: 1.3 }, sheet2: { wall: true, y: 1.1 }, car: {}, pole: {}, bush: {},
   // morgue furniture (assets/morgue.glb)
   autopsy: { n: 'mg_table', long: 'z', s: .9 }, corpse: { n: 'mg_body', soft: true, s: .62 }, mlockers: { n: 'mg_lockers', wall: true, y: 0, s: .5 }, trolley: { n: 'mg_trolley' }, msink: { n: 'mg_sink' },
-  mcabinet: { n: 'mg_cabinet', s: .85 }, scales: { n: 'mg_scales' }, slamp: { n: 'mg_lamp', soft: true, s: .8 }, mbench: { n: 'mg_bench', long: 'x', s: .8 },
+  mcabinet: { n: 'mg_cabinet', s: .85 }, scales: { n: 'mg_scales' }, slamp: { n: 'mg_lamp', soft: true, s: .8, light: true, lc: 0xdff0ff, ly: .2 }, mbench: { n: 'mg_bench', long: 'x', s: .8 },
   // Black Site Lab pieces (assets/lab_props.glb)
   computer: { n: 'lab_Prop_Computer' }, crate3: { n: 'lab_Prop_Crate3' }, crate4: { n: 'lab_Prop_Crate4', s: .9 }, barrel2: { n: 'lab_Prop_Barrel_Large' },
   flight: { n: 'lab_Prop_Light_Floor', soft: true, light: true, lc: 0x7fd8ff, ly: .35 }, vent: { n: 'lab_Prop_Vent_Big', soft: true, s: .75 },
