@@ -372,11 +372,13 @@ TEX.floor.repeat.set(32*1.6/6.4, 22*1.6/6.4);
     TL.load('assets/tex/lab_floor.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.8); M.floor.roughness = .55; M.floor.metalness = .35; });
     TL.load('assets/tex/lab_wall.jpg', t => { up(t, [M.brick]); M.brick.color.setScalar(.85); M.brick.bumpScale = .6; M.brick.roughness = .5; M.brick.metalness = .3; });
     TL.load('assets/tex/lab_wall.jpg', t => { up(t, [M.stone]); M.stone.color.set(0x56606a); M.stone.bumpScale = .6; });
+    TL.load('assets/tex/lab_wall.jpg', t => { up(t, [M.officeWall]); M.officeWall.color.setScalar(.75); });
+    TL.load('assets/tex/lab_floor.jpg', t => { t.repeat.set(.8, .8); up(t, [M.woodFloor, M.baseFloor]); M.woodFloor.color.setScalar(.75); M.baseFloor.color.setScalar(.6); });
   } else TL.load('assets/tex/floor_tile.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.62); });
   // Foxtex (Foxhead): upstairs office panels + herringbone floor, basement stone slabs
-  TL.load('assets/tex/fox_office_wall.jpg', t => { t.repeat.set(1, 1.25); up(t, [M.officeWall]); M.officeWall.color.set(0xb0a490); });
-  TL.load('assets/tex/fox_wood_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.woodFloor]); M.woodFloor.color.set(0x8a7a68); });
-  TL.load('assets/tex/fox_base_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.baseFloor]); M.baseFloor.color.set(0x807a72); });
+  if(!LAB) TL.load('assets/tex/fox_office_wall.jpg', t => { t.repeat.set(1, 1.25); up(t, [M.officeWall]); M.officeWall.color.set(0xb0a490); });
+  if(!LAB) TL.load('assets/tex/fox_wood_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.woodFloor]); M.woodFloor.color.set(0x8a7a68); });
+  if(!LAB) TL.load('assets/tex/fox_base_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.baseFloor]); M.baseFloor.color.set(0x807a72); });
   TL.load('assets/tex/planks.jpg', t => { up(t, [M.wood]); M.wood.color.set(0x9a8a78); });
   TL.load('assets/tex/metal_rivet.jpg', t => { up(t, [M.metal]); M.metal.color.setScalar(.75); });
   if(!LAB) TL.load('assets/tex/stone_block.jpg', t => { t.repeat.set(1, 1.5); up(t, [M.stone]); M.stone.color.set(0x6e6a64); }); }
