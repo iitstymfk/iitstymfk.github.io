@@ -20,3 +20,6 @@
 
 ## Hellhound
 - `assets/zombie/hellhound.glb`: German Shepherd from the **Zombie Apocalypse Kit by Quaternius** (CC0, https://quaternius.com/packs/zombieapocalypsekit.html), repacked to GLB and darkened in code.
+
+## Rotting zombie
+- `assets/zombie/rotter.glb`: Mixamo character (Adobe Mixamo, free to use inside games), reduced to 14k triangles and 1K textures. Uses the prisoner's Mixamo animations.

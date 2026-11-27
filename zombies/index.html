@@ -214,9 +214,10 @@ const GUNMETA = {"pistol":{"len":0.215,"h":0.136,"my":0.046},"revolver":{"len":0
 const ASSETS = { guns: {}, zombie: null, grenade: null, barrel: null, arms: null, ready: false };
 async function loadAssets(onProg){
   const L = new GLTFLoader(); const load = u => new Promise((res, rej) => L.load(u, res, undefined, rej));
-  const jobs = [], total = Object.keys(GUNMETA).length + 6; let done = 0; const tick = () => onProg && onProg(++done, total);
+  const jobs = [], total = Object.keys(GUNMETA).length + 7; let done = 0; const tick = () => onProg && onProg(++done, total);
   for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh && o.material){ o.castShadow = false; const m = o.material; m.vertexColors = false; if(m.name === 'gunmetal'){ m.roughness = .5; m.metalness = .5; } m.envMapIntensity = .55; m.needsUpdate = true; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
   jobs.push(load('assets/arms/arms_rig.glb').then(g => { ASSETS.arms = g; }).catch(e => console.warn('arms', e)).finally(tick));
+  jobs.push(load('assets/zombie/rotter.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material && o.material.color) o.material.color.multiplyScalar(.9); }); ASSETS.rotter = g; }).catch(e => console.warn('rotter', e)).finally(tick));
   jobs.push(load('assets/zombie/prisoner3.glb').then(g => { prepPrisoner(g); ASSETS.zombie2 = g; }).catch(e => console.warn('prisoner', e)).finally(tick));
   jobs.push(load('assets/zombie/hellhound.glb').then(g => { prepDog(g); ASSETS.dog = g; }).catch(e => console.warn('hellhound', e)).finally(tick));
   jobs.push(load('assets/zombie/skeleton-zombie.glb').then(g => { ASSETS.zombie = g; }).catch(e => console.warn('zombie', e)).finally(tick));
@@ -1455,8 +1456,8 @@ function moveToward(z, target, speed, dt){
   return d;
 }
 function prisonerZombie(type){
-  const G2 = ASSETS.zombie2, root = new THREE.Group(); const s = rand(.94, 1.06); root.scale.setScalar(s);
-  const model = SkeletonUtils.clone(G2.scene); model.scale.multiplyScalar(G2.fit); root.add(model); model.position.z = -.2; /* he leans forward: centre his body over the hitbox */ let headBone = null;
+  const G2 = ASSETS.zombie2, body = (ASSETS.rotter && Math.random() < .5) ? ASSETS.rotter : G2, root = new THREE.Group(); const s = rand(.94, 1.06); root.scale.setScalar(s);
+  const model = SkeletonUtils.clone(body.scene); model.scale.multiplyScalar(G2.fit); root.add(model); if(body !== G2) model.scale.setScalar(body.fit); model.position.z = -.2; /* he leans forward: centre his body over the hitbox */ let headBone = null;
   model.traverse(o => { if(o.isBone && /Head$/.test(o.name) && !headBone) headBone = o; });
   const head = new THREE.Object3D(); head.position.set(0, 10, 4); (headBone || model).add(head);
   for(const sx of [-1, 1]){ const gl = new THREE.Sprite(type > 1 ? ZM.glowRed : ZM.glow); gl.scale.setScalar(4.5); gl.position.set(sx * 3.2, 0, 6); head.add(gl); }
