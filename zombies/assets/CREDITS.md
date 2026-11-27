@@ -23,3 +23,10 @@
 
 ## Rotting zombie
 - `assets/zombie/rotter.glb`: Mixamo character (Adobe Mixamo, free to use inside games), reduced to 14k triangles and 1K textures. Uses the prisoner's Mixamo animations.
+
+## Momo Ayase (co-op player skin, not live yet)
+- "Momo Ayase (Dandadan) T-pose 3D model" by Ben Holm (@benholm11) on Sketchfab, CC BY 4.0: https://sketchfab.com/3d-models/momo-ayase-dandadan-t-pose-3d-model-c8716cffd2bf48a8a86e647ab4db2934
+
+## Props (Sketchfab downloads by Tyler; licenses per their Sketchfab pages, credit lines to be added by Tyler)
+- `assets/props.glb` combines: antique office desk, traditional pool table, vintage living room furniture pack, paintings & posters collection, retro PS1 room props pack. Reduced and repacked.
+- `assets/zombie/female.glb`: "Fuse female zombie 1" (Mixamo/Fuse character), reduced to 14k triangles.

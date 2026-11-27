@@ -214,9 +214,11 @@ const GUNMETA = {"pistol":{"len":0.215,"h":0.136,"my":0.046},"revolver":{"len":0
 const ASSETS = { guns: {}, zombie: null, grenade: null, barrel: null, arms: null, ready: false };
 async function loadAssets(onProg){
   const L = new GLTFLoader(); const load = u => new Promise((res, rej) => L.load(u, res, undefined, rej));
-  const jobs = [], total = Object.keys(GUNMETA).length + 7; let done = 0; const tick = () => onProg && onProg(++done, total);
+  const jobs = [], total = Object.keys(GUNMETA).length + 9; let done = 0; const tick = () => onProg && onProg(++done, total);
   for(const k in GUNMETA) jobs.push(load(`assets/guns/${k}.glb`).then(g => { g.scene.traverse(o => { if(o.isMesh && o.material){ o.castShadow = false; const m = o.material; m.vertexColors = false; if(m.name === 'gunmetal'){ m.roughness = .5; m.metalness = .5; } m.envMapIntensity = .55; m.needsUpdate = true; } }); ASSETS.guns[k] = g.scene; }).catch(e => console.warn('gun', k, e)).finally(tick));
   jobs.push(load('assets/arms/arms_rig.glb').then(g => { ASSETS.arms = g; }).catch(e => console.warn('arms', e)).finally(tick));
+  jobs.push(load('assets/props.glb').then(g => { ASSETS.props = {}; for(const o of [...g.scene.children]){ o.traverse(m => { if(m.isMesh){ m.castShadow = m.receiveShadow = SHADOWS; if(m.material){ m.material.envMapIntensity = .35; } } }); ASSETS.props[o.name] = o; } }).catch(e => console.warn('props', e)).finally(tick));
+  jobs.push(load('assets/zombie/female.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material){ const m = o.material; if(/hair/i.test(m.name)){ m.transparent = false; m.alphaTest = .5; m.side = THREE.DoubleSide; } else { m.transparent = false; m.opacity = 1; } } }); ASSETS.female = g; }).catch(e => console.warn('female', e)).finally(tick));
   jobs.push(load('assets/zombie/rotter.glb').then(g => { prepPrisoner(g); g.scene.traverse(o => { if(o.isMesh && o.material && o.material.color) o.material.color.multiplyScalar(.9); }); ASSETS.rotter = g; }).catch(e => console.warn('rotter', e)).finally(tick));
   jobs.push(load('assets/zombie/prisoner3.glb').then(g => { prepPrisoner(g); ASSETS.zombie2 = g; }).catch(e => console.warn('prisoner', e)).finally(tick));
   jobs.push(load('assets/zombie/hellhound.glb').then(g => { prepDog(g); ASSETS.dog = g; }).catch(e => console.warn('hellhound', e)).finally(tick));
@@ -404,6 +406,15 @@ function stockMap(){
     upg: { x: 7, z: 2, face: [0, 1], lv: -1 }, power: { x: 30, z: 19 }, parts: true, eggs: true,
     zips: [ { a: [17, 11], b: [29, 17] } ],
     portals: [ { a: [34, 6], b: [4, 4, -1], name: 'Pack-a-Punch' } ],
+    props: [
+      { k: 'sofa', x: 8, z: 20, f: [0, -1] }, { k: 'lamp', x: 10, z: 20 }, { k: 'armchair', x: 2, z: 19, f: [1, -1] }, { k: 'crt', x: 12, z: 11, f: [0, 1] },
+      { k: 'clock', x: 11, z: 11, d: [0, -1] }, { k: 'poster1', x: 1, z: 13, d: [-1, 0] },
+      { k: 'wardrobe', x: 12, z: 1, f: [0, 1] }, { k: 'shelf', x: 1, z: 3, f: [1, 0] }, { k: 'books', x: 1, z: 3, f: [1, 0], y: .9 }, { k: 'poster2', x: 14, z: 7, d: [1, 0] },
+      { k: 'blueprint', x: 20, z: 9, d: [0, 1] }, { k: 'map', x: 27, z: 9, d: [0, 1] },
+      { k: 'amp', x: 38, z: 1, f: [-1, 1] }, { k: 'guitar', x: 37, z: 1, f: [0, 1] }, { k: 'door', x: 38, z: 13, d: [1, 0] },
+      { k: 'desk', x: 27, z: 3, f: [0, 1], lv: 1 }, { k: 'pool', x: 25, z: 5, f: [0, 1], lv: 1 }, { k: 'lamp', x: 29, z: 2, lv: 1 }, { k: 'poster1', x: 27, z: 1, d: [0, -1], lv: 1 }, { k: 'clock', x: 30, z: 4, d: [1, 0], lv: 1 },
+      { k: 'shelf', x: 2, z: 4, f: [1, 0], lv: -1 }, { k: 'guitar', x: 3, z: 2, f: [0, 1], lv: -1 }, { k: 'amp', x: 5, z: 2, f: [0, 1], lv: -1 }, { k: 'poster2', x: 13, z: 6, d: [1, 0], lv: -1 },
+    ],
     barrels: [[1, 11, 1], [13, 1, 0], [29, 11, 1], [29, 1, 0], [14, 19, 0], [32, 9, 1], [38, 11, 0], [2, 7, 1, -1], [12, 2, 0, -1], [30, 8, 0, 1]],
     bulbs: [[4.5,15.5],[10.5,15.5],[4.5,5],[10.5,5],[20,15.5],[26.5,15.5],[20,5],[26.5,5],[35.5,5],[35.5,15.5],[23,5,1],[28,5,1],[5,5,-1],[10.5,5,-1]],
     pipes: [[1,14,12],[1,14,2],[16,30,12],[16,30,2],[1,14,19.5],[16,30,8.5],[32,38,2],[32,38,19.5]] };
@@ -449,6 +460,15 @@ BANDS.sort((a, b) => a.x0 - b.x0);
 // keep crates out of the way: no crate on or right in front of a perk, box, wall buy, Upgrade machine or power switch.
 // A crate that's in the way is moved on top of the nearest other crate (stacked) instead.
 const CRATE_STACK = new Set();
+// furniture & wall props (assets/props.glb). base = model yaw that makes its front face +z; long = which model axis is 2 cells long
+const PROPCAT = { sofa: { long: 'x' }, pool: { long: 'z' }, desk: { base: Math.PI / 2 }, armchair: {}, dresser: { base: Math.PI / 2 }, cabinet: {}, lamp: { light: true }, crt: {},
+  wardrobe: {}, amp: {}, guitar: { soft: true }, shelf: {}, books: { soft: true }, door: { wall: true, y: 0 }, clock: { wall: true, y: 2.25 },
+  poster1: { wall: true, y: 1.55 }, poster2: { wall: true, y: 1.55 }, blueprint: { wall: true, y: 1.55 }, map: { wall: true, y: 1.55 } };
+const PROPS = [];
+function propCells(p){ const B = BANDS.find(b => b.lv === (p.lv || 0)); if(!B) return null; const c = PROPCAT[p.k]; if(!c) return null;
+  const f = p.f || [0, 1], x = p.x + B.x0, z = p.z; const cells = [[x, z]];
+  if(c.long){ const d2 = c.long === 'z' ? f : [-f[1], f[0]]; cells.push([x + Math.round(d2[0]), z + Math.round(d2[1])]); }
+  return { B, c, f, x, z, cells }; }
 { const g = MAPD.grid.map(r => r.split('')), keep = [];
   const front = (o, d) => { if(!o || !d) return; keep.push([o.x, o.z], [o.x + d[0], o.z + d[1]]); };
   for(const k in (MAPD.perks || {})){ const o = MAPD.perks[k]; front(o, o.face || [0, 1]); }
@@ -459,6 +479,11 @@ const CRATE_STACK = new Set();
   for(const [x, z] of keep){ if(!g[z] || g[z][x] !== 'C') continue; g[z][x] = '.';
     let best = null, bd = 1e9; for(let zz = 0; zz < g.length; zz++) for(let xx = 0; xx < g[0].length; xx++) if(g[zz][xx] === 'C' && !CRATE_STACK.has(xx + ',' + zz)){ const d = Math.abs(xx - x) + Math.abs(zz - z); if(d < bd){ bd = d; best = xx + ',' + zz; } }
     if(best && bd < 14) CRATE_STACK.add(best); }
+  for(const p of (MAPD.props || [])){ const pc = propCells(p); if(!pc){ console.warn('prop?', p); continue; }
+    if(pc.c.wall){ const d = p.d || [0, -1]; const w = g[pc.z + d[1]] && g[pc.z + d[1]][pc.x + d[0]]; if(g[pc.z][pc.x] !== '.' && g[pc.z][pc.x] !== 'M' || w !== '#'){ console.warn('wall prop skipped', p); continue; } PROPS.push(Object.assign({ p }, pc)); continue; }
+    if(!p.y && pc.cells.some(([x, z]) => !g[z] || g[z][x] !== '.')){ console.warn('prop blocked', p); continue; }
+    if(!p.y && !pc.c.soft) for(const [x, z] of pc.cells) g[z][x] = 'M';
+    PROPS.push(Object.assign({ p }, pc)); }
   MAPD.grid = g.map(r => r.join('')); }
 const GW = MAPD.grid[0].length, GH = MAPD.grid.length;
 function bandOfCell(c){ let b = BANDS[0]; for(const B of BANDS) if(c >= B.x0 - (BAND_GAP >> 1)) b = B; return b; }
@@ -1456,7 +1481,7 @@ function moveToward(z, target, speed, dt){
   return d;
 }
 function prisonerZombie(type){
-  const G2 = ASSETS.zombie2, body = (ASSETS.rotter && Math.random() < .5) ? ASSETS.rotter : G2, root = new THREE.Group(); const s = rand(.94, 1.06); root.scale.setScalar(s);
+  const G2 = ASSETS.zombie2, body = pick([G2, ASSETS.rotter || G2, ASSETS.female || G2]), root = new THREE.Group(); const s = rand(.94, 1.06); root.scale.setScalar(s);
   const model = SkeletonUtils.clone(body.scene); model.scale.multiplyScalar(G2.fit); root.add(model); if(body !== G2) model.scale.setScalar(body.fit); model.position.z = -.2; /* he leans forward: centre his body over the hitbox */ let headBone = null;
   model.traverse(o => { if(o.isBone && /Head$/.test(o.name) && !headBone) headBone = o; });
   const head = new THREE.Object3D(); head.position.set(0, 10, 4); (headBone || model).add(head);
@@ -2305,7 +2330,17 @@ function decorSVG(){
     m.position.set(cx, WH - .5, cz); m.rotation.y = Math.atan2(-(a[0] + b[0]), -(a[1] + b[1])); m.rotateX(-.35); level.add(m);
   }
 }
+function placeProps(){
+  if(!ASSETS.props) return;
+  for(const P1 of PROPS){ const src = ASSETS.props[P1.p.k]; if(!src) continue; const o = src.clone(); const c = P1.c;
+    if(c.wall){ const d = P1.p.d || [0, -1]; const w = wpos(P1.x, P1.z); o.position.set(w.x + d[0] * (CELL / 2 - .025), (P1.p.y != null ? P1.p.y : c.y), w.z + d[1] * (CELL / 2 - .025)); o.rotation.y = Math.atan2(-d[0], -d[1]); }
+    else { let cx = 0, cz = 0; for(const [x, z] of P1.cells){ const w = wpos(x, z); cx += w.x; cz += w.z; } cx /= P1.cells.length; cz /= P1.cells.length;
+      o.position.set(cx, P1.p.y || 0, cz); o.rotation.y = Math.atan2(P1.f[0], P1.f[1]) + (c.base || 0);
+      if(c.light && !LQ){ const L = new THREE.PointLight(0xffc070, 3, 4.5, 1.8); L.position.set(0, 1.45, 0); o.add(L); const g = glowSprite(0xffc070, .6, .5); g.position.y = 1.45; o.add(g); } }
+    level.add(o); }
+}
 function decorate(){
+  placeProps();
   decorSVG();
   if(!ASSETS.barrel) return;
   for(const [x, z, fire] of (MAPD.barrels || [])){
