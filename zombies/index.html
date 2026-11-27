@@ -858,7 +858,7 @@ function setupArms(){
       rOff: new THREE.Euler(0, 0, 0), lOff: new THREE.Euler(0, 0, 0), kbPos: new THREE.Vector3(-.02, .085, 0), kbRot: new THREE.Euler(0, Math.PI, 0), knifeOff: new THREE.Vector3(-.17, .07, -.04), holdOff: new THREE.Vector3(0, -.14, .06), holdOffLong: new THREE.Vector3(0, -.04, .02), poleL: new THREE.Vector3(-.35, -1, .25), poleR: new THREE.Vector3(.45, -1, .2),
       grip: { y: -.22, z: .3, zs: .3 }, hip: new THREE.Vector3(.09, -.075, -.38), hipLong: new THREE.Vector3(.08, -.08, -.3),
       lFixP: ARMS_basis([.9, .25, .3], [.5, -.7, -.5]), pistolL: new THREE.Vector3(-.03, .012, -.04),
-      lFix: (() => { const Y = new THREE.Vector3(.5, .1, -.9).normalize(), X = new THREE.Vector3(.3, 1, 0).normalize(); X.sub(Y.clone().multiplyScalar(X.dot(Y))).normalize(); return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, X.clone().cross(Y))); })(), fore: { y: -.2, z: .42 }, wristBack: .07 });
+      lFix: (() => { const Y = new THREE.Vector3(.5, .1, -.9).normalize(), X = new THREE.Vector3(.3, 1, 0).normalize(); X.sub(Y.clone().multiplyScalar(X.dot(Y))).normalize(); return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, X.clone().cross(Y))); })(), fore: { y: -.2, z: .42 }, wristBack: .07, wristBend: .35, wristBendLong: 1 });
   }catch(e){ console.warn('arms setup', e); ARMS.ok = false; }
 }
 function ARMS_basis(x, y){ const Y = new THREE.Vector3(...y).normalize(), X = new THREE.Vector3(...x).normalize(); X.sub(Y.clone().multiplyScalar(X.dot(Y))).normalize(); return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, X.clone().cross(Y))); }
@@ -907,7 +907,12 @@ function updArms(dt, gunShown){
   if(ARMS.lK > .02){
     const restL = B['handL'].getWorldPosition(new THREE.Vector3()); const tgt = restL.lerp(lT, ARMS.lK);
     ik2(B['upper_armL'], B['forearmL'], B['handL'], tgt, ARMS.poleL);
-    const qa = B['handL'].getWorldQuaternion(new THREE.Quaternion()); setWorldQuat(B['handL'], qa.slerp(lW, ARMS.lK));
+    // keep the wrist mostly in line with the forearm so the hand never folds over at a sharp angle
+    let lQ = lW; const wb = long ? ARMS.wristBendLong : ARMS.wristBend;
+    if(wb < 1){ const el = B['forearmL'].getWorldPosition(new THREE.Vector3()), hp = B['handL'].getWorldPosition(new THREE.Vector3()); const fd = hp.sub(el).normalize();
+      const Y = fd.lerp(new THREE.Vector3(0, 1, 0).applyQuaternion(lW), wb).normalize(), X = new THREE.Vector3(1, 0, 0).applyQuaternion(lW); X.sub(Y.clone().multiplyScalar(X.dot(Y))).normalize();
+      lQ = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, X.clone().cross(Y))); }
+    const qa = B['handL'].getWorldQuaternion(new THREE.Quaternion()); setWorldQuat(B['handL'], qa.slerp(lQ, ARMS.lK));
   }
 }
 
