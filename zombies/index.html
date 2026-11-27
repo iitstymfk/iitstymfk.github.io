@@ -433,11 +433,13 @@ function groundY(pos){ const x = Math.floor(pos.x / CELL), z = Math.floor(pos.z 
   const st = a.st, s0 = st.start; const along = (pos.x - s0[0] * CELL) * st.dir[0] + (pos.z - s0[1] * CELL) * st.dir[1] + (st.dir[0] < 0 || st.dir[1] < 0 ? CELL : 0);
   return clamp(along / (st.len * CELL), 0, 1) * WH; }
 // moving off the top of the stairs onto the floor above, or from the landing down the stairs
-function stairPortal(pos, ox, oz){ if(!STAIRS.length) return 0; const c0x = Math.floor(ox / CELL), c0z = Math.floor(oz / CELL), c1x = Math.floor(pos.x / CELL), c1z = Math.floor(pos.z / CELL);
-  if(c0x === c1x && c0z === c1z) return 0;
-  for(const st of STAIRS){
-    if(c0x === st.top[0] && c0z === st.top[1] && c1x === st.exit[0] && c1z === st.exit[1]){ pos.x += st.du * CELL; return 1; }
-    if(c0x === st.landing[0] && c0z === st.landing[1] && c1x === st.topHole[0] && c1z === st.topHole[1]){ pos.x -= st.du * CELL; return -1; } }
+function stairPortal(pos, ox, oz){ if(!STAIRS.length) return 0; const mx = pos.x - ox, mz = pos.z - oz; if(!mx && !mz) return 0;
+  const cxp = Math.floor(pos.x / CELL), czp = Math.floor(pos.z / CELL);
+  for(const st of STAIRS){ const d = st.dir, fwd = mx * d[0] + mz * d[1];
+    if(cxp === st.top[0] && czp === st.top[1] && fwd > 0){ const c = [(st.top[0] + .5) * CELL, (st.top[1] + .5) * CELL]; const edge = CELL / 2 - ((pos.x - c[0]) * d[0] + (pos.z - c[1]) * d[1]);
+      if(edge < .34){ pos.x += st.du * CELL + d[0] * .42; pos.z += d[1] * .42; pos.y = 0; return 1; } }
+    if(cxp === st.landing[0] && czp === st.landing[1] && fwd < 0){ const c = [(st.landing[0] + .5) * CELL, (st.landing[1] + .5) * CELL]; const edge = CELL / 2 + ((pos.x - c[0]) * d[0] + (pos.z - c[1]) * d[1]);
+      if(edge < .34){ pos.x -= st.du * CELL + d[0] * .42; pos.z -= d[1] * .42; return -1; } } }
   return 0; }
 const G = MAPD.grid.map(r => r.split('')), RID = []; for(let z = 0; z < GH; z++) RID.push(new Array(GW).fill(-1));
 const isDoorCh = c => /^[A-Z]$/.test(c) && c !== 'W' && c !== 'C' && c !== 'M';
