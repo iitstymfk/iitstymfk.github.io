@@ -429,6 +429,20 @@ MAPD = (function composeFloors(src){
   return M;
 })(MAPD);
 BANDS.sort((a, b) => a.x0 - b.x0);
+// keep crates out of the way: no crate on or right in front of a perk, box, wall buy, Upgrade machine or power switch.
+// A crate that's in the way is moved on top of the nearest other crate (stacked) instead.
+const CRATE_STACK = new Set();
+{ const g = MAPD.grid.map(r => r.split('')), keep = [];
+  const front = (o, d) => { if(!o || !d) return; keep.push([o.x, o.z], [o.x + d[0], o.z + d[1]]); };
+  for(const k in (MAPD.perks || {})){ const o = MAPD.perks[k]; front(o, o.face || [0, 1]); }
+  for(const o of (MAPD.box || [])) front(o, o.face || [0, 1]);
+  for(const o of (MAPD.wallbuys || [])) front(o, [-(o.dx || 0), -(o.dz || 0)]);
+  if(MAPD.upg) front(MAPD.upg, MAPD.upg.face || [0, 1]);
+  if(MAPD.power) front(MAPD.power, MAPD.power.wall ? [-MAPD.power.wall[0], -MAPD.power.wall[1]] : [0, 0]);
+  for(const [x, z] of keep){ if(!g[z] || g[z][x] !== 'C') continue; g[z][x] = '.';
+    let best = null, bd = 1e9; for(let zz = 0; zz < g.length; zz++) for(let xx = 0; xx < g[0].length; xx++) if(g[zz][xx] === 'C' && !CRATE_STACK.has(xx + ',' + zz)){ const d = Math.abs(xx - x) + Math.abs(zz - z); if(d < bd){ bd = d; best = xx + ',' + zz; } }
+    if(best && bd < 14) CRATE_STACK.add(best); }
+  MAPD.grid = g.map(r => r.join('')); }
 const GW = MAPD.grid[0].length, GH = MAPD.grid.length;
 function bandOfCell(c){ let b = BANDS[0]; for(const B of BANDS) if(c >= B.x0 - (BAND_GAP >> 1)) b = B; return b; }
 const bandOfX = x => bandOfCell(Math.floor(x / CELL));
@@ -538,7 +552,7 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
   // crates
   const crG = new THREE.BoxGeometry(1.3, 1.25, 1.3); crG.translate(0, .625, 0);
   for(const [x, z] of CRATES){ const c = new THREE.Mesh(crG, M.crate); c.castShadow = c.receiveShadow = SHADOWS; c.position.copy(wpos(x, z)); c.rotation.y = rand(-.2, .2); level.add(c);
-    if(Math.random() < .5){ const c2 = new THREE.Mesh(crG, M.crate); c2.scale.setScalar(.6); c2.position.copy(wpos(x, z, 1.25)); c2.rotation.y = rand(0, 1); level.add(c2); } }
+    const forced = CRATE_STACK.has(x + ',' + z); if(forced || Math.random() < .5){ const c2 = new THREE.Mesh(crG, M.crate); c2.scale.setScalar(forced ? .85 : .6); c2.position.copy(wpos(x, z, 1.25)); c2.rotation.y = rand(0, 1); level.add(c2); } }
   // pipes along ceilings
   const pipeG = new THREE.CylinderGeometry(.07, .07, 1, 8); pipeG.rotateZ(Math.PI/2);
   for(const [x0, x1, z] of (MAPD.pipes || [])){
