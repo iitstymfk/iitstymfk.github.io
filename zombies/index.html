@@ -1619,8 +1619,10 @@ const ZVAR = [];
 function zombieVariants(){
   if(ZVAR.length || !ASSETS.zombie) return;
   let base = null; ASSETS.zombie.scene.traverse(o => { if(o.isMesh && !/^Icosphere/i.test(o.name)) base = base || o.material; });
-  for(const c of [[.62, .6, .55], [.5, .58, .46], [.64, .5, .46], [.48, .5, .56], [.6, .55, .44]]){ const m = base.clone(); m.color.setRGB(...c); m.emissive = new THREE.Color(0); m.roughness = Math.max(m.roughness, .75); m.metalness = 0; ZVAR.push(m); }
-  const red = base.clone(); red.color.setRGB(.7, .38, .34); red.emissive = new THREE.Color(0x140000); red.roughness = .8; red.metalness = 0; ZVAR.red = red;
+  // phones: some mobile GPUs drew nothing but the glowing eyes with the model's own material, so phones get a plain textured one
+  if(isTouch){ const map = base.map; base = new THREE.MeshLambertMaterial({ map, side: THREE.DoubleSide }); }
+  for(const c of [[.62, .6, .55], [.5, .58, .46], [.64, .5, .46], [.48, .5, .56], [.6, .55, .44]]){ const m = base.clone(); m.color.setRGB(...c); m.emissive = new THREE.Color(0); if(m.roughness != null){ m.roughness = Math.max(m.roughness, .75); m.metalness = 0; } ZVAR.push(m); }
+  const red = base.clone(); red.color.setRGB(.7, .38, .34); red.emissive = new THREE.Color(0x140000); if(red.roughness != null){ red.roughness = .8; red.metalness = 0; } ZVAR.red = red;
 }
 function zombieMesh(type, bk){
   if(ASSETS.zombie) return skelZombie(type, bk);
@@ -1877,7 +1879,7 @@ function skelZombie(type, bk){
   const root = new THREE.Group(); const s = rand(.93, 1.07) * (type === 2 ? 1.04 : 1); root.scale.setScalar(s);
   const model = SkeletonUtils.clone(ASSETS.zombie.scene); root.add(model);
   const mat = type === 2 ? ZVAR.red : pick(ZVAR); let headBone = null;
-  model.traverse(o => { if(o.isMesh){ if(/^Icosphere/i.test(o.name)) o.visible = false; else { o.material = mat; o.castShadow = SHADOWS; o.frustumCulled = false; } } if(o.isBone && o.name === 'Head') headBone = o; });
+  model.traverse(o => { if(o.isMesh){ if(/^Icosphere/i.test(o.name)) o.visible = false; else { o.material = mat; o.castShadow = SHADOWS && !isTouch; o.frustumCulled = false; } } if(o.isBone && o.name === 'Head') headBone = o; });
   const head = new THREE.Object3D(); head.position.set(0, .1, 0); (headBone || model).add(head);
   for(const sx of [-1, 1]){ const gl = new THREE.Sprite(type > 1 ? ZM.glowRed : ZM.glow); gl.scale.setScalar(.07); gl.position.set(sx * .035, 0, .1); head.add(gl); }
   const mixer = new THREE.AnimationMixer(model), A = {};
