@@ -850,7 +850,7 @@ function updFX(dt){
 // flying gore chunks (heads pop off on headshot kills, bodies come apart in explosions); they bounce, bleed and fade
 const GIBS = [];
 /* ---------- dismemberment: shoot arms off, blow legs off (explosions / shotguns) -> the zombie crawls ---------- */
-const LIMB_NAMES = { ll: ['LeftLeg', 'Bip01_L_Calf'], rl: ['RightLeg', 'Bip01_R_Calf'], la: ['LeftForeArm', 'Bip01_L_Forearm'], ra: ['RightForeArm', 'Bip01_R_Forearm'] };
+const LIMB_NAMES = { ll: ['LeftLeg', 'Bip01_L_Calf', 'ShinL'], rl: ['RightLeg', 'Bip01_R_Calf', 'ShinR'], la: ['LeftForeArm', 'Bip01_L_Forearm', 'ForearmL'], ra: ['RightForeArm', 'Bip01_R_Forearm', 'ForearmR'] };
 const LIMB_BIT = { ll: 1, rl: 2, la: 4, ra: 8 };
 let FIRE_BLAST = false; // true while a shotgun's pellets are being traced
 function limbBones(m){ if(m.limbs !== undefined) return m.limbs; m.limbs = null; if(!m.skinned) return null; const L = {};
