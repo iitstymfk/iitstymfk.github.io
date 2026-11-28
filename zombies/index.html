@@ -602,7 +602,76 @@ const PROPCAT = { sofa: { long: 'x' }, pool: { long: 'z' }, desk: { base: Math.P
   flight: { n: 'lab_Prop_Light_Floor', soft: true, light: true, lc: 0x7fd8ff, ly: .35 }, vent: { n: 'lab_Prop_Vent_Big', soft: true, s: .75 },
   column: { n: 'lab_Column_Round', s: .64 }, pcolumn: { n: 'lab_Column_Pipes', s: .64 }, pipes: { n: 'lab_Prop_PipeHolder', long: 'x', s: .72 },
   labdoor: { n: 'lab_Door_Metal', wall: true, y: 0, s: .74 }, alien3: { n: 'lab_Alien_Scolitex', s: .5 },
-  tank1: { n: 'lab_Alien_Cyclop', tank: true, s: .85 }, tank2: { n: 'lab_Alien_Oculichrysalis', tank: true } };
+  tank1: { n: 'lab_Alien_Cyclop', tank: true, s: .85 }, tank2: { n: 'lab_Alien_Oculichrysalis', tank: true },
+  // more set dressing (dep = depth, so 'hug' props sit flush against the wall)
+  gpanel: { n: 'pp_gaugepanel', dep: .4 }, cpanel: { n: 'pp_controlpanelplant', dep: .4 }, cfan: { n: 'pp_coolingfanunit', dep: .42 }, ecab: { n: 'pp_electricalcabinet', dep: .6 },
+  fuse: { n: 'pp_fuseboxrow', dep: .31 }, genframe: { n: 'pp_generatorframe', long: 'x', dep: 1 }, wbench: { n: 'pp_plantworkbenchpower', dep: .7 }, wsign: { n: 'pp_warningsignplant', dep: .3 },
+  gchair: { n: 'pr_guard_chair' }, celldoor: { n: 'pr_prison_cell_door', wall: true, y: 0, s: .95 }, bwindow: { n: 'pr_barred_window', wall: true, y: .55 }, solitary: { n: 'pr_solitary_door', dep: .63 },
+  access: { n: 'lab_Prop_AccessPoint', soft: true }, cable: { n: 'lab_Prop_Cable_3', soft: true, s: .5 }, chest: { n: 'Prop_Chest', dep: .73, s: .9 }, floorfan: { n: 'Prop_Fan_Small', soft: true, s: .8 } };
+// ---- themed set dressing: fills the stock maps' rooms with props that fit each room (seeded, so co-op players get the same rooms) ----
+const THEMES = [
+  [/spawn/i, { floor: ['armchair', 'cabinet', 'dresser', 'shelf', 'bookshelf2', 'crt', 'weights'], wall: ['poster1', 'poster2', 'clock', 'map'] }],
+  [/storage|armory/i, { floor: ['crate2', 'pallets', 'shelf', 'cabinet2', 'plocker', 'chest', 'crate4', 'crate3', 'barrel2'], soft: ['jerry', 'tire'], wall: ['sheet1', 'map', 'blueprint'] }],
+  [/generator|reactor/i, { floor: ['gpanel', 'cpanel', 'ecab', 'fuse', 'cfan', 'wsign', 'switchgear', 'batteries', 'genframe'], soft: ['cable'], wall: ['sheet2', 'blueprint'] }],
+  [/server/i, { floor: ['ecab', 'computer', 'cfan', 'fuse', 'computer', 'switchgear'], soft: ['cable', 'access'], wall: ['blueprint', 'sheet1'] }],
+  [/^lab$|main lab/i, { floor: ['computer', 'cabinet2', 'trolley', 'msink', 'desk', 'gpanel', 'scales'], soft: ['cable', 'floorfan', 'medpack'], wall: ['blueprint', 'sheet1', 'sheet2', 'clock'] }],
+  [/specimen/i, { floor: ['trolley', 'computer', 'autopsy', 'scales', 'msink', 'mcabinet'], soft: ['cable'], wall: ['sheet2', 'blueprint'] }],
+  [/workshop/i, { floor: ['wbench', 'pallets', 'crate2', 'cabinet2', 'shelf', 'genframe'], soft: ['tire', 'jerry'], wall: ['poster2', 'map', 'sheet1'] }],
+  [/morgue/i, { floor: ['trolley', 'mcabinet', 'msink', 'autopsy', 'scales'], soft: ['medpack'], wall: ['sheet2', 'clock'] }],
+  [/office/i, { floor: ['desk', 'cabinet', 'bookshelf2', 'wardrobe', 'cabinet2', 'gdesk'], wall: ['map', 'poster1', 'clock', 'blueprint'] }],
+  [/boiler|containment/i, { floor: ['valve', 'steamvent', 'drums', 'bunk', 'solitary', 'gpanel', 'plocker'], soft: ['cable'], wall: ['celldoor', 'bwindow', 'sheet2'] }],
+  [/intake/i, { floor: ['gdesk', 'gchair', 'plocker', 'plocker', 'computer', 'crate4', 'wsign'], soft: ['access'], wall: ['map', 'sheet1', 'labdoor'] }],
+];
+(function themeDress(M){
+  if(!(M.stock || M.theme === 'lab') || /[?&]plain=1/.test(location.search)) return;
+  const g = M.grid.map(r => r.split('')), H = g.length, Wd = g[0].length;
+  let seed = 99; for(const ch of M.name || '') seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+  const R = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const off = lv => { const b = BANDS.find(b => b.lv === (lv || 0)); return b ? b.x0 : 0; };
+  const bad = new Set(), K = (x, z) => z * 10000 + x;
+  const block = (x, z, r) => { for(let dz = -r; dz <= r; dz++) for(let dx = -r; dx <= r; dx++) bad.add(K(x + dx, z + dz)); };
+  for(let z = 0; z < H; z++) for(let x = 0; x < Wd; x++){ const c = g[z][x];
+    if(c === 'W' || /[A-Z]/.test(c) && !'CMOS'.includes(c)) block(x, z, 2); else if(c === 'S' || c === 'O' || c === '|') block(x, z, 2); else if(c === 'C') block(x, z, 1); }
+  for(const st of STAIRS){ block(st.landing[0], st.landing[1], 2); block(st.exit[0], st.exit[1], 1); block(st.topHole[0], st.topHole[1], 2); }
+  const mark = (o, r) => { if(o) block(o.x, o.z, r); };
+  (M.wallbuys || []).forEach(o => mark(o, 1)); (M.box || []).forEach(o => mark(o, 2)); for(const k in (M.perks || {})) mark(M.perks[k], 2);
+  mark(M.upg, 2); mark(M.power, 2); mark(M.spawn, 2);
+  for(const zp of (M.zips || [])) for(const e of [zp.a, zp.b]) block(e[0] + off(e[2]), e[1], 2);
+  for(const t of (M.traps || [])){ for(const c of t.cells) block(c[0] + off(c[2]), c[1], 1); if(t.sw) block(t.sw[0] + off(t.sw[2]), t.sw[1], 2); }
+  for(const pt of (M.portals || [])){ block(pt.a[0] + off(pt.a[2]), pt.a[1], 2); block(pt.b[0] + off(pt.b[2]), pt.b[1], 2); }
+  for(const p of (M.props || [])){ const c = PROPCAT[p.k]; block(p.x + off(p.lv), p.z, c && c.wall ? 0 : 1); }
+  const DIRS = [[0, -1], [0, 1], [-1, 0], [1, 0]], fl = (x, z) => g[z] && g[z][x] === '.';
+  const have = k => { const c = PROPCAT[k]; return c && !c.tank && (!c.n || LAB || !/^(lab_|Prop_)/.test(c.n)); }; // lab pieces only load on the lab map
+  const add = [], wallUsed = new Set();
+  for(const [nx, nz, name] of (M.names || [])){
+    const T = THEMES.find(t => t[0].test(name)); if(!T || !fl(nx, nz)) continue; const th = T[1];
+    // the room: flood fill over plain floor from its name tag
+    const seen = new Set([K(nx, nz)]), q = [[nx, nz]], cells = [];
+    while(q.length){ const [x, z] = q.pop(); cells.push([x, z]); for(const [dx, dz] of DIRS){ const X = x + dx, Z = z + dz; if(!seen.has(K(X, Z)) && fl(X, Z)){ seen.add(K(X, Z)); q.push([X, Z]); } } }
+    if(cells.length < 20) continue; // corridors and catwalks stay clear
+    const B = bandOfCell(nx);
+    // floor props: against one wall, room at least 3 deep there, nothing important nearby
+    const spots = [];
+    for(const [x, z] of cells){ if(bad.has(K(x, z))) continue;
+      const walls = DIRS.filter(([dx, dz]) => g[z + dz] && g[z + dz][x + dx] === '#'); if(walls.length !== 1) continue; const [wx, wz] = walls[0];
+      if(!fl(x - wx, z - wz) || !fl(x - 2 * wx, z - 2 * wz)) continue; spots.push([x, z, [-wx, -wz]]); }
+    for(let i = spots.length - 1; i > 0; i--){ const j = Math.floor(R() * (i + 1)); [spots[i], spots[j]] = [spots[j], spots[i]]; }
+    let n = Math.min(LQ ? 3 : 6, Math.floor(cells.length / 14)), k = 0;
+    for(const [x, z, f] of spots){ if(n <= 0) break; if(bad.has(K(x, z))) continue;
+      const key = th.floor[k % th.floor.length], c = PROPCAT[key]; if(!have(key)){ k++; continue; }
+      if(c.long){ const d2 = c.long === 'z' ? f : [-f[1], f[0]]; const X = x + d2[0], Z = z + d2[1]; if(!fl(X, Z) || bad.has(K(X, Z)) || !(g[Z - f[1]] && g[Z - f[1]][X - f[0]] === '#')) continue; block(X, Z, 1); }
+      add.push({ k: key, x: x - B.x0, z, f, lv: B.lv || undefined, hug: 1 }); block(x, z, 1); g[z][x] = 'M'; n--; k++;
+      if(th.soft && R() < .5){ const s2 = th.soft[Math.floor(R() * th.soft.length)]; const X = x + f[0], Z = z + f[1]; if(have(s2) && fl(X, Z) && !bad.has(K(X, Z))) add.push({ k: s2, x: X - B.x0, z: Z, f: [f[1] || 1, f[0]], lv: B.lv || undefined }); } }
+    // wall pieces: posters, signs, fake doors
+    let nw = Math.min(LQ ? 2 : 4, Math.floor(cells.length / 25)), kw = Math.floor(R() * 4);
+    for(const [x, z] of cells){ if(nw <= 0) break; if(R() > .25) continue;
+      for(const [dx, dz] of DIRS){ if(!(g[z + dz] && g[z + dz][x + dx] === '#') || wallUsed.has(K(x, z)) || bad.has(K(x, z)) || g[z][x] !== '.') continue;
+        let near = false; for(let r = -2; r <= 2; r++) for(let r2 = -2; r2 <= 2; r2++){ const c = g[z + r] && g[z + r][x + r2]; if(c === 'W' || /[D-L]/.test(c || '')) near = true; }
+        if(near) continue; const key = th.wall[kw++ % th.wall.length]; if(!have(key)) continue;
+        add.push({ k: key, x: x - B.x0, z, d: [dx, dz], lv: B.lv || undefined }); wallUsed.add(K(x, z)); for(let r = -1; r <= 1; r++){ wallUsed.add(K(x + r, z)); wallUsed.add(K(x, z + r)); } nw--; break; } }
+  }
+  M.props = (M.props || []).concat(add);
+})(MAPD);
 const PROPS = [];
 function propCells(p){ const B = BANDS.find(b => b.lv === (p.lv || 0)); if(!B) return null; const c = PROPCAT[p.k]; if(!c) return null;
   const f = p.f || [0, 1], x = p.x + B.x0, z = p.z; const cells = [[x, z]];
@@ -2862,6 +2931,7 @@ function placeProps(){
     let o = o0; if(c.tank){ o = new THREE.Group(); o0.position.y = .22; o.add(o0, specimenTank()); }
     if(c.wall){ const d = P1.p.d || [0, -1]; const w = wpos(P1.x, P1.z); o.position.set(w.x + d[0] * (CELL / 2 - .025), (P1.p.y != null ? P1.p.y : c.y), w.z + d[1] * (CELL / 2 - .025)); o.rotation.y = Math.atan2(-d[0], -d[1]); }
     else { let cx = 0, cz = 0; for(const [x, z] of P1.cells){ const w = wpos(x, z); cx += w.x; cz += w.z; } cx /= P1.cells.length; cz /= P1.cells.length;
+      if(P1.p.hug){ const sh = CELL / 2 - (c.dep || .5) * (c.s || 1) / 2 - .06; cx -= P1.f[0] * sh; cz -= P1.f[1] * sh; }
       o.position.set(cx, P1.p.y || 0, cz); o.rotation.y = Math.atan2(P1.f[0], P1.f[1]) + (c.base || 0);
       if(c.light && !LQ){ const lc = c.lc || 0xffc070, ly = c.ly || 1.45; const L = new THREE.PointLight(lc, 3, 4.5, 1.8); L.position.set(0, ly, 0); o.add(L); const g = glowSprite(lc, .6, .5); g.position.y = ly; o.add(g); } }
     level.add(o); }
