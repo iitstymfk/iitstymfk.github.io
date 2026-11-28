@@ -664,9 +664,9 @@ const THEMES = [
       if(th.soft && R() < .5){ const s2 = th.soft[Math.floor(R() * th.soft.length)]; const X = x + f[0], Z = z + f[1]; if(have(s2) && fl(X, Z) && !bad.has(K(X, Z))) add.push({ k: s2, x: X - B.x0, z: Z, f: [f[1] || 1, f[0]], lv: B.lv || undefined }); } }
     // wall pieces: posters, signs, fake doors
     let nw = Math.min(LQ ? 2 : 4, Math.floor(cells.length / 25)), kw = Math.floor(R() * 4);
-    for(const [x, z] of cells){ if(nw <= 0) break; if(R() > .25) continue;
+    for(const [x, z] of cells){ if(nw <= 0) break; if(R() > .4) continue;
       for(const [dx, dz] of DIRS){ if(!(g[z + dz] && g[z + dz][x + dx] === '#') || wallUsed.has(K(x, z)) || bad.has(K(x, z)) || g[z][x] !== '.') continue;
-        let near = false; for(let r = -2; r <= 2; r++) for(let r2 = -2; r2 <= 2; r2++){ const c = g[z + r] && g[z + r][x + r2]; if(c === 'W' || /[D-L]/.test(c || '')) near = true; }
+        let near = false; for(let r = -1; r <= 1; r++) for(let r2 = -1; r2 <= 1; r2++){ const c = g[z + r] && g[z + r][x + r2]; if(c === 'W' || /[D-L]/.test(c || '')) near = true; }
         if(near) continue; const key = th.wall[kw++ % th.wall.length]; if(!have(key)) continue;
         add.push({ k: key, x: x - B.x0, z, d: [dx, dz], lv: B.lv || undefined }); wallUsed.add(K(x, z)); for(let r = -1; r <= 1; r++){ wallUsed.add(K(x + r, z)); wallUsed.add(K(x, z + r)); } nw--; break; } }
   }
