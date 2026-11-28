@@ -109,6 +109,12 @@ ol.lb li.me{background:rgba(200,0,0,.18);border-radius:6px}
 #joyKnob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(255,255,255,.3)}
 .tb{position:absolute;border-radius:50%;background:rgba(20,20,20,.45);border:2px solid rgba(255,255,255,.35);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:.05em;text-shadow:0 1px 2px #000;touch-action:none}
 .tb.on{background:rgba(200,40,40,.5)}
+.tb{scale:var(--bs,1);opacity:var(--bo,1)}
+#tPause{scale:1;opacity:1}
+#tAuto{width:44px;height:44px;left:calc(64px + env(safe-area-inset-left));top:auto;bottom:12px;border-radius:10px;font-size:11px;scale:1}
+#tAuto.on{background:rgba(200,40,40,.55);border-color:#ff8080}
+body.touch #settings .tOnly{display:block}
+#settings .tOnly{display:none}
 #tFire{width:92px;height:92px;right:calc(26px + env(safe-area-inset-right));bottom:20vh;font-size:16px;border-color:rgba(255,90,90,.7)}
 #tAds{width:62px;height:62px;right:calc(134px + env(safe-area-inset-right));bottom:9vh}
 #tReload{width:54px;height:54px;right:calc(30px + env(safe-area-inset-right));bottom:calc(20vh + 104px)}
@@ -156,6 +162,7 @@ body.touch h1{font-size:46px}body.touch h1 span{font-size:60px}
   <div class="tb" id="tSwap">⇄</div>
   <div class="tb" id="tUse">USE</div>
   <div class="tb" id="tPause">❚❚</div>
+  <div class="tb" id="tAuto">AUTO</div>
 </div>
 <div id="menu" class="ov"><div class="panel">
   <h1>IITSTY<br><span>ZOMBIES</span></h1>
@@ -175,6 +182,13 @@ body.touch h1{font-size:46px}body.touch h1 span{font-size:60px}
     <label>Look sensitivity <input id="sSens" type="range" min="0.3" max="2.5" step="0.05"></label>
     <label>Volume <input id="sVol" type="range" min="0" max="1" step="0.05"></label>
     <label>Graphics <select id="sQ"><option value="ultra">Ultra</option><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select></label>
+    <div class="tOnly">
+      <label>Aim assist <select id="sAssist"><option value="0">Off</option><option value="0.6">Light</option><option value="1">Normal</option><option value="1.6">Strong</option></select></label>
+      <label>Auto-fire when the crosshair is on a zombie <input id="sAuto" type="checkbox"></label>
+      <label>Button size <input id="sBsize" type="range" min="0.75" max="1.35" step="0.05"></label>
+      <label>Button opacity <input id="sBop" type="range" min="0.3" max="1" step="0.05"></label>
+      <label>Vibration <input id="sHap" type="checkbox"></label>
+    </div>
     <div style="opacity:.6;font-size:13px">High is the default on every device. If the game starts to lag it lowers the resolution by itself, then turns off shadows and glow.</div>
   </div>
   <div id="help" class="box hidden"></div>
@@ -215,7 +229,10 @@ const LS = { get(k, d){ try{ const v = localStorage.getItem('iz_' + k); return v
              set(k, v){ try{ localStorage.setItem('iz_' + k, JSON.stringify(v)); }catch{} } };
 const isTouch = /[?&]touch=1/.test(location.search) || (!/[?&]touch=0/.test(location.search) && (matchMedia('(pointer:coarse)').matches || ('ontouchstart' in window && innerWidth < 1100)));
 if(isTouch) document.body.classList.add('touch');
-const opts = { sens: LS.get('sens', 1), vol: LS.get('vol', 0.8), quality: LS.get('quality2', 'high'), name: LS.get('name', '') };
+const opts = { sens: LS.get('sens', 1), vol: LS.get('vol', 0.8), quality: LS.get('quality2', 'high'), name: LS.get('name', ''),
+  assist: LS.get('assist', 1), autoFire: LS.get('autoFire', 0), bsize: LS.get('bsize', 1), bop: LS.get('bop', 1), haptic: LS.get('haptic', 1) };
+// phone buzz (Android; iPhones ignore it)
+const buzz = ms => { if(isTouch && opts.haptic && navigator.vibrate) try { navigator.vibrate(ms); } catch(e){} };
 const QL = { ultra: 3, high: 2, med: 1, low: 0 }[opts.quality] ?? 2;
 const HQ = QL >= 2, LQ = QL === 0, POST = QL >= 1, SHADOWS = QL >= 2;
 const BASE_PR = Math.min(devicePixelRatio, [1, 1.25, 1.5, 2][QL]);
@@ -2226,15 +2243,15 @@ function ann(t, col){ const e = $('#ann'); e.textContent = t; e.style.color = co
 function msg(t){ const e = $('#msg'); e.textContent = t; e.style.opacity = 1; msgT = 2.8; }
 function flashScreen(o){ const e = $('#flashW'); e.style.transition = 'none'; e.style.opacity = o; void e.offsetWidth; e.style.transition = 'opacity .8s'; e.style.opacity = 0; }
 let hitT = 0;
-function hitmark(kill){ const e = $('#hitm'); e.classList.toggle('kill', kill); e.style.opacity = 1; hitT = .14; }
+function hitmark(kill){ buzz(kill ? 22 : 8); const e = $('#hitm'); e.classList.toggle('kill', kill); e.style.opacity = 1; hitT = .14; }
 function hurtPlayer(d, from){
   if(P.invuln > 0 || P.down || G_STATE !== 'play') return;
   if(shieldBlock(d, from)) return;
-  P.hp -= d; P.hurtT = now; SND.hurt(); if(Math.random() < .5) sfx('pgasp', .3); P.shake = Math.max(P.shake, .25);
+  P.hp -= d; P.hurtT = now; buzz(Math.min(90, 25 + d)); SND.hurt(); if(Math.random() < .5) sfx('pgasp', .3); P.shake = Math.max(P.shake, .25);
   if(P.hp <= 0) goDown();
 }
 function goDown(){
-  P.hp = 0; P.down = true; P.downT = 0; P.firing = false; P.adsHeld = false; if(NET.on && !P.perks.includes('revive')) msg('You\'re down! Hold on for a teammate…');
+  buzz([120, 60, 220]); P.hp = 0; P.down = true; P.downT = 0; P.firing = false; P.adsHeld = false; if(NET.on && !P.perks.includes('revive')) msg('You\'re down! Hold on for a teammate…');
   if(P.perks.includes('revive')){ msg('Second Wind! Getting back up…'); }
   $('#downV').style.opacity = 1;
 }
@@ -2282,6 +2299,7 @@ if(isTouch){
   tbtn('#tReload', reload); tbtn('#tKnife', doKnife); tbtn('#tNade', throwNade); tbtn('#tSwap', swapGun);
   tbtn('#tUse', () => { useHeld = true; tryUse(); }, () => { useHeld = false; });
   tbtn('#tPause', () => pause());
+  tbtn('#tAuto', () => { opts.autoFire = opts.autoFire ? 0 : 1; LS.set('autoFire', opts.autoFire); $('#sAuto').checked = !!opts.autoFire; applyBtns(); msg('Auto-fire ' + (opts.autoFire ? 'ON' : 'OFF')); buzz(15); });
   const lz = $('#lookZone');
   lz.addEventListener('pointerdown', e => { e.preventDefault(); audio(); lz.setPointerCapture(e.pointerId);
     if(e.clientX < innerWidth * .42 && joy.id == null){ joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; joy.x = joy.y = 0; const b = $('#joyBase'); b.style.display = 'block'; b.style.left = e.clientX + 'px'; b.style.top = e.clientY + 'px'; $('#joyKnob').style.transform = ''; }
@@ -2358,11 +2376,15 @@ function update(dt){
     const s = .0048 * opts.sens * (P.ads > .5 ? (P.guns[P.gi] && W[P.guns[P.gi].k].scope ? .35 : .65) : 1);
     P.yaw -= look.dx * s; P.pitch -= look.dy * s; look.dx = look.dy = 0;
     // aim assist (phones): nudge toward the nearest zombie near the crosshair while aiming or shooting
-    if((P.firing || P.ads > .5) && !P.down){
-      const f = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); let best = null, ba = .14;
+    if((P.firing || P.autoF || P.ads > .5) && !P.down && opts.assist > 0){
+      const f = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); let best = null, ba = .14 * Math.sqrt(opts.assist);
       for(const z of Z){ if(z.dead || z.state === 'out') continue; z.m.head.getWorldPosition(hp); const v = hp.clone().sub(camera.position); const d = v.length(); if(d > 25) continue; v.divideScalar(d); const a = Math.acos(clamp(v.dot(f), -1, 1)); if(a < ba && los(camera.position, hp)){ ba = a; best = v.clone(); } }
-      if(best){ const ty = Math.atan2(-best.x, -best.z), tp = Math.asin(clamp(best.y, -1, 1)); let dy = ty - P.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); P.yaw += dy * Math.min(1, dt * 2.2); P.pitch += (tp - .06 - P.pitch) * Math.min(1, dt * 1.6); }
+      if(best){ const ty = Math.atan2(-best.x, -best.z), tp = Math.asin(clamp(best.y, -1, 1)); let dy = ty - P.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); P.yaw += dy * Math.min(1, dt * 2.2 * opts.assist); P.pitch += (tp - .06 - P.pitch) * Math.min(1, dt * 1.6 * opts.assist); }
     }
+    // auto-fire: shoot while the crosshair sits on a zombie (no walls in the way)
+    P.autoF = false;
+    if(opts.autoFire && !P.down && !P.firing && P.guns[P.gi]){ const f = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion); crossRay(camL, f, 30); const hitz = zombiesOnSegs(camL, f, lastRaySegs)[0];
+      if(hitz && hitz.z.state !== 'out'){ P.autoF = true; if(now - (P.autoSemi || 0) > .12){ P.semi = false; P.autoSemi = now; } } }
   }
   P.pitch = clamp(P.pitch, -1.45, 1.45);
   // ----- downed -----
@@ -2405,7 +2427,7 @@ function update(dt){
       if(best){ if(!sfx('knife', .6)) SND.stab(); hurtZombie(best, MW.dmg, false, 'knife', best.m.root.position.clone().setY(1.2)); } questKnife(); } }
   if(P.nadeT > 0) P.nadeT -= dt;
   if(P.drinkT > 0){ P.drinkT -= dt; if(P.drinkT <= 0 && P.drinkPerk){ P.perks.push(P.drinkPerk); if(P.drinkPerk === 'tough') P.hp = maxHp(); P.drinkPerk = null; hudPerks(); } }
-  if(P.firing && !P.sprint) fireGun();
+  if((P.firing || P.autoF) && !P.sprint) fireGun();
   if(P.kick > 0) P.kick = Math.max(0, P.kick - dt * 6);
   if(muzzleT > 0){ muzzleT -= dt; if(muzzleT <= 0) muzzleLight.intensity = 0; }
   if(boomT > 0){ boomT -= dt; boomLight.intensity = Math.max(0, boomT / .25 * 30); }
@@ -2497,11 +2519,11 @@ function draw(dt){
 const PERF = { t: 0, n: 0, pr: BASE_PR, good: 0, warm: 0 };
 function autoPerf(rdt){
   if(!(rdt > 0) || rdt > .5) return; PERF.warm += rdt; if(PERF.warm < 4) return;
-  PERF.t += rdt; PERF.n++; if(PERF.t < 2.5) return;
+  PERF.t += rdt; PERF.n++; if(PERF.t < (isTouch ? 1.5 : 2.5)) return;
   const fps = PERF.n / PERF.t; PERF.t = PERF.n = 0;
   if(fps < 44){
-    PERF.good = 0;
-    if(PERF.pr > .8){ PERF.pr = Math.max(.75, PERF.pr - .25); renderer.setPixelRatio(PERF.pr); resize(); }
+    PERF.good = 0; const floor = isTouch ? .6 : .75;
+    if(PERF.pr > floor + .05){ PERF.pr = Math.max(floor, PERF.pr - (fps < 30 ? .35 : .2)); renderer.setPixelRatio(PERF.pr); resize(); }
     else if(renderer.shadowMap.enabled){ renderer.shadowMap.enabled = false; scene.traverse(o => { if(o.material){ [].concat(o.material).forEach(m => m.needsUpdate = true); } }); }
     else if(bloomPass && bloomPass.enabled){ bloomPass.enabled = false; }
   } else if(fps > 57 && PERF.pr < BASE_PR){ if(++PERF.good >= 3){ PERF.good = 0; PERF.pr = Math.min(BASE_PR, PERF.pr + .25); renderer.setPixelRatio(PERF.pr); resize(); } }
@@ -2883,13 +2905,20 @@ function updFires(dt){
 /* ================= menu ================= */
 $('#nm').value = opts.name;
 $('#sSens').value = opts.sens; $('#sVol').value = opts.vol; $('#sQ').value = opts.quality;
+const applyBtns = () => { const t = $('#touch'); t.style.setProperty('--bs', opts.bsize); t.style.setProperty('--bo', opts.bop); $('#tAuto').classList.toggle('on', !!opts.autoFire); };
+$('#sAssist').value = String(opts.assist); $('#sAuto').checked = !!opts.autoFire; $('#sBsize').value = opts.bsize; $('#sBop').value = opts.bop; $('#sHap').checked = !!opts.haptic; applyBtns();
+$('#sAssist').onchange = e => { opts.assist = +e.target.value; LS.set('assist', opts.assist); };
+$('#sAuto').onchange = e => { opts.autoFire = e.target.checked ? 1 : 0; LS.set('autoFire', opts.autoFire); applyBtns(); };
+$('#sBsize').oninput = e => { opts.bsize = +e.target.value; LS.set('bsize', opts.bsize); applyBtns(); };
+$('#sBop').oninput = e => { opts.bop = +e.target.value; LS.set('bop', opts.bop); applyBtns(); };
+$('#sHap').onchange = e => { opts.haptic = e.target.checked ? 1 : 0; LS.set('haptic', opts.haptic); if(opts.haptic) buzz(40); };
 $('#sSens').oninput = e => { opts.sens = +e.target.value; LS.set('sens', opts.sens); };
 $('#sVol').oninput = e => { opts.vol = +e.target.value; LS.set('vol', opts.vol); if(MG) MG.gain.value = opts.vol; };
 $('#sQ').onchange = e => { opts.quality = e.target.value; LS.set('quality2', opts.quality); location.reload(); };
 $('#bSet').onclick = () => { $('#settings').classList.toggle('hidden'); $('#help').classList.add('hidden'); };
 $('#bHelp').onclick = () => { $('#help').classList.toggle('hidden'); $('#settings').classList.add('hidden'); };
 $('#help').innerHTML = (isTouch
-  ? '<b>Phone:</b> left thumb moves (push all the way up to sprint), drag on the right to look. Hold <b>FIRE</b> and drag it to aim while shooting. <b>AIM</b> zooms in. <b>USE</b> pops up next to things you can buy.'
+  ? '<b>Phone:</b> left thumb moves (push all the way up to sprint), drag on the right to look. Hold <b>FIRE</b> and drag it to aim while shooting. <b>AIM</b> zooms in. <b>USE</b> pops up next to things you can buy. <b>AUTO</b> (bottom left) shoots for you when the crosshair is on a zombie. Settings has aim assist, button size and vibration.'
   : '<b>PC:</b> WASD move · Shift sprint · Mouse aim/shoot · Right-click zoom · R reload · F use/buy (hold to rebuild windows) · V knife · G grenade · Q / 1 / 2 / wheel swap · Esc pause.')
   + '<br><br>Zombies break in through the windows. Every hit is +10 points, kills are +60 (headshots +100, knife +130). Spend points on guns from the walls, the <b>?</b> box (950), doors to new rooms, and perk machines. The <b>power switch</b> (Generator Room) and the <b>Upgrade</b> machine (Lab, 5000) start broken: find their 3 glowing parts hidden around the map (they move every game), build the switch, then turn the power on for perks. Zombies sometimes drop power-ups: Max Ammo, Insta-Kill, Double Points, Kaboom and Carpenter. Every few rounds <b>hellhounds</b> attack instead; kill them all for a Max Ammo.<br><br>The <b>?</b> box can give any gun, even the rare <b>Ray Gun</b>. <b>Secrets:</b> three wonder weapons (Frost Howl, Rad Gun, Storm Caller) never come from the box; each one is hidden behind its own Easter egg. Look for things to shoot, things to squeeze and things to hit with your knife once the power is on… Make your own maps in the <b>🛠 Map Maker</b>.';
 $('#play').onclick = () => { if(!ASSETS.ready && !$('#play').dataset.force) return; startGame(); };
