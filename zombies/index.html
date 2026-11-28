@@ -102,6 +102,32 @@ ol.lb li.me{background:rgba(200,0,0,.18);border-radius:6px}
 .stat b{color:#ffd84a}
 #load{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:#000;font-family:Creepster,cursive;font-size:40px;color:#a00}
 #rotate{position:fixed;inset:0;z-index:40;background:#000;display:none;place-items:center;text-align:center;font-size:24px;padding:20px}
+/* main menu */
+.mwrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;width:min(1040px,96vw);align-items:start}
+.mwrap .panel{width:auto}
+.mainp{padding:20px 24px}
+.lbp{padding:16px 14px;position:sticky;top:0}
+.lbp ol.lb{max-height:70vh}
+.msec{display:flex;justify-content:space-between;align-items:baseline;margin:6px 2px 8px;font-weight:600;letter-spacing:.16em;color:#d9c9a3;font-size:14px}
+.msec a{color:#ffd84a;letter-spacing:.04em;text-decoration:none;font-size:14px}
+.maps{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(170px,1fr);gap:10px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x mandatory}
+.mcard{all:unset;cursor:pointer;scroll-snap-align:start;display:flex;flex-direction:column;gap:4px;text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px;transition:transform .15s,border-color .15s,background .15s;min-width:0}
+.mcard:hover{transform:translateY(-2px);border-color:rgba(255,120,120,.5)}
+.mcard.sel{border-color:#ff4b4b;background:rgba(190,20,20,.18);box-shadow:0 0 22px rgba(220,30,30,.35)}
+.mcard canvas{width:100%;aspect-ratio:16/10;border-radius:8px;background:#0b0b0d;display:block;image-rendering:pixelated}
+.mcard b{font-size:17px;letter-spacing:.04em;color:#f2ead8}
+.mcard small{font-size:12.5px;line-height:1.3;opacity:.75;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mcard .tg{display:flex;gap:4px;flex-wrap:wrap}
+.mcard .tg i{font-style:normal;font-size:10.5px;letter-spacing:.08em;padding:1px 6px;border-radius:20px;background:rgba(255,255,255,.08);color:#cfc6b0}
+.mcard.sel .tg i{background:rgba(255,80,80,.18);color:#ffd2c8}
+.mcard .now{font-size:11px;color:#ff8a7a;letter-spacing:.12em;font-weight:700}
+.playrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px;align-items:center;margin-top:8px}
+.playrow input{margin:0}
+.playrow button.big{margin:0}
+.tabs button{flex:1;min-width:120px;border-radius:20px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.15)}
+.tabs button.on{background:rgba(190,20,20,.35);border-color:#ff4b4b}
+@media (max-width:860px){.mwrap{grid-template-columns:1fr}.lbp{position:static}.lbp ol.lb{max-height:40vh}}
+@media (max-height:520px){.mainp{padding:10px 14px}.maps{grid-auto-columns:minmax(150px,1fr)}.mcard canvas{aspect-ratio:16/8}.mcard small{display:none}.playrow{margin-top:4px}.lbp ol.lb{max-height:60vh}.mwrap{grid-template-columns:minmax(0,1fr) 240px}}
 /* touch */
 #touch{position:fixed;inset:0;z-index:6}
 #lookZone{position:absolute;inset:0}
@@ -164,13 +190,15 @@ body.touch h1{font-size:46px}body.touch h1 span{font-size:60px}
   <div class="tb" id="tPause">❚❚</div>
   <div class="tb" id="tAuto">AUTO</div>
 </div>
-<div id="menu" class="ov"><div class="panel">
+<div id="menu" class="ov"><div class="mwrap">
+ <div class="panel mainp">
   <h1>IITSTY<br><span>ZOMBIES</span></h1>
-  <div class="sub">Map: <select id="mapSel" style="font:600 15px Oswald;background:#1a1a1e;color:#eee;border:1px solid #444;border-radius:8px;padding:4px 6px"></select> · <a href="maker.html" style="color:#ffd84a">🛠 Map Maker</a><br>survive as many rounds as you can</div>
-  <input id="nm" maxlength="20" placeholder="Your name for the scoreboard" autocomplete="off">
-  <button id="play" class="big">PLAY</button>
+  <div class="sub">survive as many rounds as you can</div>
+  <div class="msec"><span>CHOOSE YOUR MAP</span><a href="maker.html">🛠 Map Maker</a></div>
+  <div id="maps" class="maps"></div>
+  <div class="playrow"><input id="nm" maxlength="20" placeholder="Your name" autocomplete="off"><button id="play" class="big">PLAY</button></div>
   <div id="appTip" class="small" style="display:none;color:#bbb;font-size:13px;margin:4px 0">📱 No full-screen popup: Chrome menu ⋮ → <b>Add to Home screen</b>, then play from the Zombies icon.</div>
-  <div class="row"><button id="bCoop">👥 Co-op</button><button id="bSet">⚙ Settings</button><button id="bHelp">? How to play</button></div>
+  <div class="row tabs"><button id="bCoop">👥 Co-op</button><button id="bSet">⚙ Settings</button><button id="bHelp">❔ How to play</button></div>
   <div id="coop" class="box hidden">
     <label>Your skin <select id="coSkin"><option value="tactical">Survivor</option><option value="momo">Momo</option></select></label>
     <div class="row"><button id="coHost">Host a game</button></div>
@@ -192,8 +220,8 @@ body.touch h1{font-size:46px}body.touch h1 span{font-size:60px}
     <div style="opacity:.6;font-size:13px">High is the default on every device. If the game starts to lag it lowers the resolution by itself, then turns off shadows and glow.</div>
   </div>
   <div id="help" class="box hidden"></div>
-  <h3>TOP SURVIVORS</h3>
-  <ol id="lb" class="lb"><li>Loading…</li></ol>
+ </div>
+ <div class="panel lbp"><h3>TOP SURVIVORS</h3><ol id="lb" class="lb"><li>Loading…</li></ol></div>
 </div></div>
 <div id="pause" class="ov hidden"><div class="panel"><h1>PAUSED</h1><button id="resume" class="big">RESUME</button><button id="quit">Quit to menu</button></div></div>
 <div id="over" class="ov hidden"><div class="panel">
@@ -311,7 +339,8 @@ renderer.autoClear = false;
 renderer.setPixelRatio(BASE_PR);
 if(SHADOWS){ renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x05070b);
-scene.fog = new THREE.FogExp2(0x06080c, 0.055);
+const FOGC = CAMP ? 0x0c1220 : 0x06080c;
+scene.fog = new THREE.FogExp2(FOGC, CAMP ? 0.045 : 0.055); if(CAMP) scene.background = new THREE.Color(0x0a0f18);
 const camera = new THREE.PerspectiveCamera(78, 1, 0.05, 140); camera.rotation.order = 'YXZ'; scene.add(camera); camera.userData.keep = true; const camL = new THREE.Vector3();
 const vmScene = new THREE.Scene(); const vmCam = new THREE.PerspectiveCamera(55, 1, 0.01, 10);
 const vmHemi = new THREE.HemisphereLight(0xc8d0ff, 0x2a1c12, .8); vmScene.add(vmHemi);
@@ -386,6 +415,8 @@ TEX.crate = ctex(256, 256, (x, w, h) => {
   x.fillStyle = 'rgba(0,0,0,.35)'; x.font = 'bold 34px Oswald, sans-serif'; x.textAlign = 'center'; x.fillText('AMMO', w/2, h/2 + 60);
 });
 TEX.ceil = ctex(256, 256, (x, w, h) => { x.fillStyle = '#2a2a2c'; x.fillRect(0, 0, w, h); blots(x, w, h, 30, () => `rgba(0,0,0,${rand(.1,.3)})`, 10, 50); grain(x, w, h, 22); });
+TEX.grass = ctex(512, 512, (x, w, h) => { x.fillStyle = '#1c2414'; x.fillRect(0, 0, w, h); blots(x, w, h, 260, () => `rgba(${rand(20,50)|0},${rand(35,70)|0},${rand(12,30)|0},${rand(.2,.5)})`, 3, 30); blots(x, w, h, 60, () => `rgba(${rand(40,60)|0},${rand(34,48)|0},${rand(20,30)|0},${rand(.2,.45)})`, 8, 40);
+  for(let i = 0; i < 2600; i++){ const a = rand(0, 6.28), L = rand(3, 9), px = rand(0, w), py = rand(0, h); x.strokeStyle = `rgba(${rand(40,90)|0},${rand(70,120)|0},${rand(20,45)|0},${rand(.25,.6)})`; x.lineWidth = 1; x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(a) * L * .4, py - L); x.stroke(); } grain(x, w, h, 26); });
 TEX.dirt = ctex(512, 512, (x, w, h) => { x.fillStyle = '#25231c'; x.fillRect(0, 0, w, h); blots(x, w, h, 140, () => `rgba(${rand(20,60)|0},${rand(25,55)|0},${rand(10,30)|0},${rand(.1,.4)})`, 4, 40); grain(x, w, h, 40); });
 TEX.metal = ctex(256, 256, (x, w, h) => { x.fillStyle = '#3c4046'; x.fillRect(0, 0, w, h); x.strokeStyle = 'rgba(255,255,255,.06)'; for(let i = 0; i < 80; i++){ x.beginPath(); const a = Math.random()*w, b = Math.random()*h; x.moveTo(a, b); x.lineTo(a + rand(-40,40), b + rand(-6,6)); x.stroke(); } blots(x, w, h, 14, () => `rgba(90,40,10,${rand(.1,.3)})`, 4, 22); grain(x, w, h, 20); });
 const glowTex = ctex(64, 64, (x, w) => { const g = x.createRadialGradient(w/2, w/2, 0, w/2, w/2, w/2); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,255,255,.6)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, w, w); });
@@ -405,6 +436,7 @@ function textTex(lines, w, h, opt = {}){
 
 /* ================= materials ================= */
 const LAB = new URLSearchParams(location.search).get('map') === 'lab';
+const CAMP = new URLSearchParams(location.search).get('map') === 'camp'; // Ashwood Camp: the outdoor map
 function mat(p){
   if(LQ){ const q = { ...p }; delete q.metalness; delete q.roughness; return new THREE.MeshLambertMaterial(q); }
   return new THREE.MeshStandardMaterial(p);
@@ -416,7 +448,7 @@ const M = {
   wood: mat({ map: TEX.wood, bumpMap: TEX.wood, bumpScale: 1.5, roughness: .85, metalness: 0 }),
   crate: mat({ map: TEX.crate, roughness: .85, metalness: 0 }),
   ceil: mat({ map: TEX.ceil, roughness: 1, metalness: 0 }),
-  dirt: mat({ map: TEX.dirt, roughness: 1, metalness: 0 }),
+  dirt: mat({ map: TEX.dirt, roughness: 1, metalness: 0 }), grass: mat({ map: TEX.grass, roughness: 1, metalness: 0, color: 0xb0b8a0 }),
   metal: mat({ map: TEX.metal, roughness: .5, metalness: .6 }),
   pipe: mat({ color: 0x3a3d42, roughness: .45, metalness: .7 }),
   dark: mat({ color: 0x151515, roughness: .8, metalness: .2 }),
@@ -430,12 +462,13 @@ TEX.floor.repeat.set(32*1.6/6.4, 22*1.6/6.4);
     TL.load('assets/tex/lab_wall.jpg', t => { up(t, [M.stone]); M.stone.color.set(0x56606a); M.stone.bumpScale = .6; });
     TL.load('assets/tex/lab_wall.jpg', t => { up(t, [M.officeWall]); M.officeWall.color.setScalar(.75); });
     TL.load('assets/tex/lab_floor.jpg', t => { t.repeat.set(.8, .8); up(t, [M.woodFloor, M.baseFloor]); M.woodFloor.color.setScalar(.75); M.baseFloor.color.setScalar(.6); });
-  } else TL.load('assets/tex/floor_tile.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.62); });
+  } else if(!CAMP) TL.load('assets/tex/floor_tile.jpg', t => { t.repeat.set(1.6, 1.6); up(t, [M.floor]); M.floor.color.setScalar(.62); });
   // Foxtex (Foxhead): upstairs office panels + herringbone floor, basement stone slabs
   if(!LAB) TL.load('assets/tex/fox_office_wall.jpg', t => { t.repeat.set(1, 1.25); up(t, [M.officeWall]); M.officeWall.color.set(0xb0a490); });
   if(!LAB) TL.load('assets/tex/fox_wood_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.woodFloor]); M.woodFloor.color.set(0x8a7a68); });
   if(!LAB) TL.load('assets/tex/fox_base_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.baseFloor]); M.baseFloor.color.set(0x807a72); });
   TL.load('assets/tex/planks.jpg', t => { up(t, [M.wood]); M.wood.color.set(0x9a8a78); });
+  if(CAMP){ TL.load('assets/tex/planks.jpg', t => { t.repeat.set(1, 1); up(t, [M.brick]); M.brick.color.set(0x8a7462); M.brick.bumpScale = 1; }); TL.load('assets/tex/fox_wood_floor.jpg', t => { t.repeat.set(1, 1); up(t, [M.floor]); M.floor.color.set(0x8a7a68); }); }
   TL.load('assets/tex/metal_rivet.jpg', t => { up(t, [M.metal]); M.metal.color.setScalar(.75); });
   if(!LAB) TL.load('assets/tex/stone_block.jpg', t => { t.repeat.set(1, 1.5); up(t, [M.stone]); M.stone.color.set(0x6e6a64); }); }
 TEX.dirt.repeat.set(30, 30); TEX.ceil.repeat.set(14, 10);
@@ -500,6 +533,45 @@ function stockMap(){
     bulbs: [[4.5,15.5],[10.5,15.5],[4.5,5],[10.5,5],[20,15.5],[26.5,15.5],[20,5],[26.5,5],[35.5,5],[35.5,15.5],[23,5,1],[28,5,1],[22,11.5,1],[5,5,-1],[10.5,5,-1]],
     pipes: [[1,14,12],[1,14,2],[16,30,12],[16,30,2],[1,14,19.5],[16,30,8.5],[32,38,2],[32,38,19.5]] };
 }
+
+// Ashwood Camp: an outdoor map. Clearings in a pine forest split by tree lines, with a few buildings (gas station, barn, chapel,
+// ranger station, a supply shed). '#' cells that touch no building are drawn as trees and rocks; sky[] marks open-air cells.
+function campMap(){
+  const w = 46, h = 32, g = []; for(let z = 0; z < h; z++) g.push(new Array(w).fill('#'));
+  const sky = []; for(let z = 0; z < h; z++) sky.push(new Array(w).fill('o'));
+  const R = (x0, z0, x1, z1, c) => { for(let z = z0; z <= z1; z++) for(let x = x0; x <= x1; x++) g[z][x] = c; };
+  // a building: walls on the rectangle's edge, roofed floor inside
+  const bld = (x0, z0, x1, z1) => { R(x0, z0, x1, z1, '#'); R(x0 + 1, z0 + 1, x1 - 1, z1 - 1, '.'); for(let z = z0 + 1; z < z1; z++) for(let x = x0 + 1; x < x1; x++) sky[z][x] = '-'; };
+  const gap = (cells) => { for(const [x, z] of cells){ g[z][x] = '.'; sky[z][x] = '-'; } };
+  // clearings
+  R(1, 14, 12, 30, '.'); R(14, 14, 31, 30, '.'); R(33, 14, 44, 30, '.'); R(1, 1, 22, 12, '.'); R(24, 1, 44, 12, '.');
+  // buildings
+  bld(2, 15, 10, 22); gap([[10, 18], [10, 19]]);            // Gas Station store, doorway east
+  bld(35, 15, 43, 24); gap([[35, 19], [35, 20], [35, 21]]); // Old Barn, big doors west
+  bld(3, 2, 11, 9); gap([[6, 9], [7, 9], [8, 9]]);         // Chapel, doors south
+  bld(30, 2, 40, 9); gap([[34, 9], [35, 9]]);              // Ranger Station, doorway south
+  bld(15, 15, 19, 21); gap([[17, 21]]);                     // supply shed in the campground
+  // gates through the tree lines (debris you buy your way through)
+  const D = (c, cells) => { for(const [x, z] of cells) g[z][x] = c; };
+  D('D', [[13, 23], [13, 24], [13, 25]]); D('E', [[32, 23], [32, 24], [32, 25]]); D('F', [[5, 13], [6, 13], [7, 13]]);
+  D('H', [[26, 13], [27, 13], [28, 13]]); D('J', [[38, 13], [39, 13], [40, 13]]); D('K', [[23, 5], [23, 6], [23, 7]]);
+  // where the dead come out of the woods
+  for(const [x, z] of [[4, 31], [10, 31], [18, 31], [24, 31], [29, 31], [37, 31], [42, 31], [0, 18], [0, 26], [45, 18], [45, 27], [0, 6], [0, 10], [16, 0], [20, 0], [27, 0], [43, 0], [45, 5], [45, 11]]) g[z][x] = 'W';
+  for(const [x, z] of [[20, 28], [27, 17], [11, 26], [3, 28], [44, 29], [33, 15], [18, 3], [25, 3], [42, 4], [1, 12]]) g[z][x] = 'C';
+  return { v: 1, name: 'Ashwood Camp', theme: 'camp', grid: g.map(r => r.join('')), sky: sky.map(r => r.join('')),
+    doors: { D: 750, E: 750, F: 1000, H: 1250, J: 1000, K: 1250 },
+    names: [[22, 27, 'Campground'], [6, 27, 'Gas Station'], [38, 28, 'Old Barn'], [16, 10, 'Chapel Woods'], [28, 8, 'Ranger Station']],
+    spawn: { x: 22, z: 26, yaw: 0 },
+    wallbuys: [ { k: 'smg', x: 16, z: 19 }, { k: 'rifle', x: 20, z: 18 }, { k: 'shotgun', x: 3, z: 16 }, { k: 'ar', x: 42, z: 16 }, { k: 'revolver', x: 4, z: 3 }, { k: 'lmg', x: 39, z: 3 }, { k: 'sniper', x: 42, z: 23 },
+      { k: 'bat', x: 9, z: 21 }, { k: 'machete', x: 31, z: 4 }, { k: 'axe', x: 36, z: 16 }, { k: 'hammer', x: 18, z: 20 }, { k: 'cleaver', x: 10, z: 4 } ],
+    perks: { revive: { x: 31, z: 20, face: [-1, 0] }, tough: { x: 8, z: 16, face: [0, 1] }, rapid: { x: 42, z: 20, face: [-1, 0] }, speed: { x: 10, z: 6, face: [-1, 0] }, stamina: { x: 25, z: 12, face: [0, -1] } },
+    box: [ { x: 24, z: 30, face: [0, -1] }, { x: 12, z: 29, face: [-1, 0] }, { x: 34, z: 30, face: [0, -1] }, { x: 18, z: 1, face: [0, 1] }, { x: 44, z: 2, face: [-1, 0] } ],
+    upg: { x: 7, z: 3, face: [0, 1] }, power: { x: 39, z: 8 }, parts: true, eggs: true,
+    props: [ { k: 'sleepbag', x: 20, z: 25, f: [0, 1] }, { k: 'sleepbag', x: 24, z: 25, f: [0, 1] }, { k: 'tire', x: 11, z: 24 }, { k: 'jerry', x: 9, z: 23 } ],
+    barrels: [[22, 23, 1], [12, 27, 1], [34, 17, 1], [20, 10, 1], [43, 12, 0], [2, 30, 0], [30, 14, 0]],
+    bulbs: [[17.5, 25.5], [27.5, 26.5], [6, 26.5], [6.5, 18.5], [38.5, 27.5], [39, 20], [16.5, 7.5], [7.5, 5.5], [27, 6], [42, 10.5], [35.5, 5.5], [17.5, 18.5]],
+    pipes: [] };
+}
 // Black Site Lab: a second stock map, built from the Sci-Fi MegaKit (Quaternius). Specimen tanks, Argus rounds, Pack-a-Punch in Containment.
 function labMap(){
   const w = 40, h = 22, g = []; for(let z = 0; z < h; z++) g.push(new Array(w).fill('#'));
@@ -544,8 +616,8 @@ function labMap(){
     pipes: [[1,12,12],[14,25,12],[1,12,2],[14,25,2],[27,38,2],[27,38,19.5],[2,12,3,-1]] };
 }
 const MAP_ID = new URLSearchParams(location.search).get('map');
-let MAPD = LAB ? labMap() : stockMap();
-if(MAP_ID && !LAB){ try{ const all = JSON.parse(localStorage.getItem('iz_maps') || '{}'); if(all[MAP_ID] && all[MAP_ID].grid) MAPD = all[MAP_ID]; }catch(e){ console.warn('map load', e); } }
+let MAPD = LAB ? labMap() : CAMP ? campMap() : stockMap();
+if(MAP_ID && !LAB && !CAMP){ try{ const all = JSON.parse(localStorage.getItem('iz_maps') || '{}'); if(all[MAP_ID] && all[MAP_ID].grid) MAPD = all[MAP_ID]; }catch(e){ console.warn('map load', e); } }
 const CUSTOM = !MAPD.stock;
 const CELL = 1.6, WH = 3.2;
 /* Floors: the basement and upstairs are laid out side by side with the ground floor in one big logical grid
@@ -610,6 +682,11 @@ const PROPCAT = { sofa: { long: 'x' }, pool: { long: 'z' }, desk: { base: Math.P
   access: { n: 'lab_Prop_AccessPoint', soft: true }, cable: { n: 'lab_Prop_Cable_3', soft: true, s: .5 }, chest: { n: 'Prop_Chest', dep: .73, s: .9 }, floorfan: { n: 'Prop_Fan_Small', soft: true, s: .8 } };
 // ---- themed set dressing: fills the stock maps' rooms with props that fit each room (seeded and the same on every quality setting, so co-op players get the same rooms) ----
 const THEMES = [
+  [/campground/i, { mid: ['pallets', 'crate2', 'messtable'], floor: ['crate2', 'pallets', 'barrier', 'crate2'], soft: ['sleepbag', 'jerry', 'tire', 'bottle1'], wall: ['map', 'poster1', 'sheet1'] }],
+  [/gas station/i, { mid: ['pallets', 'crate2'], floor: ['shelf', 'cabinet2', 'crate2', 'pallets', 'bookshelf2'], soft: ['jerry', 'tire', 'bottle2', 'bottle1'], wall: ['poster2', 'map', 'sheet1', 'clock'] }],
+  [/barn/i, { mid: ['pallets', 'crate2', 'genframe'], floor: ['pallets', 'crate2', 'wbench', 'shelf', 'genframe'], soft: ['tire', 'jerry'], wall: ['sheet1', 'poster2'] }],
+  [/chapel/i, { mid: ['messtable', 'desk'], floor: ['bookshelf2', 'shelf', 'cabinet', 'dresser', 'armchair'], soft: ['books', 'bottle1'], wall: ['clock', 'poster1', 'map'] }],
+  [/ranger/i, { mid: ['desk', 'messtable'], floor: ['desk', 'gdesk', 'cabinet2', 'bookshelf2', 'ecab', 'gpanel', 'fuse', 'plocker'], soft: ['medpack', 'monitor', 'jerry'], wall: ['map', 'blueprint', 'clock', 'sheet1'] }],
   [/spawn/i, { soft: ['books', 'bottle1', 'bottle2', 'sleepbag', 'guitar'], mid: ['sofa', 'pool', 'messtable'], floor: ['armchair', 'cabinet', 'dresser', 'shelf', 'bookshelf2', 'crt', 'weights'], wall: ['poster1', 'poster2', 'clock', 'map'] }],
   [/storage|armory/i, { mid: ['crate2', 'pallets', 'crate4', 'chest'], floor: ['crate2', 'pallets', 'shelf', 'cabinet2', 'plocker', 'chest', 'crate4', 'crate3', 'barrel2'], soft: ['jerry', 'tire'], wall: ['sheet1', 'map', 'blueprint'] }],
   [/generator|reactor/i, { mid: ['genframe', 'transformer', 'batteries', 'drums'], floor: ['gpanel', 'cpanel', 'ecab', 'fuse', 'cfan', 'wsign', 'switchgear', 'batteries', 'genframe'], soft: ['cable'], wall: ['sheet2', 'blueprint'] }],
@@ -623,7 +700,7 @@ const THEMES = [
   [/intake/i, { mid: ['gdesk', 'messtable'], floor: ['gdesk', 'gchair', 'plocker', 'plocker', 'computer', 'crate4', 'wsign'], soft: ['access'], wall: ['map', 'sheet1', 'labdoor'] }],
 ];
 (function themeDress(M){
-  if(!(M.stock || M.theme === 'lab') || /[?&]plain=1/.test(location.search)) return;
+  if(!(M.stock || M.theme === 'lab' || M.theme === 'camp') || /[?&]plain=1/.test(location.search)) return;
   const g = M.grid.map(r => r.split('')), H = g.length, Wd = g[0].length;
   let seed = 99; for(const ch of M.name || '') seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
   const R = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -639,6 +716,8 @@ const THEMES = [
   for(const zp of (M.zips || [])) for(const e of [zp.a, zp.b]) block(e[0] + off(e[2]), e[1], 2);
   for(const t of (M.traps || [])){ for(const c of t.cells) block(c[0] + off(c[2]), c[1], 1); if(t.sw) block(t.sw[0] + off(t.sw[2]), t.sw[1], 2); }
   for(const pt of (M.portals || [])){ block(pt.a[0] + off(pt.a[2]), pt.a[1], 1); block(pt.b[0] + off(pt.b[2]), pt.b[1], 1); }
+  for(const b of (M.barrels || [])) block(b[0], b[1], 1);
+  if(M.sky) for(let z = 0; z < H; z++) for(let x = 0; x < Wd; x++) if(g[z][x] === '.' && M.sky[z][x] !== 'o' && [[0, -1], [0, 1], [-1, 0], [1, 0]].some(([dx, dz]) => M.sky[z + dz] && M.sky[z + dz][x + dx] === 'o' && g[z + dz][x + dx] === '.')) block(x, z, 2); // building doorways
   const hard = new Set(bad); // windows, doors, stairs, buyables: even small things stay out of these
   for(const p of (M.props || [])){ const c = PROPCAT[p.k]; const X = p.x + off(p.lv); bad.add(K(X, p.z)); hard.add(K(X, p.z)); if(c && !c.wall && !c.soft) for(const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) bad.add(K(X + dx, p.z + dz)); }
   const DIRS = [[0, -1], [0, 1], [-1, 0], [1, 0]], fl = (x, z) => g[z] && g[z][x] === '.';
@@ -679,7 +758,7 @@ const THEMES = [
     for(const [x, z] of cells){ if(nw <= 0) break; if(R() > .4) continue;
       for(const [dx, dz] of DIRS){ if(!(g[z + dz] && g[z + dz][x + dx] === '#') || wallUsed.has(K(x, z)) || hard.has(K(x, z)) || g[z][x] !== '.') continue;
         let near = false; for(let r = -1; r <= 1; r++) for(let r2 = -1; r2 <= 1; r2++){ const c = g[z + r] && g[z + r][x + r2]; if(c === 'W' || /[D-L]/.test(c || '')) near = true; }
-        if(near) continue; const key = th.wall[kw++ % th.wall.length]; if(!have(key)) continue;
+        if(near || (M.sky && M.sky[z] && M.sky[z][x] === 'o')) continue; const key = th.wall[kw++ % th.wall.length]; if(!have(key)) continue;
         add.push({ k: key, x: x - B.x0, z, d: [dx, dz], lv: B.lv || undefined }); wallUsed.add(K(x, z)); for(let r = -1; r <= 1; r++){ wallUsed.add(K(x + r, z)); wallUsed.add(K(x, z + r)); } nw--; break; } }
   }
   M.props = (M.props || []).concat(add);
@@ -771,6 +850,11 @@ function blocksAt(x, z, y){
 const cx = v => Math.floor(v / CELL);
 const wpos = (x, z, y = 0) => new THREE.Vector3((x + .5) * CELL, y, (z + .5) * CELL);
 
+// open-air cells (outdoor maps): no ceiling, grass underfoot; '#' cells that touch no roofed floor are trees and rocks
+const SKY = MAPD.sky || null;
+const isSky = (x, z) => !!SKY && bandOfCell(x).lv === 0 && SKY[z] != null && SKY[z][x] === 'o';
+const roofed = (x, z) => G[z] && G[z][x] != null && G[z][x] !== '#' && G[z][x] !== ' ' && !isSky(x, z);
+const isNature = (x, z) => !!SKY && G[z][x] === '#' && ![[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]].some(([dx, dz]) => roofed(x + dx, z + dz));
 const FLOORS = []; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++) if(G[z][x] === '.') FLOORS.push([x, z]);
 /* ---------- build level geometry ---------- */
 const level = new THREE.Group(); scene.add(level); level.userData.keep = true; level.userData.visual = true;
@@ -780,15 +864,16 @@ function openAbove(x, z){ const B = bandOfCell(x), U = BANDS.find(b => b.lv === 
 const isAtrium = (x, z) => G[z] && G[z][x] === 'O' && !STAIR_HOLES.has(x + ',' + z);
 for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B.lv * WH, 0); B.g.userData.keep = true; B.g.userData.band = B; scene.add(B.g); }
 {
-  const cellGeo = (y, tile, down, filt) => { const pos = [], uv = [], idx = []; let n = 0;
-    for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ const ch = G[z][x]; if(ch === ' ' || ch === '|' || (down ? ch === 'S' : ch === 'O')) continue; const B = bandOfCell(x); if(filt && !filt(B)) continue; if(down && openAbove(x, z)) continue; const x0 = (x - B.x0) * CELL, z0 = z * CELL, x1 = x0 + CELL, z1 = z0 + CELL; const yy = y + B.lv * WH;
+  const cellGeo = (y, tile, down, filt, cf) => { const pos = [], uv = [], idx = []; let n = 0;
+    for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ const ch = G[z][x]; if(ch === ' ' || ch === '|' || (down ? ch === 'S' : ch === 'O')) continue; const B = bandOfCell(x); if(filt && !filt(B)) continue; if(cf && !cf(x, z)) continue; if(down && openAbove(x, z)) continue; const x0 = (x - B.x0) * CELL, z0 = z * CELL, x1 = x0 + CELL, z1 = z0 + CELL; const yy = y + B.lv * WH;
       pos.push(x0, yy, z0, x1, yy, z0, x1, yy, z1, x0, yy, z1); uv.push(x0 / tile, -z0 / tile, x1 / tile, -z0 / tile, x1 / tile, -z1 / tile, x0 / tile, -z1 / tile);
       if(down) idx.push(n, n + 1, n + 2, n, n + 2, n + 3); else idx.push(n, n + 2, n + 1, n, n + 3, n + 2); n += 4; }
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals(); return geo; };
   TEX.floor.repeat.set(1, 1); TEX.ceil.repeat.set(1, 1);
-  const floor = new THREE.Mesh(cellGeo(0.002, 6.4, false, B => B.lv === 0), M.floor); level.add(floor); floor.userData.visual = true;
+  const floor = new THREE.Mesh(cellGeo(0.002, 6.4, false, B => B.lv === 0, SKY ? (x, z) => !isSky(x, z) && !isNature(x, z) : null), M.floor); level.add(floor); floor.userData.visual = true;
+  if(SKY){ TEX.grass.repeat.set(1, 1); const gr = new THREE.Mesh(cellGeo(0.002, 4.8, false, B => B.lv === 0, (x, z) => isSky(x, z) || isNature(x, z)), M.grass); gr.receiveShadow = SHADOWS; gr.userData.visual = true; level.add(gr); }
   for(const [lv, m, tile] of [[1, M.woodFloor, 3.2], [-1, M.baseFloor, 3.2]]){ if(!BANDS.some(B => B.lv === lv)) continue; const f2 = new THREE.Mesh(cellGeo(0.002, tile, false, B => B.lv === lv), m); f2.receiveShadow = SHADOWS; f2.userData.visual = true; level.add(f2); }
-  const ceil = new THREE.Mesh(cellGeo(WH, 3.66, true), M.ceil); level.add(ceil); ceil.userData.visual = true;
+  const ceil = new THREE.Mesh(cellGeo(WH, 3.66, true, null, SKY ? (x, z) => !isSky(x, z) && !isNature(x, z) && G[z][x] !== 'W' : null), M.ceil); level.add(ceil); ceil.userData.visual = true;
   // roofs: tops of rooms that have open sky above them on the next floor up
   if(BANDS.length > 1){ const pos = [], idx = []; let n = 0;
     for(const B of BANDS){ const U = BANDS.find(b => b.lv === B.lv + 1); if(!U) continue;
@@ -813,23 +898,45 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
     q(-E, -E, Wd + E, 0); q(-E, Hd, Wd + E, Hd + E); q(-E, 0, 0, Hd); q(Wd, 0, Wd + E, Hd);
     for(let z = 0; z < GH; z++) for(let x = 0; x < W0; x++) if(G[z][x] === ' ') q(x * CELL, z * CELL, (x + 1) * CELL, (z + 1) * CELL);
     const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gg.computeVertexNormals();
-    const ground = new THREE.Mesh(gg, M.dirt); ground.position.y = -0.01; ground.receiveShadow = SHADOWS; ground.userData.visual = true; level.add(ground); }
-  let nW = 0, nS = 0, nO = 0, nWin = 0; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ if(G[z][x] === '#'){ const lv = bandOfCell(x).lv; if(lv < 0) nS++; else if(lv > 0) nO++; else nW++; } if(G[z][x] === 'W') nWin++; }
+    let gm = M.dirt; if(SKY){ const t2 = TEX.grass.clone(); t2.needsUpdate = true; t2.repeat.set(220 / 4.8, 220 / 4.8); gm = M.grass.clone(); gm.map = t2; }
+    const ground = new THREE.Mesh(gg, gm); ground.position.y = -0.01; ground.receiveShadow = SHADOWS; ground.userData.visual = true; level.add(ground); }
+  let nW = 0, nS = 0, nO = 0, nWin = 0; for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ if(G[z][x] === '#' && !isNature(x, z)){ const lv = bandOfCell(x).lv; if(lv < 0) nS++; else if(lv > 0) nO++; else nW++; } if(G[z][x] === 'W') nWin++; }
   const wallG = new THREE.BoxGeometry(CELL, WH, CELL); wallG.translate(0, WH/2, 0);
   const walls = new THREE.InstancedMesh(wallG, M.brick, nW), stoneW = new THREE.InstancedMesh(wallG, M.stone, Math.max(1, nS)); stoneW.count = nS; let si = 0; const offW = new THREE.InstancedMesh(wallG, M.officeWall, Math.max(1, nO)); offW.count = nO; let oi = 0;
   const lowG = new THREE.BoxGeometry(CELL, 0.9, CELL); lowG.translate(0, .45, 0);
   const hiG = new THREE.BoxGeometry(CELL, 0.9, CELL); hiG.translate(0, 2.3 + .45, 0);
-  const lows = new THREE.InstancedMesh(lowG, M.brick, nWin), his = new THREE.InstancedMesh(hiG, M.brick, nWin);
+  const lows = new THREE.InstancedMesh(lowG, SKY ? M.wood : M.brick, nWin), his = new THREE.InstancedMesh(hiG, M.brick, nWin); if(SKY) his.visible = false; // outdoors a window is a gap in a fence
   const m4 = new THREE.Matrix4(); let i = 0, j = 0;
   for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){
     const B = bandOfCell(x), vx = (x - B.x0 + .5) * CELL, vy = B.lv * WH;
-    if(G[z][x] === '#'){ m4.makeTranslation(vx, vy, (z+.5)*CELL); if(B.lv < 0) stoneW.setMatrixAt(si++, m4); else if(B.lv > 0) offW.setMatrixAt(oi++, m4); else walls.setMatrixAt(i++, m4); }
+    if(G[z][x] === '#' && !isNature(x, z)){ m4.makeTranslation(vx, vy, (z+.5)*CELL); if(B.lv < 0) stoneW.setMatrixAt(si++, m4); else if(B.lv > 0) offW.setMatrixAt(oi++, m4); else walls.setMatrixAt(i++, m4); }
     if(G[z][x] === 'W'){ m4.makeTranslation(vx, vy, (z+.5)*CELL); lows.setMatrixAt(j, m4); his.setMatrixAt(j++, m4); }
   }
   for(const m of [walls, stoneW, offW, lows, his]){ m.castShadow = m.receiveShadow = SHADOWS; }
   floor.receiveShadow = SHADOWS;
   for(const m of [walls, stoneW, offW, lows, his]) m.userData.visual = true;
   level.add(walls, stoneW, offW, lows, his);
+  if(SKY){ // pine forest: trees and rocks on the tree-line cells, and a thick wood all around the map
+    let sd = 1234; const R = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; };
+    const trees = [], rocks = [], add = (x, z, big) => { if(R() < .82){ const hgt = (big ? 6 : 4.6) + R() * 3; trees.push([x, z, hgt, .8 + R() * .5, R() * 6.28, R() < .1]); } else { for(let k = 0, n = 1 + Math.floor(R() * 3); k < n; k++) rocks.push([x + (R() - .5) * 1.1, z + (R() - .5) * 1.1, .45 + R() * .7, R() * 6.28]); if(R() < .5) trees.push([x + (R() - .5), z + (R() - .5), 3.5 + R() * 2.5, .7 + R() * .3, R() * 6.28, false]); } };
+    for(let z = 0; z < GH; z++) for(let x = 0; x < W0; x++) if(isNature(x, z)){ const c = wpos(x, z); add(c.x + (R() - .5) * .5, c.z + (R() - .5) * .5, false); if(R() < .35) rocks.push([c.x + (R() - .5) * 1.2, c.z + (R() - .5) * 1.2, .3 + R() * .35, R() * 6.28]); }
+    const Wd = W0 * CELL, Hd = GH * CELL, wins = []; for(let z = 0; z < GH; z++) for(let x = 0; x < W0; x++) if(G[z][x] === 'W') wins.push(wpos(x, z));
+    const step = LQ ? 3.4 : 2.5;
+    for(let z = -18; z < Hd + 18; z += step) for(let x = -18; x < Wd + 18; x += step){ const px = x + (R() - .5) * step * .8, pz = z + (R() - .5) * step * .8;
+      if(px > -.6 && px < Wd + .6 && pz > -.6 && pz < Hd + .6) continue;
+      if(wins.some(w => Math.hypot(w.x - px, w.z - pz) < 2.8)) continue; // a path out of the woods in front of every window
+      add(px, pz, true); }
+    const barkM = mat({ color: 0x3a2a1e, roughness: 1, metalness: 0, flatShading: true }), needleM = mat({ color: 0x1e3020, roughness: 1, metalness: 0, flatShading: true }), rockM = mat({ color: 0x5a5852, roughness: 1, metalness: 0, flatShading: true, map: TEX.dirt });
+    const trunkG = new THREE.CylinderGeometry(.09, .17, 1, 6); trunkG.translate(0, .5, 0);
+    const coneG = new THREE.ConeGeometry(1, 1, 7); coneG.translate(0, .5, 0);
+    const rockG = new THREE.DodecahedronGeometry(1, 0);
+    const live = trees.filter(t => !t[5]);
+    const trunk = new THREE.InstancedMesh(trunkG, barkM, trees.length), cones = [0, 1, 2].map(() => new THREE.InstancedMesh(coneG, needleM, live.length)), rk = new THREE.InstancedMesh(rockG, rockM, Math.max(1, rocks.length));
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), e = new THREE.Euler();
+    trees.forEach((t, i) => { const [x, z, hgt, wd, ry, dead] = t; e.set(dead ? .25 : 0, ry, dead ? .15 : 0); q.setFromEuler(e); m4.compose(ps.set(x, 0, z), q, sc.set(wd * (dead ? .8 : 1), dead ? hgt * .7 : hgt * .5, wd)); trunk.setMatrixAt(i, m4); });
+    live.forEach((t, i) => { const [x, z, hgt, wd, ry] = t; for(let k = 0; k < 3; k++){ const y0 = hgt * (.22 + k * .2), r = wd * (1.5 - k * .38), hh = hgt * (.42 - k * .06); q.setFromEuler(e.set(0, ry + k, 0)); m4.compose(ps.set(x, y0, z), q, sc.set(r, hh, r)); cones[k].setMatrixAt(i, m4); } });
+    rocks.forEach((r, i) => { const [x, z, size, ry] = r; q.setFromEuler(e.set(R() * .5, ry, R() * .5)); m4.compose(ps.set(x, size * .25, z), q, sc.set(size, size * .7, size * (.8 + R() * .4))); rk.setMatrixAt(i, m4); }); rk.count = rocks.length;
+    for(const o of [trunk, ...cones, rk]){ o.receiveShadow = SHADOWS; o.castShadow = false; o.userData.visual = true; o.frustumCulled = false; level.add(o); } }
   // crates
   const crG = new THREE.BoxGeometry(1.3, 1.25, 1.3); crG.translate(0, .625, 0);
   for(const [x, z] of CRATES){ const c = new THREE.Mesh(crG, M.crate); c.castShadow = c.receiveShadow = SHADOWS; c.position.copy(wpos(x, z)); c.rotation.y = rand(-.2, .2); level.add(c);
@@ -846,7 +953,16 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
 }
 
 /* ---------- lights ---------- */
-const hemi = new THREE.HemisphereLight(0x6070a0, LAB ? 0x141c24 : 0x2a1c12, LAB ? 0.9 : 0.75); scene.add(hemi); hemi.userData.keep = true;
+const SKYROOT = new THREE.Group(); // moon + stars ride along with the camera so they look infinitely far away
+const hemi = new THREE.HemisphereLight(CAMP ? 0x7a90c0 : 0x6070a0, LAB ? 0x141c24 : CAMP ? 0x18200f : 0x2a1c12, LAB ? 0.9 : CAMP ? 1.0 : 0.75); scene.add(hemi); hemi.userData.keep = true;
+if(CAMP){ // moonlight, a moon and stars
+  const moon = new THREE.DirectionalLight(0xa8bce8, .55); moon.position.set(-40, 60, -30); scene.add(moon); moon.userData.keep = true;
+  const mg = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xdfe8ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(2.4, 24), new THREE.MeshBasicMaterial({ color: 0xe8eeff, fog: false }));
+  const sky = new THREE.Group(); mg.scale.setScalar(16); disc.position.set(0, 0, .1); sky.add(mg, disc); sky.position.set(-62, 78, -72); sky.lookAt(0, 0, 0); SKYROOT.add(sky); SKYROOT.userData.keep = true; scene.add(SKYROOT);
+  const sp = []; for(let i = 0; i < 900; i++){ const a = Math.random() * 6.28, el = .15 + Math.random() * 1.3, r = 125; sp.push(Math.cos(a) * Math.cos(el) * r, Math.sin(el) * r, Math.sin(a) * Math.cos(el) * r); }
+  const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+  const stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xcfd8ff, size: 1.6, sizeAttenuation: false, fog: false, transparent: true, opacity: .8 })); SKYROOT.add(stars); }
 const flashlight = new THREE.SpotLight(0xfff1d6, LQ ? 24 : 28, 28, 0.5, 0.7, 1.7); camera.add(flashlight); flashlight.position.set(0.15, -0.1, 0); flashlight.target.position.set(0, 0, -5); camera.add(flashlight.target);
 const muzzleLight = new THREE.PointLight(0xffa040, 0, 9, 1.6); scene.add(muzzleLight); muzzleLight.userData.keep = true;
 const boomLight = new THREE.PointLight(0xff7a20, 0, 14, 1.4); scene.add(boomLight); boomLight.userData.keep = true;
@@ -866,6 +982,7 @@ const coneTex = ctex(16, 128, (x, w, h) => { const g = x.createLinearGradient(0,
   for(const [x, z, room] of spots){
     const g = new THREE.Group(); g.position.set(x * CELL, openAbove(Math.floor(x), Math.floor(z)) ? WH * 2 : WH, z * CELL);
     const cord = new THREE.Mesh(cordG, M.dark); cord.position.y = -.25; g.add(cord);
+    if(isSky(Math.floor(x), Math.floor(z))){ cord.visible = false; const pole = new THREE.Mesh(new THREE.CylinderGeometry(.06, .09, WH + .1, 8), M.pipe); pole.position.set(-.55, -WH / 2 + .05, 0); g.add(pole); const arm = new THREE.Mesh(new THREE.BoxGeometry(.6, .06, .06), M.pipe); arm.position.set(-.27, -.32, 0); g.add(arm); g.position.y -= .2; }
     const shade = new THREE.Mesh(shadeG, M.pipe); shade.position.y = -.55; g.add(shade);
     const bm = new THREE.MeshBasicMaterial({ color: 0xffd9a0 }); const b = new THREE.Mesh(bulbG, bm); b.position.y = -.64; g.add(b);
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffb060, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: .55 })); glow.scale.setScalar(1.3); glow.position.y = -.66; g.add(glow);
@@ -1370,11 +1487,13 @@ for(const k in DOORS){
   const alongX = new Set(zs).size === 1; const len = D.cells.length * CELL;
   const center = new THREE.Vector3((Math.min(...xs) + Math.max(...xs) + 1) / 2 * CELL, 0, (Math.min(...zs) + Math.max(...zs) + 1) / 2 * CELL);
   const g = new THREE.Group(); g.position.copy(center); if(!alongX) g.rotation.y = Math.PI / 2;
-  const back = new THREE.Mesh(new THREE.BoxGeometry(len, WH, .3), M.wood); back.position.y = WH / 2; g.add(back);
+  const gate = SKY && D.cells.every(([x, z]) => isSky(x, z)), gh = gate ? 2.1 : WH; // out in the woods: a barricade of planks and fallen logs
+  const back = new THREE.Mesh(new THREE.BoxGeometry(len, gh, .3), M.wood); back.position.y = gh / 2; g.add(back);
+  if(gate){ const logM = mat({ color: 0x4a3626, roughness: 1, metalness: 0, map: TEX.wood }); for(const [y, zz, r] of [[.32, .55, .32], [.3, -.55, .3], [.85, .45, .26]]){ const lg = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.1, len + .8, 10), logM); lg.rotation.z = Math.PI / 2; lg.rotation.y = rand(-.12, .12); lg.position.set(rand(-.2, .2), y, zz); lg.castShadow = SHADOWS; g.add(lg); } }
   const plankG = new THREE.BoxGeometry(len * 1.05, .22, .1);
-  for(let i = 0; i < 4; i++){ for(const s of [-1, 1]){ const p = new THREE.Mesh(plankG, M.wood); p.position.set(0, .6 + i * .65, s * .2); p.rotation.z = rand(-.35, .35); g.add(p); } }
+  for(let i = 0; i < (gate ? 3 : 4); i++){ for(const s of [-1, 1]){ const p = new THREE.Mesh(plankG, M.wood); p.position.set(0, .6 + i * .65, s * .2); p.rotation.z = rand(-.35, .35); g.add(p); } }
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.6, .4), new THREE.MeshBasicMaterial({ map: textTex([{ t: 'KEEP OUT', font: '700 44px Oswald', color: '#d8d0b8', y: 32 }], 256, 64, { bg: '#5a1010' }) }));
-  sign.position.set(0, 2.3, .26); g.add(sign); const sign2 = sign.clone(); sign2.position.z = -.26; sign2.rotation.y = Math.PI; g.add(sign2);
+  sign.position.set(0, gate ? 1.55 : 2.3, .26); g.add(sign); const sign2 = sign.clone(); sign2.position.z = -.26; sign2.rotation.y = Math.PI; g.add(sign2);
   level.add(g); D.mesh = g; D.center = center;
   INTER.push({ pos: new THREE.Vector3(center.x, 1.5, center.z), r: 2.8, door: k,
     prompt(){ if(D.open) return null; return [`Press <b>${KEY}</b> to clear debris`, D.cost]; },
@@ -2420,10 +2539,32 @@ function startRound(r){
 function pause(){ if(G_STATE !== 'play') return; G_STATE = 'pause'; if(NET.on) msg('Co-op: the game keeps going while paused'); P.firing = false; P.adsHeld = false; useHeld = false; for(const k in keys) keys[k] = false; $('#pause').classList.remove('hidden'); if(AC) AC.suspend(); }
 function resetJoy(){ if(!isTouch) return; joy.id = null; joy.x = joy.y = 0; lookIds.clear(); const b = $('#joyBase'); if(b) b.style.display = 'none'; }
 function resume(){ resetJoy(); $('#pause').classList.add('hidden'); G_STATE = 'play'; if(AC) AC.resume(); if(!isTouch) lockPtr(); }
-{ const sel = $('#mapSel'); let all = {}; try{ all = JSON.parse(localStorage.getItem('iz_maps') || '{}'); }catch(e){}
+{ // map picker: a card per map with a little top-down drawing of it
+  let all = {}; try{ all = JSON.parse(localStorage.getItem('iz_maps') || '{}'); }catch(e){}
   const esc = t => String(t || 'Untitled').replace(/[<&]/g, c => c === '<' ? '&lt;' : '&amp;');
-  sel.innerHTML = '<option value="">Iitsty Outpost</option><option value="lab">Black Site Lab</option>' + Object.entries(all).map(([k, m]) => `<option value="${esc(k)}">${esc(m.name)}</option>`).join('');
-  sel.value = (CUSTOM || LAB) && MAP_ID ? MAP_ID : ''; sel.onchange = () => { location.href = sel.value ? '?map=' + encodeURIComponent(sel.value) : './'; }; }
+  const list = [
+    { id: '', m: stockMap, d: 'Bunker rooms, offices upstairs and a boiler room below. Power, Pack-a-Punch and an Easter egg.', tg: ['INDOOR', '3 FLOORS'] },
+    { id: 'lab', m: labMap, d: 'Black site with specimen tanks, a catwalk, Argus rounds and its own boss Easter egg.', tg: ['INDOOR', 'BOSSES'] },
+    { id: 'camp', m: campMap, d: 'Out in the pines at night: a gas station, an old barn, a chapel and the ranger station.', tg: ['OUTDOOR', 'NEW'] },
+    ...Object.entries(all).map(([k, m]) => ({ id: k, m: () => m, d: 'Made in the Map Maker', tg: ['CUSTOM'] })) ];
+  const cur = (CUSTOM || LAB || CAMP) && MAP_ID ? MAP_ID : '';
+  const box = $('#maps');
+  for(const L of list){ let M0; try{ M0 = L.m(); }catch(e){ continue; }
+    const b = document.createElement('button'); b.className = 'mcard' + (L.id === cur ? ' sel' : '');
+    b.innerHTML = `<canvas width="160" height="100"></canvas><b>${esc(M0.name)}</b><small>${esc(L.d)}</small><span class="tg">${L.tg.map(t => `<i>${t}</i>`).join('')}</span>${L.id === cur ? '<span class="now">▶ SELECTED</span>' : ''}`;
+    box.appendChild(b); drawMapThumb(b.querySelector('canvas'), M0);
+    b.onclick = () => { if(L.id === cur) return; b.querySelector('b').textContent = 'Loading…'; location.href = L.id ? '?map=' + encodeURIComponent(L.id) : './'; };
+    if(L.id === cur) setTimeout(() => b.scrollIntoView({ inline: 'center', block: 'nearest' }), 50); }
+  function drawMapThumb(cv, M0){ const g = M0.grid, H = g.length, Wd = g[0].length, x = cv.getContext('2d'); const sc = Math.min(cv.width / Wd, cv.height / H), ox = (cv.width - Wd * sc) / 2, oy = (cv.height - H * sc) / 2;
+    x.fillStyle = M0.sky ? '#0e1610' : '#0b0b0d'; x.fillRect(0, 0, cv.width, cv.height);
+    for(let z = 0; z < H; z++) for(let c = 0; c < Wd; c++){ const ch = g[z][c]; let col = null; const out = M0.sky && M0.sky[z] && M0.sky[z][c] === 'o';
+      if(ch === '#') col = M0.sky ? (out ? '#1d3a22' : '#6a5440') : '#3a3a40'; else if(ch === '.' || ch === 'C') col = out ? '#2b3f22' : M0.theme === 'lab' ? '#25384a' : '#4a3a2c'; else if(ch === 'W') col = '#c23030'; else if(/[A-Z]/.test(ch)) col = '#d8b23a';
+      if(col){ x.fillStyle = col; x.fillRect(ox + c * sc, oy + z * sc, Math.ceil(sc), Math.ceil(sc)); } }
+    const dot = (o, col, r = 1.6) => { if(!o || o.lv) return; x.fillStyle = col; x.beginPath(); x.arc(ox + (o.x + .5) * sc, oy + (o.z + .5) * sc, r, 0, 7); x.fill(); };
+    for(const k in (M0.perks || {})) dot(M0.perks[k], '#5affb0'); for(const o of (M0.box || [])) dot(o, '#4ab8ff'); dot(M0.power, '#ffd84a', 2.2); if(M0.spawn) dot(M0.spawn, '#ffffff', 2.4); }
+}
+$('#bCoop').addEventListener('click', () => tabsOn('#bCoop', '#coop')); $('#bSet').addEventListener('click', () => tabsOn('#bSet', '#settings')); $('#bHelp').addEventListener('click', () => tabsOn('#bHelp', '#help'));
+function tabsOn(b, box){ setTimeout(() => { for(const [bb, bx] of [['#bCoop', '#coop'], ['#bSet', '#settings'], ['#bHelp', '#help']]) $(bb).classList.toggle('on', !$(bx).classList.contains('hidden')); }, 0); }
 $('#resume').onclick = resume; $('#quit').onclick = () => location.reload();
 function gameOver(){
   sfx('st_over', .5);
@@ -2433,7 +2574,7 @@ function gameOver(){
   $('#ovStats').innerHTML = `<span>Kills <b>${STATS.kills}</b></span><span>Headshots <b>${STATS.heads}</b></span><span>Points <b>${STATS.earned}</b></span><span>Time <b>${mins}m</b></span>`;
   setTimeout(() => $('#over').classList.remove('hidden'), 1800);
   tn({ f: 110, f2: 40, type: 'sawtooth', dur: 3, vol: .15, echo: .5 });
-  if(CUSTOM){ $('#ovSave').textContent = (LAB ? 'Black Site Lab' : 'Custom map') + ': scores only go on the board from the Iitsty Outpost map.'; }
+  if(CUSTOM){ $('#ovSave').textContent = (LAB ? 'Black Site Lab' : CAMP ? 'Ashwood Camp' : 'Custom map') + ': scores only go on the board from the Iitsty Outpost map.'; }
   else if(RS.round >= 2 || STATS.kills > 0){
     $('#ovSave').textContent = 'Saving your score…';
     rpc('zombies_submit', { p_name: opts.name || 'Survivor', p_round: RS.round, p_kills: STATS.kills, p_points: STATS.earned, p_headshots: STATS.heads, p_device: isTouch ? 'phone' : 'pc' })
@@ -2533,7 +2674,7 @@ function update(dt){
     RS.spawnT -= dt;
     if(DOGR.on){ if(RS.toSpawn > 0 && alive < 8 && RS.spawnT <= 0){ spawnDog(); RS.spawnT = rand(.8, 1.8); } }
     else if(RS.toSpawn > 0 && alive < maxAlive() && RS.spawnT <= 0){ spawnZombie(); RS.spawnT = Math.max(.35, 2 - RS.round * .15) * rand(.7, 1.3); }
-    if(RS.toSpawn <= 0 && alive === 0){ RS.breakT = 9; SND.roundEnd(); if(DOGR.on){ DOGR.on = false; scene.fog.color.set(0x06080c); spawnPU(DOGR.last || P.pos, 'ammo', true); } }
+    if(RS.toSpawn <= 0 && alive === 0){ RS.breakT = 9; SND.roundEnd(); if(DOGR.on){ DOGR.on = false; scene.fog.color.set(FOGC); spawnPU(DOGR.last || P.pos, 'ammo', true); } }
   }
   netTick(dt);
   updZombies(dt); updTraps(dt); updPerkMachines(dt); updProj(dt); updPU(dt); updBox(dt); updUpg(dt); updQuest(dt); updFires(dt); updPortals(dt); updShadows(dt); updAmb(dt); updFX(dt); if(BANDS.length > 1 || scene.children.length > 12) rebandScene();
@@ -2595,6 +2736,7 @@ function frame(t){
 function draw(dt){
   updDust(performance.now() / 1000);
   const vm = G_STATE === 'play' || G_STATE === 'pause';
+  SKYROOT.position.copy(camera.position);
   if(composer){ vmPass.enabled = vm; gradePass.uniforms.time.value = (gradePass.uniforms.time.value + (dt || .016)) % 100; gradePass.uniforms.hurt.value = G_STATE === 'play' ? clamp(1 - P.hp / maxHp(), 0, 1) : 0; composer.render(); return; }
   renderer.clear(); renderer.render(scene, camera);
   if(vm){ renderer.clearDepth(); renderer.render(vmScene, vmCam); }
@@ -2950,7 +3092,7 @@ function placeProps(){
 }
 // outside the windows: wrecked car, power poles, bushes, road barriers, tyres, spikes (seeded per map, never right in front of a window)
 function decorOutside(){
-  if(!ASSETS.props) return; let seed = 7; for(const ch of (MAPD.name || 'm')) seed = (seed * 33 + ch.charCodeAt(0)) >>> 0;
+  if(!ASSETS.props || SKY) return; let seed = 7; for(const ch of (MAPD.name || 'm')) seed = (seed * 33 + ch.charCodeAt(0)) >>> 0;
   const R = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
   const Wd = W0 * CELL, Hd = GH * CELL, wins = [];
   for(let z = 0; z < GH; z++) for(let x = 0; x < W0; x++) if(G[z][x] === 'W') wins.push(wpos(x, z));
@@ -3105,7 +3247,7 @@ function netSnapSend(){
 }
 function netSnap(m){
   if(NET.host) return;
-  if(m.r && m.r !== RS.round){ startRound(m.r); DOGR.on = !!m.dg; scene.fog.color.set(DOGR.on ? 0x2a0c04 : 0x06080c); for(const z of Z) if(!z.dead && z.net){ z.m.root.removeFromParent(); } for(let i = Z.length - 1; i >= 0; i--) if(Z[i].net && !Z[i].dead) Z.splice(i, 1); }
+  if(m.r && m.r !== RS.round){ startRound(m.r); DOGR.on = !!m.dg; scene.fog.color.set(DOGR.on ? 0x2a0c04 : FOGC); for(const z of Z) if(!z.dead && z.net){ z.m.root.removeFromParent(); } for(let i = Z.length - 1; i >= 0; i--) if(Z[i].net && !Z[i].dead) Z.splice(i, 1); }
   if(m.br && !NET.br) SND.roundEnd(); NET.br = m.br;
   m.wb.forEach((hp, i) => { const w = WINS[i]; if(!w) return; while(w.hp < hp){ setBoard(w, w.hp, true); w.hp++; } while(w.hp > hp){ w.hp--; setBoard(w, w.hp, false, true); } });
   const seen = new Set(), t = performance.now();
