@@ -2301,7 +2301,7 @@ if(isTouch){
   tbtn('#tPause', () => pause());
   tbtn('#tAuto', () => { opts.autoFire = opts.autoFire ? 0 : 1; LS.set('autoFire', opts.autoFire); $('#sAuto').checked = !!opts.autoFire; applyBtns(); msg('Auto-fire ' + (opts.autoFire ? 'ON' : 'OFF')); buzz(15); });
   const lz = $('#lookZone');
-  lz.addEventListener('pointerdown', e => { e.preventDefault(); audio(); lz.setPointerCapture(e.pointerId);
+  lz.addEventListener('pointerdown', e => { e.preventDefault(); audio(); try { lz.setPointerCapture(e.pointerId); } catch(err){}
     if(e.clientX < innerWidth * .42 && joy.id == null){ joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; joy.x = joy.y = 0; const b = $('#joyBase'); b.style.display = 'block'; b.style.left = e.clientX + 'px'; b.style.top = e.clientY + 'px'; $('#joyKnob').style.transform = ''; }
     else lookIds.set(e.pointerId, { x: e.clientX, y: e.clientY }); });
   lz.addEventListener('pointermove', e => {
