@@ -664,7 +664,7 @@ const THEMES = [
       add.push({ k: key, x: x - B.x0, z, f, lv: B.lv || undefined, hug: 1 }); block(x, z, 1); g[z][x] = 'M'; n--; k++;
       if(th.soft && R() < .5){ const s2 = th.soft[Math.floor(R() * th.soft.length)]; const X = x + f[0], Z = z + f[1]; if(have(s2) && fl(X, Z) && !bad.has(K(X, Z))) add.push({ k: s2, x: X - B.x0, z: Z, f: [f[1] || 1, f[0]], lv: B.lv || undefined }); } }
     // islands: a free-standing piece or two in the open middle of the room, with a clear ring around it
-    if(th.mid){ let ni = cells.length > 90 ? 2 : 1; const cand = cells.filter(([x, z]) => { for(let dz = -2; dz <= 2; dz++) for(let dx = -2; dx <= 2; dx++){ const c = g[z + dz] && g[z + dz][x + dx]; if(Math.abs(dx) <= 1 && Math.abs(dz) <= 1 ? (c !== '.' || bad.has(K(x + dx, z + dz))) : (c !== '.' && c !== '#' && c !== 'C')) return false; } return true; });
+    if(th.mid){ let ni = cells.length > 90 ? 3 : 2; const cand = cells.filter(([x, z]) => { for(let dz = -2; dz <= 2; dz++) for(let dx = -2; dx <= 2; dx++){ const c = g[z + dz] && g[z + dz][x + dx]; if(Math.abs(dx) <= 1 && Math.abs(dz) <= 1 ? (c !== '.' || bad.has(K(x + dx, z + dz))) : (c !== '.' && c !== '#' && c !== 'C')) return false; } return true; });
       for(let i = cand.length - 1; i > 0; i--){ const j = Math.floor(R() * (i + 1)); [cand[i], cand[j]] = [cand[j], cand[i]]; }
       for(const [x, z] of cand){ if(ni <= 0) break; if(bad.has(K(x, z)) || g[z][x] !== '.') continue; const key = th.mid[Math.floor(R() * th.mid.length)]; if(!have(key)) continue; const c = PROPCAT[key];
         const f = R() < .5 ? [0, R() < .5 ? 1 : -1] : [R() < .5 ? 1 : -1, 0];
