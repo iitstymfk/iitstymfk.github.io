@@ -110,7 +110,8 @@ ol.lb li.me{background:rgba(200,0,0,.18);border-radius:6px}
 .lbp ol.lb{max-height:70vh}
 .msec{display:flex;justify-content:space-between;align-items:baseline;margin:6px 2px 8px;font-weight:600;letter-spacing:.16em;color:#d9c9a3;font-size:14px}
 .msec a{color:#ffd84a;letter-spacing:.04em;text-decoration:none;font-size:14px}
-.maps{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(170px,1fr);gap:10px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x mandatory}
+.maps::-webkit-scrollbar{height:6px}.maps::-webkit-scrollbar-thumb{background:rgba(255,80,80,.35);border-radius:6px}.maps::-webkit-scrollbar-track{background:transparent}
+.maps{scrollbar-width:thin;scrollbar-color:rgba(255,80,80,.35) transparent;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(170px,1fr);gap:10px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x mandatory}
 .mcard{all:unset;cursor:pointer;scroll-snap-align:start;display:flex;flex-direction:column;gap:4px;text-align:left;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px;transition:transform .15s,border-color .15s,background .15s;min-width:0}
 .mcard:hover{transform:translateY(-2px);border-color:rgba(255,120,120,.5)}
 .mcard.sel{border-color:#ff4b4b;background:rgba(190,20,20,.18);box-shadow:0 0 22px rgba(220,30,30,.35)}
@@ -340,8 +341,8 @@ renderer.setPixelRatio(BASE_PR);
 if(SHADOWS){ renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
 const CAMP = new URLSearchParams(location.search).get('map') === 'camp'; // Ashwood Camp: the outdoor map
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x05070b);
-const FOGC = CAMP ? 0x0c1220 : 0x06080c;
-scene.fog = new THREE.FogExp2(FOGC, CAMP ? 0.045 : 0.055); if(CAMP) scene.background = new THREE.Color(0x0a0f18);
+const FOGC = CAMP ? 0x111b2c : 0x06080c;
+scene.fog = new THREE.FogExp2(FOGC, CAMP ? 0.036 : 0.055); if(CAMP) scene.background = new THREE.Color(0x1a2840); // the night sky is a touch lighter than the fog, so the tree line shows as a silhouette
 const camera = new THREE.PerspectiveCamera(78, 1, 0.05, 140); camera.rotation.order = 'YXZ'; scene.add(camera); camera.userData.keep = true; const camL = new THREE.Vector3();
 const vmScene = new THREE.Scene(); const vmCam = new THREE.PerspectiveCamera(55, 1, 0.01, 10);
 const vmHemi = new THREE.HemisphereLight(0xc8d0ff, 0x2a1c12, .8); vmScene.add(vmHemi);
@@ -448,7 +449,7 @@ const M = {
   wood: mat({ map: TEX.wood, bumpMap: TEX.wood, bumpScale: 1.5, roughness: .85, metalness: 0 }),
   crate: mat({ map: TEX.crate, roughness: .85, metalness: 0 }),
   ceil: mat({ map: TEX.ceil, roughness: 1, metalness: 0 }),
-  dirt: mat({ map: TEX.dirt, roughness: 1, metalness: 0 }), grass: mat({ map: TEX.grass, roughness: 1, metalness: 0, color: 0xb0b8a0 }),
+  dirt: mat({ map: TEX.dirt, roughness: 1, metalness: 0 }), grass: mat({ map: TEX.grass, roughness: 1, metalness: 0, color: 0xd8e0c8 }),
   metal: mat({ map: TEX.metal, roughness: .5, metalness: .6 }),
   pipe: mat({ color: 0x3a3d42, roughness: .45, metalness: .7 }),
   dark: mat({ color: 0x151515, roughness: .8, metalness: .2 }),
@@ -926,7 +927,7 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
       if(px > -.6 && px < Wd + .6 && pz > -.6 && pz < Hd + .6) continue;
       if(wins.some(w => Math.hypot(w.x - px, w.z - pz) < 2.8)) continue; // a path out of the woods in front of every window
       add(px, pz, true); }
-    const barkM = mat({ color: 0x3a2a1e, roughness: 1, metalness: 0, flatShading: true }), needleM = mat({ color: 0x1e3020, roughness: 1, metalness: 0, flatShading: true }), rockM = mat({ color: 0x5a5852, roughness: 1, metalness: 0, flatShading: true, map: TEX.dirt });
+    const barkM = mat({ color: 0x3a2a1e, roughness: 1, metalness: 0, flatShading: true }), needleM = mat({ color: 0x2a4630, roughness: 1, metalness: 0, flatShading: true }), rockM = mat({ color: 0x5a5852, roughness: 1, metalness: 0, flatShading: true, map: TEX.dirt });
     const trunkG = new THREE.CylinderGeometry(.09, .17, 1, 6); trunkG.translate(0, .5, 0);
     const coneG = new THREE.ConeGeometry(1, 1, 7); coneG.translate(0, .5, 0);
     const rockG = new THREE.DodecahedronGeometry(1, 0);
@@ -954,9 +955,9 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
 
 /* ---------- lights ---------- */
 const SKYROOT = new THREE.Group(); // moon + stars ride along with the camera so they look infinitely far away
-const hemi = new THREE.HemisphereLight(CAMP ? 0x7a90c0 : 0x6070a0, LAB ? 0x141c24 : CAMP ? 0x18200f : 0x2a1c12, LAB ? 0.9 : CAMP ? 1.0 : 0.75); scene.add(hemi); hemi.userData.keep = true;
+const hemi = new THREE.HemisphereLight(CAMP ? 0x7a90c0 : 0x6070a0, LAB ? 0x141c24 : CAMP ? 0x18200f : 0x2a1c12, LAB ? 0.9 : CAMP ? 1.6 : 0.75); scene.add(hemi); hemi.userData.keep = true;
 if(CAMP){ // moonlight, a moon and stars
-  const moon = new THREE.DirectionalLight(0xa8bce8, .55); moon.position.set(-40, 60, -30); scene.add(moon); moon.userData.keep = true;
+  const moon = new THREE.DirectionalLight(0xa8bce8, 1.1); moon.position.set(-40, 60, -30); scene.add(moon); moon.userData.keep = true;
   const mg = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xdfe8ff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
   const disc = new THREE.Mesh(new THREE.CircleGeometry(2.4, 24), new THREE.MeshBasicMaterial({ color: 0xe8eeff, fog: false }));
   const sky = new THREE.Group(); mg.scale.setScalar(16); disc.position.set(0, 0, .1); sky.add(mg, disc); sky.position.set(-62, 78, -72); sky.lookAt(0, 0, 0); SKYROOT.add(sky); SKYROOT.userData.keep = true; scene.add(SKYROOT);
@@ -1616,7 +1617,7 @@ if(POWER){
   INTER.push({ pos: c.clone().add(new THREE.Vector3(-ws[0] * .6, 0, -ws[1] * .6)), r: 2.2, prompt(){ if(power) return null; if(PARTS.on && !PARTS.built) return PARTS.have < PARTS.list.length ? [`The power switch is missing parts (${PARTS.have}/${PARTS.list.length}). Search the map!`, 0, true] : [`Press <b>${KEY}</b> to build the power switch`, 0]; return [`Press <b>${KEY}</b> to turn on the power`, 0]; },
     use(){ if(power) return; if(PARTS.on && !PARTS.built){ if(PARTS.have < PARTS.list.length) return; PARTS.built = true; POWER.lever.visible = true; SND.buy(); hudParts(); ann('SWITCH BUILT', '#ffd84a'); return; } powerOn(); } });
 }
-function powerOn(fromNet){ if(power) return; power = true; if(POWER && POWER.lever) POWER.lever.rotation.x = -.9; SND.powerOn(); sfx('st_power', .4); setBulbColors(); perkSigns(); hemi.intensity = .9; scene.fog.density = .042; ann('POWER ON', '#ffd84a'); flashScreen(.25); if(NET.on && !fromNet) netSend({ t: 'power' });
+function powerOn(fromNet){ if(power) return; power = true; if(POWER && POWER.lever) POWER.lever.rotation.x = -.9; SND.powerOn(); sfx('st_power', .4); setBulbColors(); perkSigns(); hemi.intensity = CAMP ? 1.8 : .9; scene.fog.density = CAMP ? .032 : .042; ann('POWER ON', '#ffd84a'); flashScreen(.25); if(NET.on && !fromNet) netSend({ t: 'power' });
 }
 /* ---------- zip lines: pay, grab the handle, slide over the zombies (you can shoot while riding, they can't reach you) ---------- */
 const ZIPS = [];
