@@ -841,6 +841,8 @@ function solid(x, z){
   if(DOORS[c]) return !DOORS[c].open;
   return false;
 }
+// the player can step into a stairwell opening (and fall); zombies and bullets still treat it as solid
+function solidP(x, z){ return solid(x, z) && !(G[z] && G[z][x] === 'O' && STAIR_HOLES.has(x + ',' + z)); }
 function blocksAt(x, z, y){
   if(!inB(x, z)) return false;
   const c = G[z][x];
@@ -1961,11 +1963,11 @@ function animDog(z, dt, moving){
 function dogGrowl(z){ if(!AC || !opts.vol) return; const d = z.m.root.position.distanceTo(P.pos); if(d > 20) return; const v = .12 * (1 - d / 20); tn({ f: rand(55, 75), f2: rand(40, 50), type: 'sawtooth', dur: rand(.4, .8), vol: v }); if(Math.random() < .4) tn({ f: rand(400, 600), f2: rand(250, 350), type: 'square', dur: .12, vol: v * .5, at: .05 }); }
 const tmpV = new THREE.Vector3(), tmpV2 = new THREE.Vector3();
 function los(a, b){ const d = tmpV.subVectors(b, a); const L = d.length(); if(L < .01) return true; d.divideScalar(L); return gridRay(a, d, L) >= L - .05; }
-function pushOut(pos, r){
+function pushOut(pos, r, test = solid){
   for(let it = 0; it < 2; it++){
     const x0 = cx(pos.x - r), x1 = cx(pos.x + r), z0 = cx(pos.z - r), z1 = cx(pos.z + r);
     for(let z = z0; z <= z1; z++) for(let x = x0; x <= x1; x++){
-      if(!solid(x, z)) continue;
+      if(!test(x, z)) continue;
       const nx = clamp(pos.x, x * CELL, (x + 1) * CELL), nz = clamp(pos.z, z * CELL, (z + 1) * CELL);
       let dx = pos.x - nx, dz = pos.z - nz, d = Math.hypot(dx, dz);
       if(d < r){ if(d < 1e-5){ dx = pos.x - (x + .5) * CELL; dz = pos.z - (z + .5) * CELL; d = Math.hypot(dx, dz) || 1; pos.x += dx / d * r; pos.z += dz / d * r; } else { pos.x += dx / d * (r - d); pos.z += dz / d * (r - d); } }
@@ -2666,11 +2668,20 @@ function update(dt){
   let speed = 4.2 * (d && d.slow ? d.slow : 1) * (stam ? 1.08 : 1) * (P.sprint ? 1.55 : 1) * (1 - P.ads * .4) * (P.down ? 0 : 1);
   const sy = Math.sin(P.yaw), cyw = Math.cos(P.yaw);
   const vx = (mx * cyw + mz * sy) * speed, vz = (-mx * sy + mz * cyw) * speed;
-  if(P.zip) updZip(dt); else { const opx = P.pos.x, opz = P.pos.z; P.pos.x += vx * dt; P.pos.z += vz * dt; if(stairPortal(P.pos, opx, opz)) flowDirty = true; pushOut(P.pos, .3); P.pos.y = groundY(P.pos); }
+  if(P.zip) updZip(dt); else { const opx = P.pos.x, opz = P.pos.z, onGround = !(P.vy < 0) && P.pos.y - groundY(P.pos) < .3; P.pos.x += vx * dt; P.pos.z += vz * dt;
+    if(stairPortal(P.pos, opx, opz)){ flowDirty = true; P.vy = 0; } pushOut(P.pos, .3, solidP);
+    // walked into the open stairwell from the floor above: drop through to the floor below
+    { const hx = cx(P.pos.x), hz = cx(P.pos.z); if(STAIR_HOLES.has(hx + ',' + hz)){ const st = STAIRS.find(s2 => s2.cells.some(c => c[0] + s2.du === hx && c[1] === hz)); if(st){ P.pos.x -= st.du * CELL; P.pos.y += WH; P.vy = Math.min(P.vy || 0, 0); flowDirty = true; } } }
+    // gravity: stick to floors and stairs while walking, fall when you step off a ledge
+    const gy = groundY(P.pos); P.vy = P.vy || 0;
+    if(P.pos.y > gy + (onGround ? .3 : .01) || P.vy < 0){ P.vy -= 22 * dt; P.pos.y += P.vy * dt;
+      if(P.pos.y <= gy){ const hit = -P.vy; P.pos.y = gy; P.vy = 0; if(hit > 5){ P.landT = Math.min(.35, hit * .03); SND.step && SND.step(1); tn({ f: 90, f2: 40, type: 'sine', dur: .18, vol: Math.min(.25, hit * .02) }); buzz(Math.min(60, hit * 4)); } } }
+    else { P.pos.y = gy; P.vy = 0; } }
   P.moving = ml * (P.down ? 0 : 1); if(P.moving > .1) P.step += dt * speed * 1.9;
   // ----- camera -----
   const bob = Math.sin(P.step) * .045 * Math.min(1, P.moving), eye = P.down ? .55 : 1.62;
-  camL.set(P.pos.x, P.pos.y + eye + (P.zip ? 0 : bob) + (P.zipLift || 0), P.pos.z); L2V(camL, camera.position);
+  if(P.landT > 0) P.landT = Math.max(0, P.landT - dt);
+  camL.set(P.pos.x, P.pos.y + eye + (P.zip ? 0 : bob) + (P.zipLift || 0) - (P.landT || 0) * .9, P.pos.z); L2V(camL, camera.position);
   if(P.shake > 0){ camera.position.x += rand(-1, 1) * P.shake * .08; camera.position.y += rand(-1, 1) * P.shake * .08; P.shake = Math.max(0, P.shake - dt * 1.5); }
   camera.rotation.set(P.pitch, P.yaw, P.down ? .25 : P.zip ? Math.sin(P.zip.t * Math.PI) * .06 : 0);
   const scopeOn = d && d.scope && P.ads > .9;
@@ -3342,7 +3353,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { PROPS, MAPDX: () => MAPD, zombieMesh, cutLimb, limbBones, SPARTS, TRAPS, LABEGG, NET, makeAvatar, ARMS, MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { STAIRS, STAIR_HOLES, PROPS, MAPDX: () => MAPD, zombieMesh, cutLimb, limbBones, SPARTS, TRAPS, LABEGG, NET, makeAvatar, ARMS, MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
