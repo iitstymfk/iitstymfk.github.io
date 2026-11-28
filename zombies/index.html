@@ -937,7 +937,18 @@ for(const B of BANDS){ B.g = new THREE.Group(); B.g.position.set(-B.x0 * CELL, B
     trees.forEach((t, i) => { const [x, z, hgt, wd, ry, dead] = t; e.set(dead ? .25 : 0, ry, dead ? .15 : 0); q.setFromEuler(e); m4.compose(ps.set(x, 0, z), q, sc.set(wd * (dead ? .8 : 1), dead ? hgt * .7 : hgt * .5, wd)); trunk.setMatrixAt(i, m4); });
     live.forEach((t, i) => { const [x, z, hgt, wd, ry] = t; for(let k = 0; k < 3; k++){ const y0 = hgt * (.22 + k * .2), r = wd * (1.5 - k * .38), hh = hgt * (.42 - k * .06); q.setFromEuler(e.set(0, ry + k, 0)); m4.compose(ps.set(x, y0, z), q, sc.set(r, hh, r)); cones[k].setMatrixAt(i, m4); } });
     rocks.forEach((r, i) => { const [x, z, size, ry] = r; q.setFromEuler(e.set(R() * .5, ry, R() * .5)); m4.compose(ps.set(x, size * .25, z), q, sc.set(size, size * .7, size * (.8 + R() * .4))); rk.setMatrixAt(i, m4); }); rk.count = rocks.length;
-    for(const o of [trunk, ...cones, rk]){ o.receiveShadow = SHADOWS; o.castShadow = false; o.userData.visual = true; o.frustumCulled = false; level.add(o); } }
+    for(const o of [trunk, ...cones, rk]){ o.receiveShadow = SHADOWS; o.castShadow = false; o.userData.visual = true; o.frustumCulled = false; level.add(o); }
+    // pitched roofs on the buildings (each roofed area + its walls), so they read as cabins from outside
+    const seen = new Set(), roofM = mat({ color: 0x3a2e28, roughness: .95, metalness: 0, map: TEX.wood }), trimM = mat({ color: 0x24201c, roughness: 1, metalness: 0 });
+    for(let z = 0; z < GH; z++) for(let x = 0; x < W0; x++){ if(seen.has(z * 1000 + x) || !(G[z][x] === '.' || G[z][x] === 'C' || G[z][x] === 'M') || isSky(x, z)) continue;
+      let x0 = x, x1 = x, z0 = z, z1 = z; const q = [[x, z]]; seen.add(z * 1000 + x);
+      while(q.length){ const [a, b] = q.pop(); x0 = Math.min(x0, a); x1 = Math.max(x1, a); z0 = Math.min(z0, b); z1 = Math.max(z1, b);
+        for(const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){ const A = a + dx, B = b + dz; const c = G[B] && G[B][A]; if(!c || seen.has(B * 1000 + A) || c === '#' || isSky(A, B)) continue; seen.add(B * 1000 + A); q.push([A, B]); } }
+      const wx = (x1 - x0 + 3) * CELL + .5, wz = (z1 - z0 + 3) * CELL + .5, cxw = (x0 + x1 + 1) / 2 * CELL, czw = (z0 + z1 + 1) / 2 * CELL;
+      const alongX = wx >= wz, span = alongX ? wz : wx, len = alongX ? wx : wz, rise = span * .32;
+      const sh = new THREE.Shape(); sh.moveTo(-span / 2, 0); sh.lineTo(span / 2, 0); sh.lineTo(0, rise); sh.lineTo(-span / 2, 0);
+      const rg = new THREE.ExtrudeGeometry(sh, { depth: len, bevelEnabled: false }); rg.translate(0, 0, -len / 2);
+      const roof = new THREE.Mesh(rg, [roofM, trimM]); roof.position.set(cxw, WH, czw); if(alongX) roof.rotation.y = Math.PI / 2; roof.castShadow = SHADOWS; roof.userData.visual = true; level.add(roof); } }
   // crates
   const crG = new THREE.BoxGeometry(1.3, 1.25, 1.3); crG.translate(0, .625, 0);
   for(const [x, z] of CRATES){ const c = new THREE.Mesh(crG, M.crate); c.castShadow = c.receiveShadow = SHADOWS; c.position.copy(wpos(x, z)); c.rotation.y = rand(-.2, .2); level.add(c);
