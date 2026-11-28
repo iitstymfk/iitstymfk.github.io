@@ -832,6 +832,42 @@ function updFX(dt){
 }
 // flying gore chunks (heads pop off on headshot kills, bodies come apart in explosions); they bounce, bleed and fade
 const GIBS = [];
+/* ---------- dismemberment: shoot arms off, blow legs off (explosions / shotguns) -> the zombie crawls ---------- */
+const LIMB_NAMES = { ll: ['LeftLeg', 'Bip01_L_Calf'], rl: ['RightLeg', 'Bip01_R_Calf'], la: ['LeftForeArm', 'Bip01_L_Forearm'], ra: ['RightForeArm', 'Bip01_R_Forearm'] };
+const LIMB_BIT = { ll: 1, rl: 2, la: 4, ra: 8 };
+let FIRE_BLAST = false; // true while a shotgun's pellets are being traced
+function limbBones(m){ if(m.limbs !== undefined) return m.limbs; m.limbs = null; if(!m.skinned) return null; const L = {};
+  m.root.traverse(o => { if(!o.isBone) return; const n = o.name.replace(/^mixamorig\d*:?/, '').replace(/_\d+$/, ''); for(const k in LIMB_NAMES) if(!L[k] && LIMB_NAMES[k].includes(n)) L[k] = o; });
+  if(Object.keys(L).length) m.limbs = L; return m.limbs; }
+const LIMBM = { skin: new THREE.MeshStandardMaterial({ color: 0x6e5048, roughness: .85 }), wound: new THREE.MeshStandardMaterial({ color: 0x5a0606, roughness: .3, emissive: 0x1a0000 }), bone: new THREE.MeshStandardMaterial({ color: 0xe8dcc4, roughness: .6 }) };
+function limbGib(leg){ const g = new THREE.Group(), L = leg ? .42 : .3, R = leg ? .065 : .05;
+  const c = new THREE.Mesh(new THREE.CapsuleGeometry(R, L, 4, 8), LIMBM.skin); g.add(c);
+  const w = new THREE.Mesh(new THREE.CircleGeometry(R * 1.05, 10), LIMBM.wound); w.rotation.x = -Math.PI / 2; w.position.y = L / 2 + R * .6; g.add(w);
+  const b = new THREE.Mesh(new THREE.CylinderGeometry(R * .3, R * .3, .06, 6), LIMBM.bone); b.position.y = L / 2 + R + .02; g.add(b);
+  if(leg){ const f = new THREE.Mesh(new THREE.BoxGeometry(.1, .07, .2), LIMBM.skin); f.position.set(0, -L / 2 - .02, .05); g.add(f); } return g; }
+// cut a limb: shrink its bone to nothing, throw a limb, bleed from the stump
+function cutLimb(z, k, fling){
+  const m = z.m, L = limbBones(m); if(!L || !L[k] || (z.cut || 0) & LIMB_BIT[k]) return false;
+  z.cut = (z.cut || 0) | LIMB_BIT[k]; const b = L[k], at = b.getWorldPosition(new THREE.Vector3());
+  // the bones live in the band's visual space; gibs/blood use logical coords
+  const lp = z.m.root.position.clone().add(at.sub(z.m.root.getWorldPosition(new THREE.Vector3())));
+  b.scale.setScalar(.001); bloodBurst(lp, 14, true); floorBlood(z.m.root.position, .7); sfx('gorex', .4, z.m.root.position);
+  if(fling !== false) spawnGibObj(limbGib(k[1] === 'l'), lp, 1);
+  z.spurt = 2.5; z.spurtB = b;
+  if(k === 'll' || k === 'rl'){ if(m.A && m.A.crawl){ z.crawl = 1; z.speed = Math.min(z.speed, .7); } else return 'kill'; }
+  return true; }
+function spawnGibObj(o, pos, sc = 1){ o.scale.multiplyScalar(sc); o.position.copy(pos); o.traverse(c => { if(c.isMesh) c.castShadow = SHADOWS; }); scene.add(o);
+  GIBS.push({ o, v: new THREE.Vector3(rand(-2.5, 2.5), rand(2.5, 5), rand(-2.5, 2.5)), w: new THREE.Vector3(rand(-9, 9), rand(-9, 9), rand(-9, 9)), t: 0, bled: 0 });
+  if(GIBS.length > (LQ ? 8 : 20)){ const g = GIBS.shift(); g.o.removeFromParent(); } }
+// which limb did this hit land on? (body-local height and side)
+// clips with scale keys would grow a cut limb back: re-shrink after every animation update
+function keepCuts(z){ const c = z.cut; if(!c && !z.headless) return; const L = z.m.limbs; if(L) for(const k in LIMB_BIT) if((c & LIMB_BIT[k]) && L[k]) L[k].scale.setScalar(.001); if(z.headless && z.m.headBone) z.m.headBone.scale.setScalar(.001); }
+function limbAt(z, at){ const p = z.m.root.position, s = z.m.s || 1, ly = (at.y - p.y) / s, ry = z.m.root.rotation.y;
+  const lat = (at.x - p.x) * Math.cos(ry) - (at.z - p.z) * Math.sin(ry); // + = the zombie's left
+  if(z.crawl) return null;
+  if(ly < .55) return lat > 0 ? 'll' : 'rl';
+  if(ly > .8 && ly < 1.45 && Math.abs(lat) > .16 * s) return lat > 0 ? 'la' : 'ra';
+  return null; }
 function spawnGib(k, pos, sc = 1){ const src = (ASSETS.ext || {})[k]; if(!src) return; const o = src.clone(); o.scale.setScalar(sc); o.position.copy(pos); scene.add(o);
   GIBS.push({ o, v: new THREE.Vector3(rand(-2.5, 2.5), rand(2.5, 5), rand(-2.5, 2.5)), w: new THREE.Vector3(rand(-9, 9), rand(-9, 9), rand(-9, 9)), t: 0, bled: 0 });
   if(GIBS.length > (LQ ? 8 : 20)){ const g = GIBS.shift(); g.o.removeFromParent(); } }
@@ -1614,7 +1650,7 @@ function spawnZombie(){
   const boss = r >= 8 && bosses.length && !Z.some(q => q.boss && !q.dead) && Math.random() < .03 ? pick(bosses) : null;
   const m = boss ? beastZombie(boss, 2) : zombieMesh(type); if(boss) type = 2;
   const pos = w.spawn.clone().addScaledVector(w.t, rand(-2, 2)); m.root.position.copy(pos);
-  const z = { m, type, hp: RS.zhp, tilt: rand(-.25, .25), speed: [rand(.85, 1.15), rand(2.2, 2.6), rand(3.3, 3.8)][type], state: 'out', win: w, t: 0, atkT: 0, atkCD: 0, phase: Math.random() * 6, dead: false, groanT: rand(1, 4), wait: rand(-.6, .6) };
+  const z = { m, type, hp: RS.zhp, maxHp: RS.zhp, tilt: rand(-.25, .25), speed: [rand(.85, 1.15), rand(2.2, 2.6), rand(3.3, 3.8)][type], state: 'out', win: w, t: 0, atkT: 0, atkCD: 0, phase: Math.random() * 6, dead: false, groanT: rand(1, 4), wait: rand(-.6, .6) };
   if(r >= 8 && (m.prisoner || (m.A && m.A.crawl && m.beast)) && !type && Math.random() < .07){ z.crawl = 2; z.speed = rand(1.7, 2); }
   if(boss){ z.boss = true; const hw = boss === 'hollow', br = boss === 'brute'; z.hp = RS.zhp * (hw ? 4 : br ? 9 : 6); z.speed = hw ? rand(3.8, 4.2) : br ? 2.7 : rand(3, 3.3); ann(BOSSNAME[boss][0], BOSSNAME[boss][1]); sfx('st_special', .5); }
   Z.push(z); RS.toSpawn--;
@@ -1851,7 +1887,7 @@ function animSkel(z, dt, moving){
   else if(z.crawl && m.A.crawl){ const k = z.crawl === 2 ? 'crawlrun' : 'crawl'; zPlay(m, k, .3, 1); if(m.cur === m.A[k]) m.cur.timeScale = moving ? (z.crawl === 2 ? z.speed / 1.9 : z.speed / .39) : .2; }
   else if(z.type){ const rr = m.runRef || 1.62; zPlay(m, 'run', .25, moving ? z.speed / rr : .3); if(m.cur === m.A.run) m.cur.timeScale = moving ? z.speed / rr : .3; }
   else { zPlay(m, 'walk', .25, 1); if(m.cur === m.A.walk) m.cur.timeScale = moving ? z.speed / (m.walkRef || .5) : .35; }
-  m.mixer.update(dt);
+  m.mixer.update(dt); keepCuts(z);
 }
 function animZombie(z, dt, moving){
   if(z.dog) return animDog(z, dt, moving);
@@ -1874,12 +1910,14 @@ function updZombies(dt){
   TGTS = targets(); buildFlow();
   for(let i = Z.length - 1; i >= 0; i--){
     const z = Z[i], m = z.m, p = m.root.position;
+    if(z.spurt > 0 && z.spurtB){ z.spurt -= dt; if(Math.random() < dt * 14){ const w = z.spurtB.getWorldPosition(new THREE.Vector3()).sub(z.m.root.getWorldPosition(new THREE.Vector3())).add(p);
+      fx(w, { color: 0x7a0000, v: new THREE.Vector3(rand(-.8, .8), rand(.5, 2), rand(-.8, .8)), g: 9, life: rand(.3, .6), size: .07, size1: .02 }); } }
     if(z.net && !z.dead){ netZombie(z, dt); continue; }
     if(!z.dead) z.pl = nearestTgt(p);
     { const zb = bandOfX(p.x); z.band = zb; if(m.root.parent !== zb.g) zb.g.add(m.root); }
     if(z.dead && m.skinned){
       if(!z.dieStarted){ z.dieStarted = true; zPlay(m, 'die', .1, 1.6); }
-      z.t += dt; m.mixer.update(dt);
+      z.t += dt; m.mixer.update(dt); keepCuts(z);
       if(z.t > 2.6) p.y -= dt * .45; if(z.t > 4){ m.root.removeFromParent(); Z.splice(i, 1); }
       continue;
     }
@@ -1939,13 +1977,22 @@ function hurtZombie(z, dmg, head, kind, at, from){
   if(instaT > 0) dmg = 1e9;
   if(z.net){ // co-op guest: the host owns this zombie; show the hit and tell the host
     if(at){ bloodBurst(at, head ? 10 : 6, head); if(kind !== 'boom' && Math.random() < (head ? .7 : .3)) wallBlood(at, at.clone().sub(camL)); }
-    netSend({ t: 'hit', id: z.id, d: Math.min(dmg, 1e7), h: head ? 1 : 0, k: kind }); STATS.hits++;
+    netSend({ t: 'hit', id: z.id, d: Math.min(dmg, 1e7), h: head ? 1 : 0, k: kind, b: FIRE_BLAST ? 1 : 0, ax: at ? +at.x.toFixed(2) : null, ay: at ? +at.y.toFixed(2) : null, az: at ? +at.z.toFixed(2) : null }); STATS.hits++;
     if(kind !== 'boom') addPoints(10); hitmark(false); SND.hit(); return false; }
   if(z.frozen > 0 && kind !== 'frost') dmg *= 3;
   z.hp -= dmg; STATS.hits++;
+  { // limbs: arms come off from enough gunfire, legs only from blasts (explosions, shotguns)
+    const blast = kind === 'boom' || kind === 'nuke' || (from ? !!hurtZombie.blast : FIRE_BLAST); hurtZombie.blast = false;
+    if(!z.dog && !z.boss && z.hp > 0 && limbBones(z.m)){
+      let part = at && kind !== 'boom' ? limbAt(z, at) : (kind === 'boom' && !z.crawl ? (Math.random() < .5 ? 'll' : 'rl') : null);
+      if(part){ z.lh = z.lh || {}; z.lh[part] = (z.lh[part] || 0) + dmg; const mh = z.maxHp || 150;
+        const leg = part[1] === 'l';
+        if((leg && blast && (z.lh[part] > mh * .25 || kind === 'boom') && Math.random() < (kind === 'boom' ? .55 : .35)) || (!leg && z.lh[part] > Math.max(90, mh * .3))){
+          const r = cutLimb(z, part); if(leg && kind === 'boom' && dmg > mh * .5) cutLimb(z, part === 'll' ? 'rl' : 'll');
+          if(r === 'kill'){ killZombie(z, false, kind, from); return true; } } } } }
   if(at){ bloodBurst(at, head ? 10 : 6, head); if(kind !== 'boom' && Math.random() < (head ? .7 : .3)) wallBlood(at, at.clone().sub(camL)); if(Math.random() < .25) floorBlood(z.m.root.position, .5); }
   if(z.hp <= 0){ killZombie(z, head, kind, from); return true; }
-  if(kind === 'boom' && !z.crawl && !z.dog && z.m.A && z.m.A.crawl && z.state === 'in' && Math.random() < .4){ z.crawl = 1; z.speed = Math.min(z.speed, .75); }
+  if(kind === 'boom' && !z.crawl && !z.dog && z.m.A && z.m.A.crawl && z.state === 'in' && !limbBones(z.m) && Math.random() < .4){ z.crawl = 1; z.speed = Math.min(z.speed, .75); }
   if(!from){ if(kind !== 'boom') addPoints(10); hitmark(false); SND.hit(); } if(!z.dog && Math.random() < .22) sfx('zpain', .45, z.m.root.position);
   return false;
 }
@@ -2071,7 +2118,7 @@ function fireGun(){
       const dir = fwd.clone(); const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * spread;
       const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion), up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
       dir.addScaledVector(right, Math.cos(a) * r).addScaledVector(up, Math.sin(a) * r).normalize();
-      hitscan(o, dir, st.dmg, d.head, d.pierce || 1, 'gun');
+      FIRE_BLAST = pellets > 1; hitscan(o, dir, st.dmg, d.head, d.pierce || 1, 'gun'); FIRE_BLAST = false;
     }
   }
   SND.gun(d.model, g.up);
@@ -2921,7 +2968,7 @@ function netMsg(m){
       NET.hostId = from; if(m.playing && G_STATE === 'menu'){ startGame(); for(const k of m.doors) if(DOORS[k] && !DOORS[k].open) openDoor(k, true); if(m.power && !power) powerOn(true); } break;
     case 'start': if(G_STATE === 'menu') startGame(); break;
     case 'z': netSnap(m); break;
-    case 'hit': if(NET.host){ const z = Z.find(q => q.id === m.id && !q.dead); if(z) hurtZombie(z, m.d, !!m.h, m.k, null, from); } break;
+    case 'hit': if(NET.host){ const z = Z.find(q => q.id === m.id && !q.dead); if(z){ hurtZombie.blast = !!m.b; hurtZombie(z, m.d, !!m.h, m.k, m.ax != null ? new THREE.Vector3(m.ax, m.ay, m.az) : null, from); } } break;
     case 'kill': { const z = Z.find(q => q.id === m.id); if(z && !z.dead) killZombie(z, !!m.h, m.k, m.by === NET.id ? null : m.by); break; }
     case 'hurt': hurtPlayer(m.d, m.x != null ? { x: m.x, z: m.z } : null); break;
     case 'trap': if(TRAPS[m.i]) trapOn(TRAPS[m.i]); break;
@@ -2939,7 +2986,7 @@ function netMsg(m){
 // host -> everyone: the zombies, the round and the barricades
 function netSnapSend(){
   const l = []; for(const z of Z){ if(z.dead) continue; if(!z.id) z.id = NET.zid++; const p = z.m.root.position;
-    l.push([z.id, z.m.bk || '', z.type, +p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2), +z.m.root.rotation.y.toFixed(2), z.atkT > 0 ? 1 : 0, z.crawl || 0, ['out', 'tear', 'climb', 'in'].indexOf(z.state), z.dog ? 1 : 0, z.boss ? 1 : 0, z.screamT > 0 ? 1 : 0, z.speed ? +z.speed.toFixed(1) : 1]); }
+    l.push([z.id, z.m.bk || '', z.type, +p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2), +z.m.root.rotation.y.toFixed(2), z.atkT > 0 ? 1 : 0, z.crawl || 0, ['out', 'tear', 'climb', 'in'].indexOf(z.state), z.dog ? 1 : 0, z.boss ? 1 : 0, z.screamT > 0 ? 1 : 0, z.speed ? +z.speed.toFixed(1) : 1, z.cut || 0]); }
   netSend({ t: 'z', r: RS.round, dg: DOGR.on ? 1 : 0, br: RS.breakT > 0 ? 1 : 0, wb: WINS.map(w => w.hp), l });
 }
 function netSnap(m){
@@ -2948,13 +2995,14 @@ function netSnap(m){
   if(m.br && !NET.br) SND.roundEnd(); NET.br = m.br;
   m.wb.forEach((hp, i) => { const w = WINS[i]; if(!w) return; while(w.hp < hp){ setBoard(w, w.hp, true); w.hp++; } while(w.hp > hp){ w.hp--; setBoard(w, w.hp, false, true); } });
   const seen = new Set(), t = performance.now();
-  for(const e of m.l){ const [id, bk, type, x, y, zz, ry, atk, crawl, st, dog, boss, scr, sp] = e; seen.add(id);
+  for(const e of m.l){ const [id, bk, type, x, y, zz, ry, atk, crawl, st, dog, boss, scr, sp, cut] = e; seen.add(id);
     let z = Z.find(q => q.id === id && q.net);
     if(!z){ const mm = dog ? dogMesh() : zombieMesh(type, bk); mm.root.position.set(x, y, zz); mm.root.rotation.y = ry;
       z = { net: true, id, m: mm, type, dog: !!dog, boss: !!boss, hp: 1, state: 'in', t: 0, atkT: 0, atkCD: 0, phase: Math.random() * 6, dead: false, groanT: rand(2, 6), wait: 0, speed: sp, np: new THREE.Vector3(x, y, zz), nry: ry };
       Z.push(z); if(boss && BOSSNAME[bk]) ann(...BOSSNAME[bk]); }
     z.np.set(x, y, zz); z.nry = ry; z.crawl = crawl; z.state = ['out', 'tear', 'climb', 'in'][st] || 'in'; z.speed = sp; z.seen = t;
-    if(atk && !z.na){ z.atkT = .45; z.swipeStart = true; } z.na = atk; if(scr && !z.screamT) z.screamT = 2.3; }
+    if(atk && !z.na){ z.atkT = .45; z.swipeStart = true; } z.na = atk;
+    if(cut && cut !== (z.cut || 0)) for(const k in LIMB_BIT) if((cut & LIMB_BIT[k]) && !((z.cut || 0) & LIMB_BIT[k])) cutLimb(z, k); if(scr && !z.screamT) z.screamT = 2.3; }
   for(let i = Z.length - 1; i >= 0; i--){ const z = Z[i]; if(z.net && !z.dead && !seen.has(z.id) && t - (z.seen || 0) > 600){ z.m.root.removeFromParent(); Z.splice(i, 1); } }
 }
 function netZombie(z, dt){
@@ -3004,7 +3052,7 @@ addEventListener('resize', checkRotate); setInterval(checkRotate, 1000);
 loadLB('#lb');
 $('#load').classList.add('hidden');
 requestAnimationFrame(frame);
-window.__iz = { SPARTS, TRAPS, LABEGG, NET, makeAvatar, ARMS, MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
+window.__iz = { cutLimb, limbBones, SPARTS, TRAPS, LABEGG, NET, makeAvatar, ARMS, MELEE, setMeleeVM, beastZombie, spawnGib, GIBS, ZIPS, PORTALS, crossRay, hitscan, get lastRaySegs(){ return lastRaySegs; }, get power(){ return power; }, hurtZombie, floorBlood, wallBlood, BANDS, STAIRS, groundY, MAPD: () => MAPD, camL, DOGR, skullHit, questKill, PARTS: () => PARTS, UPARTS: () => UPARTS, EGG: () => EGG, INTER, ARMS, vmRoot, vmScene, vmCam, giveGun, newGun, ASSETS, P, Z, RS, W, BOX, UPG, DOORS, BULBS, scene, renderer, THREE, PERF, get composer(){ return composer; }, startRound, openDoor, spawnZombie, applyPU, get state(){ return G_STATE; },
   tick(sec, fn){ const n = Math.round(sec * 30); for(let i = 0; i < n; i++){ if(fn) fn(i); now += 1/30; update(1/30); } draw(1/30); return { round: RS.round, alive: Z.filter(z => !z.dead).length, hp: P.hp, pts: P.points }; } };
 </script>
 <script>try{ if(matchMedia('(pointer: coarse)').matches && !matchMedia('(display-mode: fullscreen)').matches && !matchMedia('(display-mode: standalone)').matches && !navigator.standalone) document.getElementById('appTip').style.display = 'block'; }catch(e){}</script>
