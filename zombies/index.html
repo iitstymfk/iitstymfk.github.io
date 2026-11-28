@@ -1973,7 +1973,7 @@ function pushOut(pos, r){
   }
 }
 // flow field toward the player
-const DIST = new Int16Array(GW * GH); let flowCell = -1;
+const DIST = new Int32Array(GW * GH); let flowCell = -1;
 const PORT = {}; for(const st of STAIRS){ const a = st.top[1] * GW + st.top[0], b = st.landing[1] * GW + st.landing[0]; PORT[a] = [b, st, 1]; PORT[b] = [a, st, -1]; }
 // everyone the zombies can chase: you, plus co-op teammates
 let TGTS = [];
@@ -1981,25 +1981,32 @@ function targets(){ const L = [{ pos: P.pos, down: P.down || P.dead, zip: !!P.zi
   if(NET.on) for(const a of NET.peers.values()) if(a.pos && a.inGame) L.push({ pos: a.pos, down: a.down || a.dead, zip: a.zip, local: false, id: a.id, name: a.name });
   return L; }
 function nearestTgt(p){ let best = null, bd = 1e9; for(const t of TGTS){ if(t.down) continue; const d = Math.hypot(t.pos.x - p.x, t.pos.z - p.z) + (Math.abs(bandOfX(t.pos.x).lv - bandOfX(p.x).lv) ? 25 : 0); if(d < bd){ bd = d; best = t; } } return best || TGTS[0]; }
+// Dijkstra over the grid: straight step 10, diagonal 14, +6 next to a wall/prop so zombies don't scrape corners and get stuck
+let WALLPEN = null;
 function buildFlow(){
   const src = []; for(const t of TGTS){ if(t.down) continue; const x = cx(t.pos.x), z = cx(t.pos.z); if(inB(x, z)) src.push(z * GW + x); }
-  const id = src.join(','); if(id === flowCell && !flowDirty) return; flowCell = id; flowDirty = false;
-  DIST.fill(-1); if(!src.length) return; const q = [...src]; for(const c of src) DIST[c] = 0;
-  for(let h = 0; h < q.length; h++){
-    const c = q[h], x = c % GW, z = (c / GW) | 0, d = DIST[c];
+  const id = src.join(','); if(id === flowCell && !flowDirty) return; flowCell = id;
+  if(flowDirty || !WALLPEN){ WALLPEN = new Uint8Array(GW * GH); for(let z = 0; z < GH; z++) for(let x = 0; x < GW; x++){ if(solid(x, z)) continue; let n = 0; for(let dz = -1; dz <= 1; dz++) for(let dx = -1; dx <= 1; dx++) if((dx || dz) && solid(x + dx, z + dz)) n++; WALLPEN[z * GW + x] = n ? 6 : 0; } }
+  flowDirty = false;
+  DIST.fill(-1); if(!src.length) return;
+  const H = [], push = (c, d) => { H.push([d, c]); let i = H.length - 1; while(i > 0){ const pI = (i - 1) >> 1; if(H[pI][0] <= H[i][0]) break; [H[pI], H[i]] = [H[i], H[pI]]; i = pI; } };
+  const pop = () => { const top = H[0], last = H.pop(); if(H.length){ H[0] = last; let i = 0; for(;;){ const l = i * 2 + 1, r = l + 1; let m = i; if(l < H.length && H[l][0] < H[m][0]) m = l; if(r < H.length && H[r][0] < H[m][0]) m = r; if(m === i) break; [H[m], H[i]] = [H[i], H[m]]; i = m; } } return top; };
+  for(const c of src){ DIST[c] = 0; push(c, 0); }
+  while(H.length){ const [d, c] = pop(); if(d > DIST[c]) continue; const x = c % GW, z = (c / GW) | 0;
     for(let dz = -1; dz <= 1; dz++) for(let dx = -1; dx <= 1; dx++){
       if(!dx && !dz) continue; const nx = x + dx, nz = z + dz; if(!inB(nx, nz) || solid(nx, nz)) continue;
       if(dx && dz && (solid(x + dx, z) || solid(x, z + dz))) continue;
-      const ni = nz * GW + nx; if(DIST[ni] >= 0) continue; DIST[ni] = d + 1; q.push(ni);
-    }
-    const pt = PORT[c]; if(pt && DIST[pt[0]] < 0){ DIST[pt[0]] = d + 1; q.push(pt[0]); }
-  }
+      const ni = nz * GW + nx, nd = d + (dx && dz ? 14 : 10) + WALLPEN[ni]; if(DIST[ni] >= 0 && DIST[ni] <= nd) continue; DIST[ni] = nd; push(ni, nd); }
+    const pt = PORT[c]; if(pt){ const nd = d + 10; if(DIST[pt[0]] < 0 || DIST[pt[0]] > nd){ DIST[pt[0]] = nd; push(pt[0], nd); } } }
 }
+// can a zombie's body (radius r) walk straight from a to b? samples two side lines against walls, props and closed doors
+function clearPath(a, b, r = .3){ const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz); if(L < .05) return true; const ux = dx / L, uz = dz / L;
+  for(let t = .2; t < L; t += .35) for(const o of [-r, 0, r]){ const px = a.x + ux * t - uz * o, pz = a.z + uz * t + ux * o; if(solid(cx(px), cx(pz))) return false; } return true; }
 function zTarget(z){
   const TP = z.pl ? z.pl.pos : P.pos;
   const p = z.m.root.position; const x = cx(p.x), zz = cx(p.z);
   const dP = Math.hypot(TP.x - p.x, TP.z - p.z);
-  if(dP < 4.5 && los(tmpV2.set(p.x, 1.2, p.z), new THREE.Vector3(TP.x, 1.2, TP.z))) return TP;
+  if(dP < 6 && Math.abs(bandOfX(TP.x).lv - bandOfX(p.x).lv) === 0 && clearPath(p, TP, .26)) return TP;
   if(!inB(x, zz)) return TP;
   const ci = zz * GW + x; if(DIST[ci] < 0) return TP;
   let best = ci, bd = DIST[ci];
@@ -2013,12 +2020,22 @@ function zTarget(z){
     else { p.x = (st.top[0] + .5) * CELL + st.dir[0] * CELL * .3; p.z = (st.top[1] + .5) * CELL + st.dir[1] * CELL * .3; p.y = groundY(p); }
     return z.tgt = (z.tgt || new THREE.Vector3()).copy(p); }
   if(best === ci) return TP;
-  return z.tgt = (z.tgt || new THREE.Vector3()).set(((best % GW) + .5) * CELL, 0, (((best / GW) | 0) + .5) * CELL);
+  // look ahead down the flow and aim at the farthest cell we can walk to in a straight line: smooth paths instead of cell-to-cell zigzags
+  let far = best, c = best;
+  for(let k = 0; k < 5; k++){ const x2 = c % GW, z2 = (c / GW) | 0; let nb = c, nd = DIST[c];
+    for(let dz = -1; dz <= 1; dz++) for(let dx = -1; dx <= 1; dx++){ if(!dx && !dz) continue; const nx = x2 + dx, nz = z2 + dz; if(!inB(nx, nz) || solid(nx, nz)) continue; if(dx && dz && (solid(x2 + dx, z2) || solid(x2, z2 + dz))) continue; const ni = nz * GW + nx; if(DIST[ni] >= 0 && DIST[ni] < nd){ nd = DIST[ni]; nb = ni; } }
+    if(nb === c || PORT[nb]) break; tmpV2.set(((nb % GW) + .5) * CELL, 0, (((nb / GW) | 0) + .5) * CELL); if(!clearPath(p, tmpV2)) break; far = c = nb; }
+  return z.tgt = (z.tgt || new THREE.Vector3()).set(((far % GW) + .5) * CELL, 0, (((far / GW) | 0) + .5) * CELL);
 }
 function moveToward(z, target, speed, dt){
-  const p = z.m.root.position; const dx = target.x - p.x, dz = target.z - p.z, d = Math.hypot(dx, dz);
-  if(d > .01){ const k = Math.min(d, speed * dt) / d; p.x += dx * k; p.z += dz * k;
-    const want = Math.atan2(dx, dz); let diff = want - z.m.root.rotation.y; diff = Math.atan2(Math.sin(diff), Math.cos(diff)); z.m.root.rotation.y += diff * Math.min(1, dt * 8); }
+  const p = z.m.root.position; let dx = target.x - p.x, dz = target.z - p.z; const d = Math.hypot(dx, dz);
+  if(z.side > 0){ z.side -= dt; const ox = -dz / (d || 1) * z.sideS * 1.2 * (d || 1), oz = dx / (d || 1) * z.sideS * 1.2 * (d || 1); dx += ox; dz += oz; } // stuck: sidestep around whatever is in the way
+  if(d > .01){
+    // steer: the walking direction turns smoothly instead of snapping, so the body never flicks left-right
+    const L = Math.hypot(dx, dz) || 1, wx = dx / L, wz = dz / L; if(!z.dir) z.dir = { x: wx, z: wz };
+    const k1 = Math.min(1, dt * 7); z.dir.x += (wx - z.dir.x) * k1; z.dir.z += (wz - z.dir.z) * k1; const dl = Math.hypot(z.dir.x, z.dir.z) || 1; z.dir.x /= dl; z.dir.z /= dl;
+    const st = Math.min(d, speed * dt); p.x += z.dir.x * st; p.z += z.dir.z * st;
+    const want = Math.atan2(z.dir.x, z.dir.z); let diff = want - z.m.root.rotation.y; diff = Math.atan2(Math.sin(diff), Math.cos(diff)); z.m.root.rotation.y += diff * Math.min(1, dt * 6); }
   return d;
 }
 // Play the prisoner's animations on another Mixamo body. Their bones have different local axes, so each rotation key is
@@ -2059,7 +2076,7 @@ function prisonerZombie(type, bi){
 }
 // a zombie with its OWN animation set (putrid zombie, Shroudling). cfg.map: role -> clip name(s)
 const BEAST = {
-  putrid: { yaw: Math.PI, walkRef: .42, runRef: 2.4, map: { walk: ['Walk', 'Walk2', 'Walk4'], run: ['Walk3'], swipe: ['Attack', 'Attack2'], die: ['Death', 'Death2', 'Death3'], stumble: ['Hurt'], idle: ['Idle'] } },
+  putrid: { yaw: Math.PI, walkRef: .62, runRef: 2.4, map: { walk: ['Walk', 'Walk2', 'Walk4'], run: ['Walk3'], swipe: ['Attack', 'Attack2'], die: ['Death', 'Death2', 'Death3'], stumble: ['Hurt'], idle: ['Idle'] } },
   flan: { walkRef: .33, runRef: 3, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack'], die: ['Death', 'Dying'], stumble: ['Scream'], idle: ['Idle'], scream: ['Scream'], crawl: ['Crawl'], crawlrun: ['Running Crawl', 'Running_Crawl'] } },
   brute: { walkRef: .8, runRef: 2.8, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack'], die: ['Death'], stumble: ['Hit'], idle: ['Idle'] } },
   hollow: { walkRef: .9, runRef: 3.6, map: { walk: ['Walking'], run: ['Running', 'Run_03'], swipe: ['Skill_01'], die: ['BeHit_FlyUp'], stumble: ['BeHit_FlyUp'], idle: ['Walking'] } },
@@ -2119,8 +2136,8 @@ function animSkel(z, dt, moving){
   else if(m.cur === m.A.swipe && m.A.swipe.isRunning() && m.A.swipe.time < m.A.swipe.getClip().duration * .62){ /* let the swipe finish */ }
   else if(z.screamT > 0 && m.A.scream){ zPlay(m, 'scream', .2, 1); }
   else if(z.crawl && m.A.crawl){ const k = z.crawl === 2 ? 'crawlrun' : 'crawl'; zPlay(m, k, .3, 1); if(m.cur === m.A[k]) m.cur.timeScale = moving ? (z.crawl === 2 ? z.speed / 1.9 : z.speed / .39) : .2; }
-  else if(z.type){ const rr = m.runRef || 1.62; zPlay(m, 'run', .25, moving ? z.speed / rr : .3); if(m.cur === m.A.run) m.cur.timeScale = moving ? z.speed / rr : .3; }
-  else { zPlay(m, 'walk', .25, 1); if(m.cur === m.A.walk) m.cur.timeScale = moving ? z.speed / (m.walkRef || .5) : .35; }
+  else if(z.type){ const rr = m.runRef || 1.62; zPlay(m, 'run', .25, moving ? Math.min(1.6, z.speed / rr) : .3); if(m.cur === m.A.run) m.cur.timeScale = moving ? Math.min(1.6, z.speed / rr) : .3; }
+  else { zPlay(m, 'walk', .25, 1); if(m.cur === m.A.walk) m.cur.timeScale = moving ? Math.min(1.5, z.speed / (m.walkRef || .5)) : .35; } // capped: a slow shamble clip played at 2-3x looked like shaking
   m.mixer.update(dt); keepCuts(z);
 }
 function animZombie(z, dt, moving){
@@ -2191,12 +2208,14 @@ function updZombies(dt){
       const tg = zTarget(z), TP = z.pl.pos;
       const dP = Math.hypot(TP.x - p.x, TP.z - p.z);
       if(z.screamT > 0){ z.screamT -= dt; moving = false; z.m.root.rotation.y = Math.atan2(TP.x - p.x, TP.z - p.z); }
-      else if(dP > .85 && !z.pl.down) moveToward(z, tg, z.speed * (z.atkT > 0 ? .3 : 1), dt); else { moving = false; z.m.root.rotation.y = Math.atan2(TP.x - p.x, TP.z - p.z); }
+      else if(dP > .85 && !z.pl.down){ moveToward(z, tg, z.speed * (z.atkT > 0 ? .3 : 1), dt);
+        z.stT = (z.stT || 0) + dt; if(z.stT > 1.2){ const moved = z.stP ? Math.hypot(p.x - z.stP.x, p.z - z.stP.z) : 9; if(moved < .25 * z.speed * z.stT && dP > 1.6 && z.atkT <= 0){ z.side = .8; z.sideS = Math.random() < .5 ? 1 : -1; } z.stT = 0; z.stP = { x: p.x, z: p.z }; } }
+      else { moving = false; const want = Math.atan2(TP.x - p.x, TP.z - p.z); let diff = want - z.m.root.rotation.y; diff = Math.atan2(Math.sin(diff), Math.cos(diff)); z.m.root.rotation.y += diff * Math.min(1, dt * 8); }
       if(STAIRS.length) p.y = groundY(p);
       if(m.bk === 'brute' && (z.sawT = (z.sawT || 0) - dt) <= 0 && dP < 14){ z.sawT = rand(.5, 1.1); tn({ f: rand(70, 95), f2: rand(110, 160), type: 'sawtooth', dur: .45, vol: .05 * (1 - dP / 14) + .01 }); }
       if(dP < (z.dog ? 1.0 : m.bk === 'brute' ? 1.5 : 1.15) && z.atkCD <= 0 && !z.pl.down && !z.pl.zip){ z.atkT = z.dog ? .25 : .45; z.swipeStart = true; if(!z.dog && Math.random() < .6) sfx('zatk', .6, p); z.atkCD = z.dog ? .75 : 1.15; z.swipe = true; }
       // separation
-      for(const o of Z){ if(o === z || o.dead || o.state !== 'in') continue; const op = o.m.root.position; const dx = p.x - op.x, dz = p.z - op.z, d = Math.hypot(dx, dz); if(d < .55 && d > 1e-4){ const push = (.55 - d) * .5; p.x += dx / d * push; p.z += dz / d * push; } }
+      for(const o of Z){ if(o === z || o.dead || o.state !== 'in') continue; const op = o.m.root.position; const dx = p.x - op.x, dz = p.z - op.z, d = Math.hypot(dx, dz); if(d < .55 && d > 1e-4){ const push = Math.min(.55 - d, dt * 2.5) * .5; p.x += dx / d * push; p.z += dz / d * push; } } // gentle: a crowd shuffles apart instead of jittering
       pushOut(p, .28);
       // keep player from walking through zombies
       const pdx = P.pos.x - p.x, pdz = P.pos.z - p.z, pd = Math.hypot(pdx, pdz); if(pd < .58 && pd > 1e-4){ P.pos.x += pdx / pd * (.58 - pd); P.pos.z += pdz / pd * (.58 - pd); pushOut(P.pos, .3); }
