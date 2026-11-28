@@ -298,7 +298,7 @@ function prepDog(g){
     m.color && m.color.setRGB(.17, .1, .08); if(m.emissive){ m.emissive.set(0x4a0e02); m.emissiveIntensity = .3; } m.roughness = .85; m.metalness = 0; m.envMapIntensity = .25; } });
 }
 function fitTo(o, size, axis){ o.updateMatrixWorld(true); const b = new THREE.Box3().setFromObject(o), v = b.getSize(new THREE.Vector3()); o.scale.multiplyScalar(size / (axis === 'y' ? v.y : Math.max(v.x, v.y, v.z))); return o; }
-function lockPtr(){ try{ const r = canvas.requestPointerLock?.(); if(r && r.catch) r.catch(() => {}); }catch{} }
+function lockPtr(){ if(isTouch) return; try{ const r = canvas.requestPointerLock?.(); if(r && r.catch) r.catch(() => {}); }catch{} }
 try{ await Promise.race([Promise.all(['40px Creepster', '700 40px Oswald', '600 22px Oswald'].map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 2500))]); }catch{}
 function disposeTree(o){ o.traverse(c => { if(c.geometry) c.geometry.dispose(); }); }
 
@@ -2286,7 +2286,7 @@ addEventListener('mouseup', e => { if(e.button === 0){ P.firing = false; P.semi 
 addEventListener('mousemove', e => { if(document.pointerLockElement === canvas && G_STATE === 'play'){ const s = .0022 * opts.sens * (P.ads > .5 ? (gs(P.guns[P.gi] || { k: 'pistol' }).d.scope ? .35 : .7) : 1); P.yaw -= e.movementX * s; P.pitch -= e.movementY * s; } });
 addEventListener('wheel', e => { if(G_STATE === 'play') swapGun(); });
 addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('pointerlockchange', () => { if(!isTouch && document.pointerLockElement !== canvas && G_STATE === 'play') pause(); });
+document.addEventListener('pointerlockchange', () => { if(isTouch && document.pointerLockElement){ document.exitPointerLock?.(); return; } if(!isTouch && document.pointerLockElement !== canvas && G_STATE === 'play') pause(); });
 document.addEventListener('visibilitychange', () => { if(document.hidden && G_STATE === 'play') pause(); });
 // touch
 const joy = { id: null, ox: 0, oy: 0, x: 0, y: 0 }; const lookIds = new Map();
@@ -2320,7 +2320,7 @@ function startGame(){
   $('#menu').classList.add('hidden'); $('#hud').classList.remove('hidden'); if(isTouch) $('#touch').classList.remove('hidden');
   const asApp = matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   if(isTouch && !asApp){ document.documentElement.requestFullscreen?.().catch(() => {}); screen.orientation?.lock?.('landscape').catch(() => {}); }
-  else lockPtr();
+  else if(!isTouch) lockPtr();
   P.guns = [newGun('pistol')]; P.gi = 0; setVM(); hudGun(); hudPts(); hudPerks();
   const SP = MAPD.spawn || { x: 1, z: 1 }; P.pos.copy(wpos(SP.x, SP.z)); P.yaw = SP.yaw != null ? SP.yaw : Math.PI;
   if(!POWER && !power){ power = true; setBulbColors(); perkSigns(); hemi.intensity = .9; } P.pitch = 0; P.hp = 100;
