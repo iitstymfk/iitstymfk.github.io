@@ -1842,8 +1842,8 @@ function prisonerZombie(type, bi){
 }
 // a zombie with its OWN animation set (putrid zombie, Shroudling). cfg.map: role -> clip name(s)
 const BEAST = {
-  putrid: { walkRef: .42, runRef: 2.4, map: { walk: ['Walk', 'Walk2', 'Walk4'], run: ['Walk3'], swipe: ['Attack', 'Attack2'], die: ['Death', 'Death2', 'Death3'], stumble: ['Hurt'], idle: ['Idle'] } },
-  flan: { walkRef: .33, runRef: 3, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack'], die: ['Death', 'Dying'], stumble: ['Scream'], idle: ['Idle'], scream: ['Scream'], crawl: ['Crawl'], crawlrun: ['Running Crawl'] } },
+  putrid: { yaw: Math.PI, walkRef: .42, runRef: 2.4, map: { walk: ['Walk', 'Walk2', 'Walk4'], run: ['Walk3'], swipe: ['Attack', 'Attack2'], die: ['Death', 'Death2', 'Death3'], stumble: ['Hurt'], idle: ['Idle'] } },
+  flan: { walkRef: .33, runRef: 3, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack'], die: ['Death', 'Dying'], stumble: ['Scream'], idle: ['Idle'], scream: ['Scream'], crawl: ['Crawl'], crawlrun: ['Running Crawl', 'Running_Crawl'] } },
   brute: { walkRef: .8, runRef: 2.8, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack'], die: ['Death'], stumble: ['Hit'], idle: ['Idle'] } },
   hollow: { walkRef: .9, runRef: 3.6, map: { walk: ['Walking'], run: ['Running', 'Run_03'], swipe: ['Skill_01'], die: ['BeHit_FlyUp'], stumble: ['BeHit_FlyUp'], idle: ['Walking'] } },
   shroud: { yaw: Math.PI / 2, walkRef: .6, runRef: 3.1, map: { walk: ['Walk'], run: ['Run'], swipe: ['Attack1', 'Attack2'], die: ['Death'], stumble: ['Idle'], idle: ['Idle'], scream: ['Rage'] } },
@@ -1855,7 +1855,7 @@ function beastZombie(key, type){
   model.traverse(o => { if(o.isBone && /Head$|Head_\d+$/.test(o.name) && !headBone) headBone = o; });
   const head = new THREE.Object3D(); if(headBone){ const nub = headBone.children.find(c => c.isBone); if(nub) head.position.copy(nub.position).multiplyScalar(.5); } (headBone || model).add(head);
   const mixer = new THREE.AnimationMixer(model), A = {}, C = n => G.animations.find(a => a.name === n);
-  for(const k in cfg.map){ const c = C(pick(cfg.map[k])); if(c) A[k] = mixer.clipAction(c); }
+  for(const k in cfg.map){ const ok = cfg.map[k].filter(C); const c = ok.length ? C(pick(ok)) : null; if(c) A[k] = mixer.clipAction(c); }
   for(const k of ['swipe', 'die', 'stumble', 'scream']) if(A[k]){ A[k].setLoop(THREE.LoopOnce); A[k].clampWhenFinished = true; }
   const sh = new THREE.Mesh(ZG.shadow, ZM.shadow); sh.scale.setScalar(key === 'shroud' || key === 'hollow' ? 1.2 : .9); sh.position.y = .02; root.add(sh);
   if(key === 'shroud'){ const gl = glowSprite(0xff2a10, 1.1, .12); gl.position.y = 1.2; root.add(gl); }
@@ -2302,7 +2302,7 @@ if(isTouch){
   tbtn('#tAuto', () => { opts.autoFire = opts.autoFire ? 0 : 1; LS.set('autoFire', opts.autoFire); $('#sAuto').checked = !!opts.autoFire; applyBtns(); msg('Auto-fire ' + (opts.autoFire ? 'ON' : 'OFF')); buzz(15); });
   const lz = $('#lookZone');
   lz.addEventListener('pointerdown', e => { e.preventDefault(); audio(); try { lz.setPointerCapture(e.pointerId); } catch(err){}
-    if(e.clientX < innerWidth * .42 && joy.id == null){ joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; joy.x = joy.y = 0; const b = $('#joyBase'); b.style.display = 'block'; b.style.left = e.clientX + 'px'; b.style.top = e.clientY + 'px'; $('#joyKnob').style.transform = ''; }
+    if(e.clientX < innerWidth * .42){ if(joy.id != null && joy.id !== e.pointerId) lookIds.delete(joy.id); /* a lost finger-up can't lock the stick any more */ joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY; joy.x = joy.y = 0; const b = $('#joyBase'); b.style.display = 'block'; b.style.left = e.clientX + 'px'; b.style.top = e.clientY + 'px'; $('#joyKnob').style.transform = ''; }
     else lookIds.set(e.pointerId, { x: e.clientX, y: e.clientY }); });
   lz.addEventListener('pointermove', e => {
     if(e.pointerId === joy.id){ let dx = e.clientX - joy.ox, dy = e.clientY - joy.oy; const L = Math.hypot(dx, dy), mx = 55; if(L > mx){ dx *= mx / L; dy *= mx / L; } joy.x = dx / mx; joy.y = dy / mx; $('#joyKnob').style.transform = `translate(${dx}px,${dy}px)`; return; }
@@ -2315,7 +2315,7 @@ document.addEventListener('touchmove', e => { if(G_STATE === 'play') e.preventDe
 /* ================= game flow ================= */
 let G_STATE = 'menu', now = 0;
 function startGame(){
-  audio(); startAmbient();
+  audio(); startAmbient(); resetJoy();
   opts.name = $('#nm').value.trim().slice(0, 20); LS.set('name', opts.name);
   $('#menu').classList.add('hidden'); $('#hud').classList.remove('hidden'); if(isTouch) $('#touch').classList.remove('hidden');
   const asApp = matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone;
@@ -2335,7 +2335,8 @@ function startRound(r){
   drawRound(r); SND.roundStart();
 }
 function pause(){ if(G_STATE !== 'play') return; G_STATE = 'pause'; if(NET.on) msg('Co-op: the game keeps going while paused'); P.firing = false; P.adsHeld = false; useHeld = false; for(const k in keys) keys[k] = false; $('#pause').classList.remove('hidden'); if(AC) AC.suspend(); }
-function resume(){ $('#pause').classList.add('hidden'); G_STATE = 'play'; if(AC) AC.resume(); if(!isTouch) lockPtr(); }
+function resetJoy(){ if(!isTouch) return; joy.id = null; joy.x = joy.y = 0; lookIds.clear(); const b = $('#joyBase'); if(b) b.style.display = 'none'; }
+function resume(){ resetJoy(); $('#pause').classList.add('hidden'); G_STATE = 'play'; if(AC) AC.resume(); if(!isTouch) lockPtr(); }
 { const sel = $('#mapSel'); let all = {}; try{ all = JSON.parse(localStorage.getItem('iz_maps') || '{}'); }catch(e){}
   const esc = t => String(t || 'Untitled').replace(/[<&]/g, c => c === '<' ? '&lt;' : '&amp;');
   sel.innerHTML = '<option value="">Iitsty Outpost</option><option value="lab">Black Site Lab</option>' + Object.entries(all).map(([k, m]) => `<option value="${esc(k)}">${esc(m.name)}</option>`).join('');
