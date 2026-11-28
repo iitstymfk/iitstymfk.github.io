@@ -260,7 +260,7 @@ if(isTouch) document.body.classList.add('touch');
 const opts = { sens: LS.get('sens', 1), vol: LS.get('vol', 0.8), quality: LS.get('quality2', 'high'), name: LS.get('name', ''),
   assist: LS.get('assist', 1), autoFire: LS.get('autoFire', 0), bsize: LS.get('bsize', 1), bop: LS.get('bop', 1), haptic: LS.get('haptic', 1) };
 // phone buzz (Android; iPhones ignore it)
-const buzz = ms => { if(isTouch && opts.haptic && navigator.vibrate) try { navigator.vibrate(ms); } catch(e){} };
+const buzz = ms => { if(isTouch && opts.haptic && navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) try { navigator.vibrate(ms); } catch(e){} };
 const QL = { ultra: 3, high: 2, med: 1, low: 0 }[opts.quality] ?? 2;
 const HQ = QL >= 2, LQ = QL === 0, POST = QL >= 1, SHADOWS = QL >= 2;
 const BASE_PR = Math.min(devicePixelRatio, [1, 1.25, 1.5, 2][QL]);
@@ -338,6 +338,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure
 renderer.autoClear = false;
 renderer.setPixelRatio(BASE_PR);
 if(SHADOWS){ renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
+const CAMP = new URLSearchParams(location.search).get('map') === 'camp'; // Ashwood Camp: the outdoor map
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x05070b);
 const FOGC = CAMP ? 0x0c1220 : 0x06080c;
 scene.fog = new THREE.FogExp2(FOGC, CAMP ? 0.045 : 0.055); if(CAMP) scene.background = new THREE.Color(0x0a0f18);
@@ -436,7 +437,6 @@ function textTex(lines, w, h, opt = {}){
 
 /* ================= materials ================= */
 const LAB = new URLSearchParams(location.search).get('map') === 'lab';
-const CAMP = new URLSearchParams(location.search).get('map') === 'camp'; // Ashwood Camp: the outdoor map
 function mat(p){
   if(LQ){ const q = { ...p }; delete q.metalness; delete q.roughness; return new THREE.MeshLambertMaterial(q); }
   return new THREE.MeshStandardMaterial(p);
